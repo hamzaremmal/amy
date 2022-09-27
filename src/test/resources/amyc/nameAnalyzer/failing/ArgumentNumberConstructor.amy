@@ -1,0 +1,5 @@
+object Args
+  abstract class Foo
+  case class Bar(i: Int(32), j: Int(32)) extends Foo
+  fn foo(i: Int(32)): Foo = { Bar(i, i, i) }
+end Args

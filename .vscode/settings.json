@@ -1,0 +1,11 @@
+{
+    "files.autoSave": "afterDelay",
+    "files.autoSaveDelay": 300,
+    // Avoid having to press Enter twice after entering a keyword to get a newline
+    "editor.acceptSuggestionOnEnter": "smart",
+    // Auto-added by metals
+    "files.watcherExclude": {
+      "**/target": true
+    },
+    "metals.fallbackScalaVersion": "3.1.3"
+  }

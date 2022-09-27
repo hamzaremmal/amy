@@ -1,0 +1,40 @@
+object O
+  abstract class Option
+  case class None() extends Option
+  case class Some(v: Int(32)) extends Option
+
+  fn isDefined(o: Option): Boolean = {
+    o match {
+      case None() => false
+      case _ => true
+    }
+  }
+
+  fn get(o: Option): Int(32) = {
+    o match {
+      case Some(i) => i
+      case None() => error("get(None)")
+    }
+  }
+
+  fn getOrElse(o: Option, i: Int(32)): Int(32) = {
+    o match {
+      case None() => i
+      case Some(oo) => oo
+    }
+  }
+
+  fn orElse(o1: Option, o2: Option): Option = {
+    o1 match {
+      case Some(_) => o1
+      case None() => o2
+    }
+  }
+
+  fn toList(o: Option): L.List = {
+    o match {
+      case Some(i) => L.Cons(i, L.Nil())
+      case None() => L.Nil()
+    }
+  }
+end O

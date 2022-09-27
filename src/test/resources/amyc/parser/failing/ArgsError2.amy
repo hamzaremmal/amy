@@ -1,0 +1,3 @@
+object Args
+  foo(bar baz)
+end Args

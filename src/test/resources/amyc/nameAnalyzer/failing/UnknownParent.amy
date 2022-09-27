@@ -1,0 +1,3 @@
+object Parent
+  case class Foo() extends Bar
+end Parent
