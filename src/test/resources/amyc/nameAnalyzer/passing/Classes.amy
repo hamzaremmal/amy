@@ -1,0 +1,13 @@
+object Classes
+  abstract class Foo
+  case class Bar() extends Foo
+  case class Baz(i: Int(32), f: Foo) extends Foo
+
+  fn foo(f: Foo): Foo = {
+    f match {
+      case Bar() => Bar()
+      case Baz(_, Bar()) => Baz(0, Baz(0, Bar()))
+      case Baz(1, Baz(j, ff)) => Baz(j, Baz(1, Bar()))
+    }
+  }
+end Classes

@@ -1,0 +1,3 @@
+object SeqError
+  1 + true; false
+end SeqError

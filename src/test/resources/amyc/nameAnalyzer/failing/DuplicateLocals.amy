@@ -1,0 +1,7 @@
+object Locals
+  fn foo(): Int(32) = {
+    val i: Int(32) = 42;
+    val i: Boolean = true;
+    43
+  }
+end Locals

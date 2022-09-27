@@ -1,0 +1,3 @@
+object WrongQName
+  abstract class Foo.bar
+end WrongQName
