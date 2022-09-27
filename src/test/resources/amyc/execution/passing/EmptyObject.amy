@@ -1,0 +1,3 @@
+object EmptyObject
+
+end EmptyObject

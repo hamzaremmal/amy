@@ -1,0 +1,3 @@
+object Foo
+  fn foo(): Bar.Baz = { 42 }
+end Foo

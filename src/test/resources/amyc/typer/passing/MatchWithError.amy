@@ -1,0 +1,6 @@
+object Match2
+  val a: Int(32) = 1 match {
+    case x => error("")
+  };
+  a
+end Match2

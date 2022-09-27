@@ -1,0 +1,4 @@
+object ClassParams
+  abstract class Foo
+  case class Bar(v: Int(32), v: Int(32)) extends Foo
+end ClassParams
