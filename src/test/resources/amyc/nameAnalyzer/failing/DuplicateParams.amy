@@ -1,0 +1,3 @@
+object Params
+  fn foo(i: Int(32), i: Boolean): Int(32) = { i }
+end Params
