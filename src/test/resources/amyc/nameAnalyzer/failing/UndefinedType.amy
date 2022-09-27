@@ -1,0 +1,3 @@
+object UndefinedType
+  fn foo(): SomeType = { 42 }
+end UndefinedType

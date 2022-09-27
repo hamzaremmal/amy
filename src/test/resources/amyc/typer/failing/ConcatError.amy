@@ -1,0 +1,3 @@
+object ConcatError
+  1 ++ ""
+end ConcatError

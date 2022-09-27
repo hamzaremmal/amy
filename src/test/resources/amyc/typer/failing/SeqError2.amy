@@ -1,0 +1,3 @@
+object SeqError
+  val x: Boolean = 1; 2; x
+end SeqError

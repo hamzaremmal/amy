@@ -1,0 +1,8 @@
+object Locals
+  fn foo(): Int(32) = {
+    val i: Int(32) = 42;
+    i match {
+      case i => 0
+    }
+  }
+end Locals

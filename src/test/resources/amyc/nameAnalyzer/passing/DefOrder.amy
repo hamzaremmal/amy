@@ -1,0 +1,6 @@
+object DefOrder
+  fn bar(): Foo = { foo() }
+  fn foo(): Foo = { Bar(42) }
+  case class Bar(i: Int(32)) extends Foo
+  abstract class Foo
+end DefOrder
