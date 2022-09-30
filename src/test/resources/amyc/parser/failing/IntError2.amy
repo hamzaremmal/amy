@@ -1,3 +1,0 @@
-object IntError 
-  fn foo(): Int(64) = { 42 }
-end IntError

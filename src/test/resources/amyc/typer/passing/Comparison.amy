@@ -1,7 +1,0 @@
-object Comparison
-  val b1: Boolean = 1 <= 2;
-  val b2: Boolean = 2 < 3;
-  val c1: Boolean = b1 && b2;
-  val c2: Boolean = b1 || b2;
-  c1 == !c2
-end Comparison

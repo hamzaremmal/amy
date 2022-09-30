@@ -1,4 +1,0 @@
-object DefNames
-  abstract class Foo
-  case class Foo() extends Foo
-end DefNames
