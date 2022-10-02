@@ -62,59 +62,62 @@ object Interpreter extends Pipeline[(Program, SymbolTable), Unit] {
     }
 
     // Interprets a function, using evaluations for local variables contained in 'locals'
-    // TODO: Complete all missing cases. Look at the given ones for guidance.
     def interpret(expr: Expr)(implicit locals: Map[Identifier, Value]): Value = {
       expr match {
         case Variable(name) =>
-          ???
-        case IntLiteral(i) =>
-          ???
-        case BooleanLiteral(b) =>
-          ???
-        case StringLiteral(s) =>
-          ???
-        case UnitLiteral() =>
-          ???
-        case Plus(lhs, rhs) =>
-          IntValue(interpret(lhs).asInt + interpret(rhs).asInt)
-        case Minus(lhs, rhs) =>
-          ???
-        case Times(lhs, rhs) =>
-          ???
-        case Div(lhs, rhs) =>
-          ???
-        case Mod(lhs, rhs) =>
-          ???
-        case LessThan(lhs, rhs) =>
-          ???
-        case LessEquals(lhs, rhs) =>
-          ???
-        case And(lhs, rhs) =>
-          ???
-        case Or(lhs, rhs) =>
-          ???
+          // TODO : is Name <: Identifier ?
+          locals.get(name) match
+            case Some(value) => value
+            case None =>
+              ctx.reporter.fatal(s"variable '$name' is not in scope or defined")
+        case IntLiteral(i) => IntValue(i)
+        case BooleanLiteral(b) => BooleanValue(b)
+        case StringLiteral(s) => StringValue(s)
+        case UnitLiteral() => UnitValue
+        case Plus(lhs, rhs) => IntValue(interpret(lhs).asInt + interpret(rhs).asInt)
+        case Minus(lhs, rhs) => IntValue(interpret(lhs).asInt - interpret(rhs).asInt)
+        case Times(lhs, rhs) => IntValue(interpret(lhs).asInt * interpret(rhs).asInt)
+        case Div(lhs, rhs) => IntValue(interpret(lhs).asInt / interpret(rhs).asInt)
+        case Mod(lhs, rhs) => IntValue(interpret(lhs).asInt % interpret(rhs).asInt)
+        case LessThan(lhs, rhs) => BooleanValue(interpret(lhs).asInt < interpret(rhs).asInt)
+        case LessEquals(lhs, rhs) => BooleanValue(interpret(lhs).asInt <= interpret(rhs).asInt)
+        case And(lhs, rhs) => IntValue(interpret(lhs).asInt & interpret(rhs).asInt)
+        case Or(lhs, rhs) => BooleanValue(interpret(lhs).asBoolean | interpret(rhs).asBoolean)
         case Equals(lhs, rhs) =>
-          ??? // Hint: Take care to implement Amy equality semantics
-          
-        case Concat(lhs, rhs) =>
-          ???
-        case Not(e) =>
-          ???
-        case Neg(e) =>
-          ???
+          // Hint: Take care to implement Amy equality semantics
+          BooleanValue(interpret(lhs) == interpret(rhs))
+        case Concat(lhs, rhs) => StringValue(interpret(lhs).toString ++ interpret(rhs).toString)
+        case Not(e) => BooleanValue(! interpret(e).asBoolean)
+        case Neg(e) => IntValue(-interpret(e).asInt)
         case Call(qname, args) =>
-          ???
-          // Hint: Check if it is a call to a constructor first,
-          //       then if it is a built-in function (otherwise it is a normal function).
-          //       Use the helper methods provided above to retrieve information from the symbol table.
-          //       Think how locals should be modified.
-          
+          if isConstructor(qname) then
+            val arg_values = args.map(interpret(_))
+            CaseClassValue(qname, arg_values)
+          else
+            val owner = findFunctionOwner(qname)
+            builtIns.get((owner, qname.name)) match
+              case Some(f) =>
+                val arg_values = args.map(interpret(_))
+                f(arg_values)
+              case None =>
+                // Find function to execute
+                val f = findFunction(owner, qname.name);
+                // Build new arguments
+                val arg_val = (f.params.map(_.name) zip args.map(interpret(_))).toMap
+                val lookup = locals ++ arg_val
+                interpret(f.body)(using lookup)
+        // Hint: Check if it is a call to a constructor first,
+        //       then if it is a built-in function (otherwise it is a normal function).
+        //       Use the helper methods provided above to retrieve information from the symbol table.
+        //       Think how locals should be modified.
         case Sequence(e1, e2) =>
-          ???
+          interpret(e1)
+          interpret(e2)
         case Let(df, value, body) =>
-          ???
-        case Ite(cond, thenn, elze) =>
-          ???
+          val df_val = interpret(value)
+          val locals_n = locals + (df.name ->  df_val)
+          interpret(body)(using locals_n)
+        case Ite(cond, thenn, elze) => if interpret(cond).asBoolean then interpret(thenn) else interpret(elze)
         case Match(scrut, cases) =>
           // Hint: We give you a skeleton to implement pattern matching
           //       and the main body of the implementation
@@ -126,20 +129,33 @@ object Interpreter extends Pipeline[(Program, SymbolTable), Unit] {
           // Returns None when the pattern fails to match.
           // Note: Only works on well typed patterns (which have been ensured by the type checker).
           def matchesPattern(v: Value, pat: Pattern): Option[List[(Identifier, Value)]] = {
+            println(v -> pat)
+            Console.flush()
             ((v, pat): @unchecked) match {
               case (_, WildcardPattern()) =>
+                println("1")
                 ???
               case (_, IdPattern(name)) =>
-                Some(List(name -> v))
+                println("2")
+                ???
               case (IntValue(i1), LiteralPattern(IntLiteral(i2))) =>
+
+                println("3")
                 ???
               case (BooleanValue(b1), LiteralPattern(BooleanLiteral(b2))) =>
-                ??? 
+                println("4")
+                ???
               case (StringValue(_), LiteralPattern(StringLiteral(_))) =>
+                println("5")
                 ???
               case (UnitValue, LiteralPattern(UnitLiteral())) =>
+                println("6")
                 ???
               case (CaseClassValue(con1, realArgs), CaseClassPattern(con2, formalArgs)) =>
+                println(s"con1 = $con1 , realArgs = $realArgs")
+                println(s"con2 = $con2 , formalArgs = $formalArgs")
+                Some((formalArgs zip realArgs))
+                println("7")
                 ???
             }
           }
@@ -155,9 +171,9 @@ object Interpreter extends Pipeline[(Program, SymbolTable), Unit] {
           // No case matched: The program fails with a match error
           ctx.reporter.fatal(s"Match error: ${evS.toString}@${scrut.position}")
 
-          
+
         case Error(msg) =>
-          ???
+          ctx.reporter.fatal(interpret(msg).asString)
       }
     }
 
