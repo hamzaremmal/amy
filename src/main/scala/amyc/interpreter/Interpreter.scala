@@ -65,7 +65,7 @@ object Interpreter extends Pipeline[(Program, SymbolTable), Unit] {
     def interpret(expr: Expr)(implicit locals: Map[Identifier, Value]): Value = {
       expr match {
         case Variable(name) =>
-          // TODO : is Name <: Identifier ?
+          // TODO HR : is Name <: Identifier ?
           locals.get(name) match
             case Some(value) => value
             case None =>
@@ -74,21 +74,61 @@ object Interpreter extends Pipeline[(Program, SymbolTable), Unit] {
         case BooleanLiteral(b) => BooleanValue(b)
         case StringLiteral(s) => StringValue(s)
         case UnitLiteral() => UnitValue
-        case Plus(lhs, rhs) => IntValue(interpret(lhs).asInt + interpret(rhs).asInt)
-        case Minus(lhs, rhs) => IntValue(interpret(lhs).asInt - interpret(rhs).asInt)
-        case Times(lhs, rhs) => IntValue(interpret(lhs).asInt * interpret(rhs).asInt)
-        case Div(lhs, rhs) => IntValue(interpret(lhs).asInt / interpret(rhs).asInt)
-        case Mod(lhs, rhs) => IntValue(interpret(lhs).asInt % interpret(rhs).asInt)
-        case LessThan(lhs, rhs) => BooleanValue(interpret(lhs).asInt < interpret(rhs).asInt)
-        case LessEquals(lhs, rhs) => BooleanValue(interpret(lhs).asInt <= interpret(rhs).asInt)
-        case And(lhs, rhs) => IntValue(interpret(lhs).asInt & interpret(rhs).asInt)
-        case Or(lhs, rhs) => BooleanValue(interpret(lhs).asBoolean | interpret(rhs).asBoolean)
+        case Plus(lhs, rhs) =>
+          // HR : No special case to handle here
+          IntValue(interpret(lhs).asInt + interpret(rhs).asInt)
+        case Minus(lhs, rhs) =>
+          // HR : No special case to handle here
+          IntValue(interpret(lhs).asInt - interpret(rhs).asInt)
+        case Times(lhs, rhs) =>
+          // HR : No special case to handle here
+          IntValue(interpret(lhs).asInt * interpret(rhs).asInt)
+        case Div(lhs, rhs) =>
+          // HR : Interpreter should handle the case of the division by 0
+          val v_lhs = interpret(lhs).asInt
+          val v_rhs = interpret(rhs).asInt
+          if v_rhs != 0 then
+            IntValue(v_lhs / v_rhs)
+          else
+            ctx.reporter.fatal("Cannot divide by 0") // TODO HR : Fix message here
+        case Mod(lhs, rhs) =>
+          // HR : Interpreter should handle the case of the modulo by 0
+          // TODO
+          IntValue(interpret(lhs).asInt % interpret(rhs).asInt)
+        case LessThan(lhs, rhs) =>
+          // HR : No special case to handle here
+          BooleanValue(interpret(lhs).asInt < interpret(rhs).asInt)
+        case LessEquals(lhs, rhs) =>
+          // HR : No special case to handle here
+          BooleanValue(interpret(lhs).asInt <= interpret(rhs).asInt)
+        case And(lhs, rhs) =>
+          // TODO HR : Is there any bitwise operations in Amy ?
+          BooleanValue(interpret(lhs).asBoolean && interpret(rhs).asBoolean)
+        case Or(lhs, rhs) =>
+          // TODO HR : Is there any bitwise operations in Amy ?
+          BooleanValue(interpret(lhs).asBoolean || interpret(rhs).asBoolean)
         case Equals(lhs, rhs) =>
           // Hint: Take care to implement Amy equality semantics
-          BooleanValue(interpret(lhs) == interpret(rhs))
-        case Concat(lhs, rhs) => StringValue(interpret(lhs).toString ++ interpret(rhs).toString)
-        case Not(e) => BooleanValue(! interpret(e).asBoolean)
-        case Neg(e) => IntValue(-interpret(e).asInt)
+          // TODO
+          val v_lhs = interpret(lhs)
+          val v_rhs = interpret(rhs)
+          (v_lhs, v_rhs) match
+            // TODO HR : Handle if the effective type is not the same in lhs and rhs
+            // TODO HR : by doing (_, ...) and (..., _) in some of the match cases
+            case (StringValue(_) , StringValue(_)) => BooleanValue(v_lhs eq v_rhs)
+            case (CaseClassValue(_, _), CaseClassValue(_, _)) => BooleanValue(v_lhs eq v_rhs)
+            case (IntValue(a), IntValue(b)) => BooleanValue(a == b)
+            case (BooleanValue(a), BooleanValue(b)) => BooleanValue(a == b)
+            case (_ , _ ) => BooleanValue(v_lhs eq v_rhs)
+        case Concat(lhs, rhs) =>
+          // HR : No special case to handle here
+          StringValue(interpret(lhs).toString ++ interpret(rhs).toString)
+        case Not(e) =>
+          // HR : No special case to handle here
+          BooleanValue(! interpret(e).asBoolean)
+        case Neg(e) =>
+          // HR : No special case to handle here
+          IntValue(-interpret(e).asInt)
         case Call(qname, args) =>
           if isConstructor(qname) then
             val arg_values = args.map(interpret(_))
@@ -156,7 +196,8 @@ object Interpreter extends Pipeline[(Program, SymbolTable), Unit] {
                 // HR : If the value is correct, you return Some otherwise None
                 // HR : If you return None, the pattern matching won't work and rhs will not be executed
                 // HR : This means that both Strings are not the same
-                if s1 == s2 then Some(Nil) else None
+                // if s1 == s2 then Some(Nil) else None TODO : Ask TA about it, Amy Specification page 12
+                None
               case (UnitValue, LiteralPattern(UnitLiteral())) =>
                 // HR : Check if the value is correct
                 // HR : If the value is correct, you return Some otherwise None
