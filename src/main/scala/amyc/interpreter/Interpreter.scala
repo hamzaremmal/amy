@@ -129,34 +129,61 @@ object Interpreter extends Pipeline[(Program, SymbolTable), Unit] {
           // Returns None when the pattern fails to match.
           // Note: Only works on well typed patterns (which have been ensured by the type checker).
           def matchesPattern(v: Value, pat: Pattern): Option[List[(Identifier, Value)]] = {
-            println(v -> pat)
-            Console.flush()
             ((v, pat): @unchecked) match {
               case (_, WildcardPattern()) =>
-                println("1")
-                ???
+                // HR : No need to add a new local since the pattern is _
+                // HR : If you return None, the pattern matching won't work and rhs will not be executed
+                Some(Nil)
               case (_, IdPattern(name)) =>
-                println("2")
-                ???
+                // HR : You only need to create a new local since
+                // HR : If you return None, the pattern matching won't work and rhs will not be executed
+                Some((name -> v) :: Nil)
               case (IntValue(i1), LiteralPattern(IntLiteral(i2))) =>
-
-                println("3")
-                ???
+                // HR : Check if the value is correct
+                // HR : If the value is correct, you return Some otherwise None
+                // HR : If you return None, the pattern matching won't work and rhs will not be executed
+                // HR : This means that both integers are not the same
+                if i1 != i2 then None else Some(Nil)
               case (BooleanValue(b1), LiteralPattern(BooleanLiteral(b2))) =>
-                println("4")
-                ???
-              case (StringValue(_), LiteralPattern(StringLiteral(_))) =>
-                println("5")
-                ???
+                // HR : Check if the value is correct
+                // HR : If the value is correct, you return Some otherwise None
+                // HR : If you return None, the pattern matching won't work and rhs will not be executed
+                // HR : This means that both booleans are not the same
+                if b1 != b2 then None else Some(Nil)
+              //case (StringValue(_), LiteralPattern(StringLiteral(_))) => Commented by HR TODO : Ask TA about it
+              case (StringValue(s1), LiteralPattern(StringLiteral(s2))) =>
+                // HR : Check if the value is correct
+                // HR : If the value is correct, you return Some otherwise None
+                // HR : If you return None, the pattern matching won't work and rhs will not be executed
+                // HR : This means that both Strings are not the same
+                if s1 == s2 then Some(Nil) else None
               case (UnitValue, LiteralPattern(UnitLiteral())) =>
-                println("6")
-                ???
+                // HR : Check if the value is correct
+                // HR : If the value is correct, you return Some otherwise None
+                // HR : If you return None, the pattern matching won't work and rhs will not be executed
+                // HR : This means that both value are not the Unit object
+                Some(Nil)
               case (CaseClassValue(con1, realArgs), CaseClassPattern(con2, formalArgs)) =>
-                println(s"con1 = $con1 , realArgs = $realArgs")
-                println(s"con2 = $con2 , formalArgs = $formalArgs")
-                Some((formalArgs zip realArgs))
-                println("7")
-                ???
+                // HR : First you need to check if the class are the same
+                // HR : If it's the case, you proceed, otherwise return None so that rhs will not be executed
+                if con1 != con2 then
+                  None
+                else
+                // HR : Now that we've established that the classes are the same
+                // HR : We need to check the parameters and check with the pattern
+                  val zipped_parameters = realArgs zip formalArgs
+                // HR : We will check each parameter with its pattern in a loop
+                // HR : If a match returns None, we'll stop and return None
+                // HR : This means that the value doesn't have the pattern. Therefore rhs will not be evaluated
+                // HR : We will also need to store the new locals in a list
+                  var locals : List[(Identifier, Value)] = Nil
+                  for match_case <- zipped_parameters do
+                    matchesPattern(match_case._1, match_case._2) match
+                      case None =>
+                        return None
+                      case Some(l) =>
+                        locals = locals ++ l
+                  Some(locals)
             }
           }
 
