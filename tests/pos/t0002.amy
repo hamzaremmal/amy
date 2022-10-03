@@ -1,0 +1,17 @@
+object t0002
+
+  fn testMatch(l : String) : Unit = {
+    l match {
+      case "hello" =>
+        Std.printString("Hello !!")
+      case "Bonjour" =>
+        Std.printString("Bonjour !!")
+      case _ =>
+      Std.printString("Can you repeat ?")
+    }
+  }
+
+testMatch("hello");
+testMatch("Bonjour")
+
+end t0002

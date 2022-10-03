@@ -2,6 +2,10 @@ object t0001
 
   fn testMatch(l : L.List) : Unit = {
     l match {
+      case L.Cons(a, L.Cons(b, c)) =>
+        Std.printInt(a);
+        Std.printInt(b);
+        testMatch(c)
       case L.Cons(a, b) =>
         Std.printInt(a);
         testMatch(b)
@@ -9,7 +13,7 @@ object t0001
     }
   }
 
-val l : L.List = L.Cons(1, L.Nil());
+val l : L.List = L.Cons(1, L.Cons(2, L.Cons(3, L.Cons(4, L.Nil()))));
 testMatch(l)
 
 end t0001
