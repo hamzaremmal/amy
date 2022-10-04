@@ -1,6 +1,0 @@
-object Error
-  fn test(): Unit = {
-    error("") // Stub implementation
-  }
-  test()
-end Error

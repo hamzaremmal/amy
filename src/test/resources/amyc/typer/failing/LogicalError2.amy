@@ -1,3 +1,0 @@
-object LogicalError
-  () && true
-end LogicalError

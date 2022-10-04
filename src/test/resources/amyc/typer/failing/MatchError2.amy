@@ -1,3 +1,0 @@
-object MatchError
-  val x: Int(32) = 1 match { case 2 => "" }; x
-end MatchError

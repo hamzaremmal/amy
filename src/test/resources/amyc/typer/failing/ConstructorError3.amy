@@ -1,9 +1,0 @@
-object ConstructorError
-  abstract class Foo 
-  case class Bar(b2: Foo2) extends Foo
-
-  abstract class Foo2
-  case class Bar2(i: Int(32)) extends Foo2
-  
-  Bar(Bar(Bar2(1)))
-end ConstructorError

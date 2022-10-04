@@ -1,3 +1,0 @@
-object MatchError
-  1 match { case true => () }
-end MatchError

@@ -1,6 +1,0 @@
-object MatchError
-  1 match {
-    case 1 => ()
-    case 2 => ""
-  }
-end MatchError

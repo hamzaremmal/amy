@@ -1,3 +1,0 @@
-object Seq
-  val x: Boolean = (2; true); x
-end Seq

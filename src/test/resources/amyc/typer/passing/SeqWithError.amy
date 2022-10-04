@@ -1,4 +1,0 @@
-object SeqWithError
-  val x: Int(32) = (1 + 2; error("this is fine"));
-  x
-end SeqWithError
