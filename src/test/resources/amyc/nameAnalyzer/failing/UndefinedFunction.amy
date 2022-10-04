@@ -1,3 +1,0 @@
-object UndefinedFunction
-  fn foo(): Int(32) = { bar() }
-end UndefinedFunction

@@ -1,3 +1,0 @@
-object Val
-  val x = 42; x
-end Val

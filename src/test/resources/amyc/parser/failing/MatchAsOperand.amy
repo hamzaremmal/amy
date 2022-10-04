@@ -1,5 +1,0 @@
-object Match
-  x match {
-    case y => z
-  } + 1
-end Match
