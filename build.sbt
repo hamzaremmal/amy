@@ -1,6 +1,6 @@
 course := "epfl"
 assignment := "amyc"
-scalaVersion := "3.2.0"
+scalaVersion := "3.1.3"
 
 version := "1.7"
 organization := "ch.epfl.lara"
