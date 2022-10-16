@@ -118,10 +118,9 @@ object Lexer extends Pipeline[List[File], Iterator[Token]]
     
 
     // Whitespace,
-        // TODO
         // HR : DONE
     elem(_.isWhitespace)
-    |> {(cs, range) => SpaceToken().setPos(range._1)},
+    |> {(_, range) => SpaceToken().setPos(range._1)},
     
     // Single line comment,
     word("//") ~ many(elem(_ != '\n'))
@@ -130,20 +129,20 @@ object Lexer extends Pipeline[List[File], Iterator[Token]]
     // Multiline comments,
     // NOTE: Amy does not support nested multi-line comments (e.g. `/* foo /* bar */ */`).
     //       Make sure that unclosed multi-line comments result in an ErrorToken.
-    // TODO
 
-    word("/*") ~ many(elem(_.isValidChar)) ~ word("*/")
+    word("/*") ~ many((many1(word("*")) ~ elem(x => x != '/' && x != '*')) | elem(_ != '*')) ~ many(word("*")) ~ word("*/")
     |> {(cs, range) => 
       var str = cs.mkString
       str = str.substring(2, str.length() - 2)
       CommentToken(str).setPos(range._1)
-      }, 
+      },
 
-    word("*/")
-    |>{(cs, range) => ErrorToken(cs.mkString).setPos(range._1)}, 
-
-    word("/*") ~ many(elem(_.isValidChar))
-    |>{(cs, range) => ErrorToken(cs.mkString).setPos(range._1)}
+    word("/*") ~ many((many1(word("*")) ~ elem(x => x != '/' && x != '*')) | elem(_ != '*'))
+    |> {
+      (cs, range) =>
+        val str = cs.mkString
+        ErrorToken(str).setPos(range._1)
+    }
 
     ) onError {
     // We also emit ErrorTokens for Silex-handled errors.
