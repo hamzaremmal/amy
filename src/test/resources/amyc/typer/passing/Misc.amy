@@ -1,3 +1,0 @@
-object Misc
-  error("a" ++ "b")
-end Misc

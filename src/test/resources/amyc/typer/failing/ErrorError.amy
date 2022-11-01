@@ -1,3 +1,0 @@
-object ErrorError
-  error(1)
-end ErrorError

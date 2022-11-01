@@ -1,3 +1,0 @@
-object ComparisonError
-  1 <= true
-end ComparisonError

@@ -1,8 +1,0 @@
-IntLitToken(1)(1:1)
-IntLitToken(2)(3:1)
-IntLitToken(3)(4:1)
-IntLitToken(4)(5:1)
-IntLitToken(5)(10:1)
-IntLitToken(6)(11:12)
-IntLitToken(7)(12:1)
-EOFToken()(14:1)

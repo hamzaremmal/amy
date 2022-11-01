@@ -1,5 +1,5 @@
 // Student tasks (i.e. submit, packageSubmission)
 enablePlugins(StudentTasks)
 
-assignmentVersion.withRank(KeyRanks.Invisible) := "c0cbd3f2"
+assignmentVersion.withRank(KeyRanks.Invisible) := "46abc99e"
 

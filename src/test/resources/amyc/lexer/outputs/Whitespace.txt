@@ -1,3 +1,0 @@
-IntLitToken(1)(1:2)
-IntLitToken(2)(2:5)
-EOFToken()(3:1)

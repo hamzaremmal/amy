@@ -1,6 +1,0 @@
-IntLitToken(123)(1:1)
-IntLitToken(12345)(1:5)
-IntLitToken(6789)(2:1)
-OperatorToken(+)(2:5)
-IntLitToken(12345)(2:6)
-EOFToken()(3:1)

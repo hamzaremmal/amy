@@ -1,5 +1,0 @@
-object Equality
-  abstract class Foo
-  case class Bar(i: Int(32)) extends Foo
-  1 == Bar(2)
-end Equality
