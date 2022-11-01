@@ -1,0 +1,12 @@
+object Match4
+  fn sideEffect(): Int(32) = {
+    Std.printString("This side effect should only happen once!");
+    10
+  }
+
+  sideEffect() match {
+    case 1  => Std.printString("no"); false
+    case 2  => Std.printString("no"); false
+    case 10 => Std.printString("yes"); true
+  }
+end Match4

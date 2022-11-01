@@ -1,0 +1,2 @@
+This side effect should only happen once!
+yes

@@ -1,0 +1,3 @@
+object ShortCircuit
+  false || error("")
+end ShortCircuit
