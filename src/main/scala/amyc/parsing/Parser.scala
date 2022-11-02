@@ -124,7 +124,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
     }
 
   lazy val args : Syntax[Seq[Expr]] =
-    repsep(simpleExpression, delimiter(","))
+    repsep(expr, delimiter(","))
 
   // ==============================================================================================
   // ======================================== TYPES ===============================================
@@ -201,8 +201,11 @@ object Parser extends Pipeline[Iterator[Token], Program]
     idOrCaseClassPattern | literalPattern.up[Pattern] | wildPattern.up[Pattern]
     
   lazy val literalPattern: Syntax[Pattern] =
-    (literal map (LiteralPattern(_))).up[Pattern] | (delimiter("(") ~ delimiter(")") map {_ => LiteralPattern(new UnitLiteral)})
-    
+    (literal map (LiteralPattern(_))).up[Pattern] | unitPattern
+
+  lazy val unitPattern : Syntax[Pattern] =
+    delimiter("(") ~ delimiter(")") map {_ => LiteralPattern(new UnitLiteral)}
+
   lazy val wildPattern: Syntax[WildcardPattern] =
     kw("_") map (_ => WildcardPattern())
 
@@ -241,29 +244,29 @@ object Parser extends Pipeline[Iterator[Token], Program]
 
   // ----------------------- Second level expressions ------------------------------
 
-  lazy val simpleExpression : Syntax[Expr] = recursive {
-    ifExpression | matchExpression// TODO Add match expression here
-  }
-
   lazy val ifExpression : Syntax[Expr] =
-    (kw("if") ~ inParenthesis(simpleExpression) ~ inBrace(expr) ~ kw("else") ~ inBrace(expr)) map {
+    (kw("if") ~ inParenthesis(expr) ~ inBrace(expr) ~ kw("else") ~ inBrace(expr)) map {
       case _ ~ cond ~ trueBranch ~ _ ~ falseBranch =>
         Ite(cond, trueBranch, falseBranch)
     }
 
-  lazy val matchExpression : Syntax[Expr] =
-    (binaryExpression ~ opt(kw("match") ~ inBrace(many1(matchCase)))) map {
-      case scrut ~ Some(_ ~ cases) => Match(scrut, cases.toList)
-      case expr ~ None => expr
+  lazy val simpleExpression : Syntax[Expr] = recursive {
+    (ifOrBinary ~ many(kw("match").skip ~ inBrace(many1(matchCase)))) map {
+      case expr ~ Seq() => expr
+      case scrut ~ s => s.foldLeft(scrut)((a, b) => Match(a, b.toList))
     }
+  }
+
+  lazy val ifOrBinary =
+    ifExpression | binaryExpression
 
   lazy val binaryExpression : Syntax[Expr] =
     operators(termExpression)(
       // Defines the different operators, by decreasing priority.
       times | div | mod is LeftAssociative,
       plus | minus | concat is LeftAssociative,
-      lessEq is LeftAssociative,
       lessThan is LeftAssociative,
+      lessEq is LeftAssociative,
       equals is LeftAssociative,
       and is LeftAssociative,
       or is LeftAssociative) {
@@ -287,7 +290,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
     (opt(minus | not) ~ factor) map {
       case Some("-") ~ expr => Neg(expr)
       case Some("!") ~ expr => Not(expr)
-      case Some(_) ~ expr => ??? // Add error here
+      case Some(_) ~ _ => ??? // Add error here
       case None ~ expr => expr
     }
   }
@@ -306,12 +309,12 @@ object Parser extends Pipeline[Iterator[Token], Program]
     (identifier ~ opt(delimiter(".") ~ identifier) ~ opt(inParenthesis(args))) map {
       case id ~ Some(_ ~ id2) ~ Some(args) => Call(QualifiedName(Some(id), id2), args.toList)
       case id ~ None ~ Some(args) => Call(QualifiedName(None, id), args.toList)
-      case id ~ Some(_ ~ id2) ~ None => ??? // Variable(QualifiedName(Some(id), id2)) TODO HR : Analyze this behavior if illegal throw Error
+      case id ~ Some(_ ~ id2) ~ None => throw AmycFatalError("Int type can only be used with a width of 32 bits, found : ") // TODO HR : Change message
       case id2 ~ None ~ None => Variable(id2)
     }
 
   lazy val valExpressionOrUnit : Syntax[Expr] =
-    inParenthesis(opt(simpleExpression)) map {
+    inParenthesis(opt(expr)) map {
       case Some(expr) => expr
       case None => new UnitLiteral
     }
