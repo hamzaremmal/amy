@@ -2,13 +2,12 @@ package amyc
 package parsing
 
 import scala.language.implicitConversions
-
-import amyc.ast.NominalTreeModule._
-import amyc.utils._
-import Tokens._
-import TokenKinds._
-
-import scallion._
+import amyc.ast.NominalTreeModule.*
+import amyc.utils.*
+import Tokens.*
+import TokenKinds.*
+import amyc.parsing.Parser.literal
+import scallion.{~, *}
 
 // The parser for Amy
 object Parser extends Pipeline[Iterator[Token], Program]
@@ -26,13 +25,15 @@ object Parser extends Pipeline[Iterator[Token], Program]
   // ==============================================================================================
 
   def inBrace[A](syntax : => Syntax[A]) : Syntax[A] =
-    (delimiter("{") ~ syntax ~ delimiter("}")) map {
-      case _ ~ expr ~ _ => expr
-    }
+    delimiter("{").skip ~ syntax ~ delimiter("}").skip
 
   def inParenthesis[A](syntax : => Syntax[A]) : Syntax[A] =
-    (delimiter("(") ~ syntax ~ delimiter(")")) map {
-      case _ ~ expr ~ _ => expr
+    delimiter("(").skip ~ syntax ~ delimiter(")").skip
+
+  def qualifiedName : Syntax[(Option[String], String)] =
+    identifier ~ opt(delimiter(".").skip ~ identifier) map {
+      case id ~ Some(id2) => (Some(id), id2)
+      case id ~ None => (None, id)
     }
 
   def op(string: String): Syntax[Token] = elem(OperatorKind(string))
@@ -65,11 +66,39 @@ object Parser extends Pipeline[Iterator[Token], Program]
       opt(expr) ~
       kw("end") ~ identifier) map {
     case obj ~ id ~ defs ~ body ~ _ ~ id1 =>
-      if id == id1 then 
+      if id == id1 then
         ModuleDef(id, defs.toList, body).setPos(obj)
       else 
         throw AmycFatalError("Begin and end module names do not match: " + id + " and " + id1)
   }
+
+  // ==============================================================================================
+  // ==================================== DEFINITIONS =============================================
+  // ==============================================================================================
+
+  // TODO HR : this is correct
+  lazy val definition: Syntax[ClassOrFunDef] =
+    funDef.up[ClassOrFunDef] | abstractClassDef.up[ClassOrFunDef] | caseClassDef.up[ClassOrFunDef]
+
+  // TODO HR : This is correct
+  lazy val abstractClassDef: Syntax[AbstractClassDef] =
+    (kw("abstract") ~ kw("class") ~ identifier) map {
+      case _ ~ _ ~ className => AbstractClassDef(className)
+    }
+
+  // TODO HR : this is correct
+  lazy val caseClassDef: Syntax[CaseClassDef] =
+    (kw("case") ~ kw("class") ~ identifier ~ inParenthesis(parameters) ~ kw("extends") ~ identifier) map {
+      case _ ~ _ ~ className ~ params ~ _ ~ superClassName =>
+        CaseClassDef(className, params.map(_.tt), superClassName)
+    }
+
+  // TODO HR : This is correct
+  lazy val funDef: Syntax[FunDef] =
+    (kw("fn") ~ identifier ~ inParenthesis(parameters) ~ delimiter(":") ~ typeTree ~ delimiter("=") ~ inBrace(expr)) map {
+      case _ ~ funcName ~ params ~ _ ~ tpe ~ _ ~ expr =>
+        FunDef(funcName, params, tpe, expr)
+    }
 
   // ==============================================================================================
   // ===================================== IDENTIFIERS ============================================
@@ -80,18 +109,13 @@ object Parser extends Pipeline[Iterator[Token], Program]
     case IdentifierToken(name) => name
   }
 
-  // An identifier along with its position.
-  val identifierPos: Syntax[(String, Position)] = accept(IdentifierKind) {
-    case id@IdentifierToken(name) => (name, id.position)
-  }
-
   // ==============================================================================================
   // ===================================== PARAMETERS =============================================
   // ==============================================================================================
     
   // A list of parameter definitions.
   lazy val parameters: Syntax[List[ParamDef]] =
-    repsep(parameterDef, ",").map(_.toList)
+    repsep(parameterDef, delimiter(",")).map(_.toList)
 
   // A parameter definition, i.e., an identifier along with the expected type.
   lazy val parameterDef: Syntax[ParamDef] =
@@ -100,7 +124,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
     }
 
   lazy val args : Syntax[Seq[Expr]] =
-    repsep(expr, delimiter(","))
+    repsep(simpleExpression, delimiter(","))
 
   // ==============================================================================================
   // ======================================== TYPES ===============================================
@@ -133,48 +157,27 @@ object Parser extends Pipeline[Iterator[Token], Program]
 
   // A user-defined type (such as `List`).
   lazy val identifierType: Syntax[TypeTree] =
-    (opt(identifier ~ delimiter(".")) ~ identifier) map {
-      case Some(id ~ _) ~ id2 => TypeTree(ClassType(QualifiedName(Some(id), id2)))
-      case None ~ id => TypeTree(ClassType(QualifiedName(None, id)))
+    qualifiedName map {
+      case (Some(id), id2) => TypeTree(ClassType(QualifiedName(Some(id), id2)))
+      case (None, id) => TypeTree(ClassType(QualifiedName(None, id)))
     }
 
   // ==============================================================================================
   // ====================================== OPERATORS =============================================
   // ==============================================================================================
 
-  lazy val binaryOperator : Syntax[Token] = accept(OperatorKind("<Operator>")){
-    case tk@OperatorToken("+") => tk
-    case tk@OperatorToken("-") => tk
-    case tk@OperatorToken("*") => tk
-    case tk@OperatorToken("/") => tk
-    case tk@OperatorToken("%") => tk
-    case tk@OperatorToken("<") => tk
-    case tk@OperatorToken("<=") => tk
-    case tk@OperatorToken("&&") => tk
-    case tk@OperatorToken("||") => tk
-    case tk@OperatorToken("==") => tk
-    case tk@OperatorToken("++") => tk
-    case _ => ??? // TODO HR throw an exception illegal operator
-  }
-
-  lazy val unaryOperator : Syntax[Token] =
-    accept(OperatorKind("<Operator>")) {
-      case tk@OperatorToken("-") => tk
-      case tk@OperatorToken("!") => tk
-      case _ => ??? // TODO HR throw an exception illegal operator
-    }
-
-  // ==============================================================================================
-  // ==================================== LITTERALS ===============================================
-  // ==============================================================================================
-    
-  // A literal expression.
-  lazy val literal: Syntax[Literal[_]] =
-    accept(LiteralKind){
-      case BoolLitToken(value) => BooleanLiteral(value)
-      case IntLitToken(value) => IntLiteral(value)
-      case StringLiteral(value) => StringLiteral(value)
-    }.up[Literal[_]] //| ((delimiter("(") ~ delimiter(")")) map (_ => new UnitLiteral)).up[Literal[_]]
+  lazy val plus     : Syntax[String] = op("+") map (_ => "+")
+  lazy val minus    : Syntax[String] = op("-") map (_ => "-")
+  lazy val times    : Syntax[String] = op("*") map (_ => "*")
+  lazy val div      : Syntax[String] = op("/") map (_ => "/")
+  lazy val not      : Syntax[String] = op("!") map (_ => "!")
+  lazy val mod      : Syntax[String] = op("%") map {_ => "%"}
+  lazy val lessThan : Syntax[String] = op("<") map {_ => "<"}
+  lazy val lessEq   : Syntax[String] = op("<=") map {_ => "<="}
+  lazy val and      : Syntax[String] = op("&&") map {_ => "&&"}
+  lazy val or       : Syntax[String] = op("||") map {_ => "||"}
+  lazy val equals   : Syntax[String] = op("==") map {_ => "=="}
+  lazy val concat   : Syntax[String] = op("++") map {_ => "++"}
 
   // ==============================================================================================
   // =================================== PATTERN MATCHING =========================================
@@ -189,152 +192,141 @@ object Parser extends Pipeline[Iterator[Token], Program]
   // ======================================== PATTERNS ============================================
   // ==============================================================================================
 
-  lazy val patterns : Syntax[Seq[Pattern]] =
+  lazy val patterns : Syntax[Seq[Pattern]] = recursive {
     repsep(pattern, delimiter(","))
-    
-  // A pattern as part of a mach case.
-  lazy val pattern: Syntax[Pattern] = recursive {
-    idOrCaseClassPattern | literalPattern.up[Pattern] | wildPattern.up[Pattern]
   }
     
+  // A pattern as part of a mach case.
+  lazy val pattern: Syntax[Pattern] =
+    idOrCaseClassPattern | literalPattern.up[Pattern] | wildPattern.up[Pattern]
+    
   lazy val literalPattern: Syntax[Pattern] =
-    (literal map (LiteralPattern(_))).up[Pattern]
+    (literal map (LiteralPattern(_))).up[Pattern] | (delimiter("(") ~ delimiter(")") map {_ => LiteralPattern(new UnitLiteral)})
     
   lazy val wildPattern: Syntax[WildcardPattern] =
-    delimiter("_") map (_ => new WildcardPattern())
+    kw("_") map (_ => WildcardPattern())
 
   lazy val idOrCaseClassPattern : Syntax[Pattern] =
-    (opt(identifier ~ delimiter(".")) ~ identifier ~ opt(inParenthesis(patterns))) map {
-      case Some(id ~ _) ~ id2 ~ Some(patterns) => CaseClassPattern(QualifiedName(Some(id), id2), patterns.toList)
-      case None ~ id2 ~ Some(patterns)  => CaseClassPattern(QualifiedName(None, id2), patterns.toList)
+    (identifier ~ opt(delimiter(".") ~ identifier) ~ opt(inParenthesis(patterns))) map {
+      case id ~ Some(_ ~ id2) ~ Some(patterns) => CaseClassPattern(QualifiedName(Some(id), id2), patterns.toList)
+      case id ~ None ~ Some(patterns)  => CaseClassPattern(QualifiedName(None, id), patterns.toList)
       // Only an identifier
-      case None ~ id ~ None => IdPattern(id)
+      case id ~ None ~ None => IdPattern(id)
       case _ => ??? // TODO HR : throw an exception
     }
 
-  // ==============================================================================================
-  // ==================================== DEFINITIONS =============================================
-  // ==============================================================================================
-
-  // A definition within a module.
-  lazy val definition: Syntax[ClassOrFunDef] =
-    abstractClassDef.up[ClassOrFunDef] | caseClassDef.up[ClassOrFunDef] | funDef.up[ClassOrFunDef]
-
-  lazy val abstractClassDef : Syntax[AbstractClassDef] =
-    (kw("abstract") ~ kw("class") ~ identifier) map {
-      case _ ~ _ ~ className => AbstractClassDef(className)
-    }
-
-  lazy val caseClassDef : Syntax[CaseClassDef] =
-    (kw("case") ~ kw("class") ~ identifier ~ inParenthesis(parameters) ~ kw("extends") ~ identifier) map {
-      case _ ~ _ ~ className ~ params ~ _ ~ superClassName =>
-        CaseClassDef(className, params.map(_.tt), superClassName)
-    }
-
-  lazy val funDef : Syntax[FunDef] =
-    (kw("fn") ~
-    identifier ~
-    inParenthesis(parameters) ~
-    delimiter(":")  ~
-    typeTree ~
-    delimiter("=") ~
-    inBrace(expr)) map {
-      case _ ~ funcName ~ params ~ _ ~ tpe ~ _ ~ expr=>
-        FunDef(funcName, params, tpe, expr)
-    }
-    
   // ============================================================================================
   // ====================================== EXPRESSIONS =========================================
   // ============================================================================================
 
-  // An expression.
-  // HINT: You can use `operators` to take care of associativity and precedence
+  // Entry-point to an expression
   lazy val expr: Syntax[Expr] = recursive {
-      simpleExpr |
-      ifExpression.up[Expr] |
-      sequenceExpression.up[Expr] |
-      variableDeclaration.up[Expr] |
-      matchExpression.up[Expr]
+    sequenceExpression | valDefinitionExpression
   }
 
-  // HINT: It is useful to have a restricted set of expressions that don't include any more operators on the outer level.
-  lazy val simpleExpr: Syntax[Expr] = recursive {
-    literal.up[Expr] |
-      variableOrCall |
-      binaryExpression |
-      unaryExpression |
-      errorExpression.up[Expr] |
-      parenthesisExpression
-  }
-    
-  lazy val variableOrCall: Syntax[Expr] =
-    (opt(identifier ~ delimiter(".")) ~ identifier ~ opt(inParenthesis(args))) map {
-      case Some(id ~ _) ~ id2 ~ Some(args) => Call(QualifiedName(Some(id), id2), args.toList)
-      case None ~ id2 ~ Some(args) => Call(QualifiedName(None, id2), args.toList)
-      case Some(id ~ _) ~ id2 ~ None => ??? // Variable(QualifiedName(Some(id), id2)) TODO HR : Analyze this behavior if illegal throw Error
-      case None ~ id2 ~ None => Variable(id2)
+  // ------------------------- First level expressions ----------------------------
+
+  // Val definitions
+  lazy val valDefinitionExpression: Syntax[Expr] =
+    (kw("val") ~ parameterDef ~ delimiter("=") ~ simpleExpression ~ delimiter(";") ~ expr) map {
+      case _ ~ param ~ _ ~ assign ~ _ ~ seq => Let(param, assign, seq)
     }
 
-  lazy val sequenceExpression : Syntax[Sequence] = recursive {
-    (expr ~ delimiter(";") ~ expr) map {
-      case lhs ~ _ ~ rhs => Sequence(lhs, rhs)
+  // Sequence definition
+  lazy val sequenceExpression : Syntax[Expr] =
+    (simpleExpression ~ opt(delimiter(";") ~ expr)) map {
+      case exp1 ~ None => exp1
+      case exp1 ~ Some(_ ~ exp2) => Sequence(exp1, exp2)
     }
+
+  // ----------------------- Second level expressions ------------------------------
+
+  lazy val simpleExpression : Syntax[Expr] = recursive {
+    ifExpression | matchExpression// TODO Add match expression here
   }
 
-  lazy val variableDeclaration : Syntax[Let] = recursive {
-    (kw("val") ~ parameterDef ~ delimiter("=") ~
-      expr ~ delimiter(";") ~
-      expr) map {
-      case _ ~ param ~ _ ~ value ~ _ ~ expr => Let(param, value, expr)
+  lazy val ifExpression : Syntax[Expr] =
+    (kw("if") ~ inParenthesis(simpleExpression) ~ inBrace(expr) ~ kw("else") ~ inBrace(expr)) map {
+      case _ ~ cond ~ trueBranch ~ _ ~ falseBranch =>
+        Ite(cond, trueBranch, falseBranch)
     }
-  }
 
-  lazy val ifExpression : Syntax[Ite] = recursive {
-    (kw("if") ~ parenthesisExpression ~ braceExpression ~ kw("else") ~ braceExpression) map {
-      case _ ~ cond ~ thenn ~ _ ~ elze => Ite(cond, thenn, elze)
+  lazy val matchExpression : Syntax[Expr] =
+    (binaryExpression ~ opt(kw("match") ~ inBrace(many1(matchCase)))) map {
+      case scrut ~ Some(_ ~ cases) => Match(scrut, cases.toList)
+      case expr ~ None => expr
     }
-  }
 
-  lazy val matchExpression : Syntax[Match] = recursive {
-    (expr ~ kw("match") ~ inBrace(many1(matchCase))) map {
-      case scrut ~ _ ~ cases => Match(scrut, cases.toList)
-    }
-  }
+  lazy val binaryExpression : Syntax[Expr] =
+    operators(termExpression)(
+      // Defines the different operators, by decreasing priority.
+      times | div | mod is LeftAssociative,
+      plus | minus | concat is LeftAssociative,
+      lessEq is LeftAssociative,
+      lessThan is LeftAssociative,
+      equals is LeftAssociative,
+      and is LeftAssociative,
+      or is LeftAssociative) {
+        case (lhs, "+", rhs) => Plus(lhs, rhs)
+        case (lhs, "-", rhs) => Minus(lhs, rhs)
+        case (lhs, "*", rhs) => Times(lhs, rhs)
+        case (lhs, "/", rhs) => Div(lhs, rhs)
+        case (lhs, "%", rhs) => Mod(lhs, rhs)
+        case (lhs, "<", rhs) => LessThan(lhs, rhs)
+        case (lhs, "<=", rhs) => LessEquals(lhs, rhs)
+        case (lhs, "&&", rhs) => And(lhs, rhs)
+        case (lhs, "||", rhs) => Or(lhs, rhs)
+        case (lhs, "==", rhs) => Equals(lhs, rhs)
+        case (lhs, "++", rhs) => Concat(lhs, rhs)
+        case _ => ??? // TODO Add message error for unknown operator
+      }
 
-  lazy val parenthesisExpression : Syntax[Expr] =  inParenthesis(expr)
+  // ------------------------- Third Level expressions ------------------------------
 
-  lazy val braceExpression : Syntax[Expr] = inBrace(expr)
-
-  lazy val unaryExpression : Syntax[Expr] = recursive {
-    (unaryOperator ~ expr) map {
-      case OperatorToken("-") ~ rhs => Neg(rhs)
-      case OperatorToken("!") ~ rhs => Not(rhs)
-      case _ => ??? // TODO Add message error for unknown operator
-    }
-  }
-
-  lazy val binaryExpression : Syntax[Expr] = recursive {
-    (expr ~ binaryOperator ~ expr) map {
-      case lhs ~ OperatorToken("+") ~ rhs => Plus(lhs, rhs)
-      case lhs ~ OperatorToken("-") ~ rhs => Minus(lhs, rhs)
-      case lhs ~ OperatorToken("*") ~ rhs => Times(lhs, rhs)
-      case lhs ~ OperatorToken("/") ~ rhs => Div(lhs, rhs)
-      case lhs ~ OperatorToken("%") ~ rhs => Mod(lhs, rhs)
-      case lhs ~ OperatorToken("<") ~ rhs => LessThan(lhs, rhs)
-      case lhs ~ OperatorToken("<=") ~ rhs => LessEquals(lhs, rhs)
-      case lhs ~ OperatorToken("&&") ~ rhs => And(lhs, rhs)
-      case lhs ~ OperatorToken("||") ~ rhs => Or(lhs, rhs)
-      case lhs ~ OperatorToken("==") ~ rhs => Equals(lhs, rhs)
-      case lhs ~ OperatorToken("++") ~ rhs => Concat(lhs, rhs)
-      case _ => ??? // TODO Add message error for unknown operator
+  lazy val termExpression : Syntax[Expr] = recursive {
+    (opt(minus | not) ~ factor) map {
+      case Some("-") ~ expr => Neg(expr)
+      case Some("!") ~ expr => Not(expr)
+      case Some(_) ~ expr => ??? // Add error here
+      case None ~ expr => expr
     }
   }
 
-  lazy val errorExpression : Syntax[Error] = recursive {
-    (kw("error") ~ inParenthesis(expr)) map {
+  // --------------------- Fourth Level expressions --------------------------
+
+  lazy val factor : Syntax[Expr] =
+    errorExpression | literal.up[Expr] | variableOrCall | valExpressionOrUnit
+
+  lazy val errorExpression : Syntax[Expr] =
+    (kw("error") ~ termExpression) map {
       case _ ~ expr => Error(expr)
     }
-  }
+
+  lazy val variableOrCall: Syntax[Expr] =
+    (identifier ~ opt(delimiter(".") ~ identifier) ~ opt(inParenthesis(args))) map {
+      case id ~ Some(_ ~ id2) ~ Some(args) => Call(QualifiedName(Some(id), id2), args.toList)
+      case id ~ None ~ Some(args) => Call(QualifiedName(None, id), args.toList)
+      case id ~ Some(_ ~ id2) ~ None => ??? // Variable(QualifiedName(Some(id), id2)) TODO HR : Analyze this behavior if illegal throw Error
+      case id2 ~ None ~ None => Variable(id2)
+    }
+
+  lazy val valExpressionOrUnit : Syntax[Expr] =
+    inParenthesis(opt(simpleExpression)) map {
+      case Some(expr) => expr
+      case None => new UnitLiteral
+    }
+
+  // ==============================================================================================
+  // ==================================== LITTERALS ===============================================
+  // ==============================================================================================
+
+  // A literal expression.
+  lazy val literal: Syntax[Literal[_]] =
+    accept(LiteralKind) {
+      case BoolLitToken(value) => BooleanLiteral(value)
+      case IntLitToken(value) => IntLiteral(value)
+      case StringLitToken(value) => StringLiteral(value)
+    }.up[Literal[_]]
 
   // ==============================================================================================
 
@@ -345,7 +337,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
     } else {
       // Set `showTrails` to true to make Scallion generate some counterexamples for you.
       // Depending on your grammar, this may be very slow.
-      val showTrails = false
+      val showTrails = true
       debug(program, showTrails)
       false
     }
