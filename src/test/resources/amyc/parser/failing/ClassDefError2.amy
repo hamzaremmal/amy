@@ -1,0 +1,3 @@
+object ClassDef
+  case class Foo extends Bar
+end ClassDef
