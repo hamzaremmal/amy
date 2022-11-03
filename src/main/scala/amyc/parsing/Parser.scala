@@ -6,6 +6,8 @@ import amyc.ast.NominalTreeModule.*
 import amyc.utils.*
 import Tokens.*
 import TokenKinds.*
+import amyc.ast.NominalTreeModule
+import amyc.parsing
 import amyc.parsing.Parser.literal
 import scallion.{~, *}
 
@@ -25,16 +27,10 @@ object Parser extends Pipeline[Iterator[Token], Program]
   // ==============================================================================================
 
   def inBrace[A](syntax : => Syntax[A]) : Syntax[A] =
-    delimiter("{").skip ~ syntax ~ delimiter("}").skip
+    "{" ~>~ syntax ~<~ "}"
 
   def inParenthesis[A](syntax : => Syntax[A]) : Syntax[A] =
-    delimiter("(").skip ~ syntax ~ delimiter(")").skip
-
-  def qualifiedName : Syntax[(Option[String], String)] =
-    identifier ~ opt(delimiter(".").skip ~ identifier) map {
-      case id ~ Some(id2) => (Some(id), id2)
-      case id ~ None => (None, id)
-    }
+    "(" ~>~ syntax ~<~ ")"
 
   def op(string: String): Syntax[Token] = elem(OperatorKind(string))
   def kw(string: String): Syntax[Token] = elem(KeywordKind(string))
@@ -95,8 +91,8 @@ object Parser extends Pipeline[Iterator[Token], Program]
 
   // TODO HR : This is correct
   lazy val funDef: Syntax[FunDef] =
-    (kw("fn") ~ identifier ~ inParenthesis(parameters) ~ delimiter(":") ~ typeTree ~ delimiter("=") ~ inBrace(expr)) map {
-      case _ ~ funcName ~ params ~ _ ~ tpe ~ _ ~ expr =>
+    (kw("fn") ~>~ identifier ~ inParenthesis(parameters) ~<~ ":" ~ typeTree ~<~ "=" ~ inBrace(expr)) map {
+      case funcName ~ params ~ tpe ~ expr =>
         FunDef(funcName, params, tpe, expr)
     }
 
@@ -108,6 +104,12 @@ object Parser extends Pipeline[Iterator[Token], Program]
   val identifier: Syntax[String] = accept(IdentifierKind) {
     case IdentifierToken(name) => name
   }
+  // A QualifiedName (identifier.identifier)
+  def qualifiedName: Syntax[(Option[String], String)] =
+    (identifier ~ opt("." ~>~ identifier)) map {
+      case id ~ Some(id2) => (Some(id), id2)
+      case id ~ None => (None, id)
+    }
 
   // ==============================================================================================
   // ===================================== PARAMETERS =============================================
@@ -115,16 +117,16 @@ object Parser extends Pipeline[Iterator[Token], Program]
     
   // A list of parameter definitions.
   lazy val parameters: Syntax[List[ParamDef]] =
-    repsep(parameterDef, delimiter(",")).map(_.toList)
+    repsep(parameterDef, ",").map(_.toList)
 
   // A parameter definition, i.e., an identifier along with the expected type.
   lazy val parameterDef: Syntax[ParamDef] =
-    (identifier ~ delimiter(":") ~ typeTree) map {
-      case name ~ _ ~ tpe => ParamDef(name, tpe)
+    (identifier ~<~ ":" ~ typeTree) map {
+      case name ~ tpe => ParamDef(name, tpe)
     }
 
   lazy val args : Syntax[Seq[Expr]] =
-    repsep(expr, delimiter(","))
+    repsep(expr, ",")
 
   // ==============================================================================================
   // ======================================== TYPES ===============================================
@@ -142,7 +144,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
       case "String" => StringType
       case _ => throw new java.lang.Error("Unexpected primitive type name: " + name)
     }).setPos(tk)
-  } ~ opt("(" ~ literal ~ ")")).map { 
+  } ~ opt("(" ~ literal ~ ")")).map {
     case (prim@TypeTree(IntType)) ~ Some(_ ~ IntLiteral(32) ~ _) => prim
     case TypeTree(IntType) ~ Some(_ ~ IntLiteral(width) ~ _) => 
       throw AmycFatalError("Int type can only be used with a width of 32 bits, found : " + width)
@@ -184,8 +186,8 @@ object Parser extends Pipeline[Iterator[Token], Program]
   // ==============================================================================================
 
   lazy val matchCase : Syntax[MatchCase] =
-    (kw("case") ~ pattern ~ delimiter("=>") ~ expr) map {
-      case _ ~ pattern ~ _ ~ expr => MatchCase(pattern, expr)
+    (kw("case") ~>~ pattern ~<~ "=>" ~ expr) map {
+      case pattern ~ expr => MatchCase(pattern, expr)
     }
 
   // ==============================================================================================
@@ -193,7 +195,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
   // ==============================================================================================
 
   lazy val patterns : Syntax[Seq[Pattern]] = recursive {
-    repsep(pattern, delimiter(","))
+    repsep(pattern, ",")
   }
     
   // A pattern as part of a mach case.
@@ -204,18 +206,19 @@ object Parser extends Pipeline[Iterator[Token], Program]
     (literal map (LiteralPattern(_))).up[Pattern] | unitPattern
 
   lazy val unitPattern : Syntax[Pattern] =
-    delimiter("(") ~ delimiter(")") map {_ => LiteralPattern(new UnitLiteral)}
+    ("(" ~ ")") map {_ => LiteralPattern(new UnitLiteral)}
 
   lazy val wildPattern: Syntax[WildcardPattern] =
     kw("_") map (_ => WildcardPattern())
 
   lazy val idOrCaseClassPattern : Syntax[Pattern] =
-    (identifier ~ opt(delimiter(".") ~ identifier) ~ opt(inParenthesis(patterns))) map {
-      case id ~ Some(_ ~ id2) ~ Some(patterns) => CaseClassPattern(QualifiedName(Some(id), id2), patterns.toList)
-      case id ~ None ~ Some(patterns)  => CaseClassPattern(QualifiedName(None, id), patterns.toList)
+    (qualifiedName ~ opt(inParenthesis(patterns))) map {
       // Only an identifier
-      case id ~ None ~ None => IdPattern(id)
-      case _ => ??? // TODO HR : throw an exception
+      case (None, id) ~ None => IdPattern(id)
+      // Case class wih simple name or qualified name
+      case (None, id) ~ Some(patterns) => CaseClassPattern(QualifiedName(None, id), patterns.toList)
+      case (Some(id), id2) ~ Some(patterns) => CaseClassPattern(QualifiedName(Some(id), id2), patterns.toList)
+      case (Some(id), id2) ~ None => throw new AmycFatalError(s"Cannot have qualified name $id.$id2 without parameters")
     }
 
   // ============================================================================================
@@ -257,7 +260,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
     }
   }
 
-  lazy val ifOrBinary =
+  lazy val ifOrBinary: Syntax[Expr] =
     ifExpression | binaryExpression
 
   lazy val binaryExpression : Syntax[Expr] =
