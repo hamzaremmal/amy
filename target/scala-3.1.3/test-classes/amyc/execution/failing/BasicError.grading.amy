@@ -1,8 +1,0 @@
-object BasicError
-
-	fn throwError(msg: String): Unit = {
-		error(msg)
-	}
-
-	throwError("basic error test")
-end BasicError

@@ -1,7 +1,0 @@
-object StringInputToOutput
-  val stringInput: String = Std.readString();
-  val stringInput2: String = Std.readString();
-
-  Std.printString(stringInput ++ "!");
-  Std.printString(stringInput2 ++ "!")
-end StringInputToOutput

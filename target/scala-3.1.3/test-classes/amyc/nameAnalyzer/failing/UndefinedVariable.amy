@@ -1,3 +1,0 @@
-object Undefined
-  fn foo(): Int(32) = { i + 1 }
-end Undefined

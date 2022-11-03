@@ -1,3 +1,0 @@
-object Logical
-  true || false && !false
-end Logical

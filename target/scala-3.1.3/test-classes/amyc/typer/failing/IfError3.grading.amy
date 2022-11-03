@@ -1,4 +1,0 @@
-object IfError
-  val x: Int(32) = if (false) { "" } else { "" };
-  x
-end IfError

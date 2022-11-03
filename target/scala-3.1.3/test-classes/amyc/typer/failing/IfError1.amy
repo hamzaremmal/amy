@@ -1,3 +1,0 @@
-object IfError
-  if (42) { () } else { () }
-end IfError

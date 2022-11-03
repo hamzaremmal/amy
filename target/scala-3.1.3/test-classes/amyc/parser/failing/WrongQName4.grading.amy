@@ -1,3 +1,0 @@
-object WrongQName
-  42 + foo.bar + 1
-end WrongQName

@@ -1,4 +1,0 @@
-object Constructor
-  abstract class Foo
-  fn foo(): Foo = { Bar(42) }
-end Constructor

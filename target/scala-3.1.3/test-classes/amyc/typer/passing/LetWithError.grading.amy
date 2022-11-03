@@ -1,4 +1,0 @@
-object LetWithError
-  val y: Int(32) = (val x: Int(32) = 1; error("this is fine"));
-  y
-end LetWithError

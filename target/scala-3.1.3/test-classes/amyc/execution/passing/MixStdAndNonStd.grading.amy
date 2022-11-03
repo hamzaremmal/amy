@@ -1,9 +1,0 @@
-object MixStdAndNonStd
-  fn printString(str: String): Unit = {
-    Std.printString(str);
-    Std.printString(str)
-  }
-
-  val intInput: Int(32) = Std.readInt();
-  printString(Std.intToString(intInput))
-end MixStdAndNonStd

@@ -1,3 +1,0 @@
-object FunDef
-  fn foo(i: Int(32)) = { 42 }
-end FunDef

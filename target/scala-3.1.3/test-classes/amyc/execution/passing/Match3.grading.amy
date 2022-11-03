@@ -1,9 +1,0 @@
-object MatchError
-  abstract class Foo
-  case class Bar(i: Int(32)) extends Foo
-  case class Baz(f1: Foo, f2: Foo) extends Foo
-
-  Baz(Baz(Bar(1), Bar(2)), Baz(Bar(3), Bar(4))) match {
-    case Baz(Baz(_, Bar(_)), _) => ()
-  }
-end MatchError
