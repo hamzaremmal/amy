@@ -1,0 +1,7 @@
+object Locals
+  fn foo(i: Int(32)): Int(32) = {
+    i match {
+      case i => 0 // should pass, but give a warning about suspicious shadowing
+    }
+  }
+end Locals

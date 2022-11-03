@@ -1,0 +1,7 @@
+object MatchError
+  abstract class Foo
+  case class Bar() extends Foo
+  case class Baz() extends Foo
+
+  Bar() match { case Baz() => () }
+end MatchError

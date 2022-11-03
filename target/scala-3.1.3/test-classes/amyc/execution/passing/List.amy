@@ -1,0 +1,144 @@
+object L
+  abstract class List
+  case class Nil() extends List
+  case class Cons(h: Int(32), t: List) extends List
+ 
+  fn isEmpty(l : List): Boolean = { l match {
+    case Nil() => true
+    case _ => false 
+  }}
+
+  fn length(l: List): Int(32) = { l match {
+    case Nil() => 0
+    case Cons(_, t) => 1 + length(t)
+  }}
+
+  fn head(l: List): Int(32) = {
+    l match {
+      case Cons(h, _) => h
+      case Nil() => error("head(Nil)")
+    }
+  }
+
+  fn headOption(l: List): O.Option = {
+    l match {
+      case Cons(h, _) => O.Some(h)
+      case Nil() => O.None()
+    }
+  }
+
+  fn reverse(l: List): List = {
+    reverseAcc(l, Nil())
+  }
+
+  fn reverseAcc(l: List, acc: List): List = {
+    l match {
+      case Nil() => acc
+      case Cons(h, t) => reverseAcc(t, Cons(h, acc))
+    }
+  }
+
+  fn indexOf(l: List, i: Int(32)): Int(32) = {
+    l match {
+      case Nil() => -1
+      case Cons(h, t) =>
+        if (h == i) { 0 }
+        else {
+          val rec: Int(32) = indexOf(t, i);
+          if (0 <= rec) { rec + 1 }
+          else { -1 }
+        }
+    }
+  }
+
+  fn range(from: Int(32), to: Int(32)): List = {
+    if (to < from) { Nil() }
+    else {
+      Cons(from, range(from + 1, to))
+    }
+  }
+
+  fn sum(l: List): Int(32) = { l match {
+    case Nil() => 0
+    case Cons(h, t) => h + sum(t)
+  }}
+
+  fn concat(l1: List, l2: List): List = {
+    l1 match {
+      case Nil() => l2
+      case Cons(h, t) => Cons(h, concat(l1, l2))
+    }
+  }
+
+  fn contains(l: List, elem: Int(32)): Boolean = { l match {
+    case Nil() =>
+      false
+    case Cons(h, t) =>
+      h == elem || contains(t, elem)
+  }}
+
+  abstract class LPair
+  case class LP(l1: List, l2: List) extends LPair
+
+  fn merge(l1: List, l2: List): List = {
+    l1 match {
+      case Nil() => l2
+      case Cons(h1, t1) =>
+        l2 match {
+          case Nil() => l1
+          case Cons(h2, t2) =>
+            if (h1 <= h2) {
+              Cons(h1, merge(t1, l2))
+            } else {
+              Cons(h2, merge(l1, t2))
+            }
+        }
+    }
+  }
+
+  fn split(l: List): LPair = {
+    l match {
+      case Cons(h1, Cons(h2, t)) =>
+        val rec: LPair = split(t);
+        rec match {
+          case LP(rec1, rec2) =>
+            LP(Cons(h1, rec1), Cons(h2, rec2))
+        }
+      case _ =>
+        LP(l, Nil())
+    }
+  }
+  fn mergeSort(l: List): List = {
+    l match {
+      case Nil() => l
+      case Cons(h, Nil()) => l
+      case l =>
+        split(l) match {
+          case LP(l1, l2) =>
+            merge(mergeSort(l1), mergeSort(l2))
+        }
+    }
+  }
+  
+  fn toString(l: List): String = { l match {
+    case Nil() => "List()"
+    case more => "List(" ++ toString1(more) ++ ")"
+  }}
+
+  fn toString1(l : List): String = { l match {
+    case Cons(h, Nil()) => Std.intToString(h)
+    case Cons(h, t) => Std.intToString(h) ++ ", " ++ toString1(t)
+  }}
+
+  fn take(l: List, n: Int(32)): List = {
+    if (n <= 0) { Nil() }
+    else { 
+      l match {
+        case Nil() => Nil()
+        case Cons(h, t) =>
+          Cons(h, take(t, n-1))
+      }
+    }
+  }
+    
+end L

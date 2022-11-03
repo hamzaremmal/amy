@@ -1,0 +1,3 @@
+object WrongQName
+  case class Foo() extends Baz.bar
+end WrongQName

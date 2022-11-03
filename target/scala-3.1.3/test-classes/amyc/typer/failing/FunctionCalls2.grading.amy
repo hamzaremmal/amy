@@ -1,0 +1,5 @@
+object FunctionCall
+  fn foo(i: Int(32)): Boolean = { i < 0 }
+  
+  val x: Int(32) = foo(1); x
+end FunctionCall

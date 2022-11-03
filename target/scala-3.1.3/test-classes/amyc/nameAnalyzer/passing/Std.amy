@@ -1,0 +1,40 @@
+/** This module contains basic functionality for Amy,
+  * including stub implementations for some built-in functions
+  * (implemented in WASM or JavaScript)
+  */
+object Std
+  fn printInt(i: Int(32)): Unit = {
+    error("") // Stub implementation
+  }
+  fn printString(s: String): Unit = {
+    error("") // Stub implementation
+  }
+  fn printBoolean(b: Boolean): Unit = {
+    printString(booleanToString(b))
+  }
+
+  fn readString(): String = {
+    error("") // Stub implementation
+  }
+
+  fn readInt(): Int(32) = {
+    error("") // Stub implementation
+  }
+
+  fn intToString(i: Int(32)): String = {
+    if (i < 0) {
+      "-" ++ intToString(-i)
+    } else {
+      val rem: Int(32) = i % 10;
+      val div: Int(32) = i / 10;
+      if (div == 0) { digitToString(rem) }
+      else { intToString(div) ++ digitToString(rem) }
+    }
+  }
+  fn digitToString(i: Int(32)): String = {
+    error("") // Stub implementation
+  }
+  fn booleanToString(b: Boolean): String = {
+    if (b) { "true" } else { "false" }
+  }
+end Std

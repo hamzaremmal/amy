@@ -1,0 +1,4 @@
+object ShortCircuit
+  true || error("");
+  false && error("")
+end ShortCircuit

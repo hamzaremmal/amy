@@ -1,0 +1,11 @@
+object Locals
+  fn foo(): Int(32) = {
+    if (true) {
+      val i: Int(32) = 42;
+      i
+    } else {
+      val i: Int(32) = 42;
+      i
+    }
+  }
+end Locals
