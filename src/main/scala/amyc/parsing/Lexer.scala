@@ -105,15 +105,15 @@ object Lexer extends Pipeline[List[File], Iterator[Token]]
         
     // String literal,
         // HR : DONE
-      word("\"") ~ many(elem(!_.isControl)) ~ word("\"")
+      word("\"") ~ many(elem(x => !x.isControl && x != '"')) ~ word("\"")
       |> {(cs, range) =>
         val str =  cs.mkString;
         StringLitToken(str.substring(1, str.length() - 1)).setPos(range._1)},
         
     // Delimiters,
-    // HR : { } ( ) , : . = => _
+    // HR : { } ( ) , : . = =>
     // HR : DONE
-      oneOf(";,{}():.=_") | word("=>")
+      oneOf(";,{}():.=") | word("=>")
       |> {(cs, range) => DelimiterToken(cs.mkString).setPos(range._1)},
     
 
