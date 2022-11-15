@@ -35,14 +35,63 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       //  that we found (or generated) for the current expression `e`
       def topLevelConstraint(found: Type): List[Constraint] =
         List(Constraint(found, expected, e.position))
-      
+
       e match {
         case IntLiteral(_) =>
           topLevelConstraint(IntType)
-        
+        case BooleanLiteral(_)=>
+          topLevelConstraint(BooleanType)
+        case StringLiteral(_) =>
+          topLevelConstraint(StringType)
+        case UnitLiteral() =>
+          topLevelConstraint(UnitType)
+        case Plus(lhs, rhs) =>
+          topLevelConstraint(IntType) :::
+          genConstraints(lhs, IntType) :::
+          genConstraints(rhs, IntType)
+        case Minus(lhs, rhs) =>
+          topLevelConstraint(IntType)
+          genConstraints(lhs, IntType) :::
+          genConstraints(rhs, IntType)
+        case Times(lhs, rhs) =>
+          topLevelConstraint(IntType) :::
+          genConstraints(lhs, IntType) :::
+          genConstraints(rhs, IntType)
+        case Div(lhs, rhs) =>
+          topLevelConstraint(IntType) :::
+          genConstraints(lhs, IntType) :::
+          genConstraints(rhs, IntType)
+        case Mod(lhs, rhs) =>
+          topLevelConstraint(IntType) :::
+          genConstraints(lhs, IntType) :::
+          genConstraints(rhs, IntType)
+        case Neg(expr) =>
+          topLevelConstraint(IntType)
+          genConstraints(expr, IntType)
+        case Not(expr) =>
+          topLevelConstraint(BooleanType)
+          genConstraints(expr, BooleanType)
+        case LessThan(lhs, rhs) =>
+          topLevelConstraint(BooleanType) :::
+          genConstraints(lhs, IntType) :::
+          genConstraints(rhs, IntType)
+        case LessEquals(lhs, rhs) =>
+          topLevelConstraint(BooleanType) :::
+          genConstraints(lhs, IntType) :::
+          genConstraints(rhs, IntType)
+        case And(lhs, rhs) =>
+          topLevelConstraint(BooleanType) :::
+          genConstraints(lhs, BooleanType) :::
+          genConstraints(rhs, BooleanType)
+        case Or(lhs, rhs) =>
+          topLevelConstraint(BooleanType) :::
+          genConstraints(lhs, BooleanType) :::
+          genConstraints(rhs, BooleanType)
         case Equals(lhs, rhs) =>
-          // HINT: Take care to implement the specified Amy semantics
-          ???  // TODO
+          val generic = TypeVariable.fresh()
+          topLevelConstraint(BooleanType) :::
+          genConstraints(lhs, generic) :::
+          genConstraints(rhs, generic)
         
         case Match(scrut, cases) =>
           // Returns additional constraints from within the pattern with all bindings
@@ -62,7 +111,8 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
           val st = TypeVariable.fresh()
           genConstraints(scrut, st) ++ cases.flatMap(cse => handleCase(cse, st))
 
-        case _ =>
+        case e =>
+          println(s"this is missing ${e}")
           ???  // TODO: Implement the remaining cases
       }
     }
@@ -88,12 +138,13 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     //  using `ctx.reporter.error` if they are not satisfiable.
     // We consider a set of constraints to be satisfiable exactly if they unify.
     def solveConstraints(constraints: List[Constraint]): Unit = {
+      println(constraints)
       constraints match {
         case Nil => ()
-        case Constraint(found, expected, pos) :: more =>
+        case Constraint(found, expected, pos) :: more => ()
           // HINT: You can use the `subst_*` helper above to replace a type variable
           //       by another type in your current set of constraints.
-          ???  // TODO
+          // TODO
       }
     }
 
