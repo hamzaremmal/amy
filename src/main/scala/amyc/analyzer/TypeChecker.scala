@@ -108,7 +108,7 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         // =========================== Type Check Conditions ======================================
         case Ite(cond, thenn, elze) =>
           val generic = TypeVariable.fresh()
-          genConstraints(cond, BooleanType) ::: genConstraints(thenn, generic) ::: genConstraints(elze, generic)
+          topLevelConstraint(generic) ::: genConstraints(cond, BooleanType) ::: genConstraints(thenn, generic) ::: genConstraints(elze, generic)
         // =============================== Type Check Pattern Matching ============================
         case Match(scrut, cases) =>
           // Returns additional constraints from within the pattern with all bindings
@@ -136,13 +136,14 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
                 }
           }
 
-          def handleCase(cse: MatchCase, scrutExpected: Type): List[Constraint] = {
+          def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {
             val (patConstraints, moreEnv) = handlePattern(cse.pat, scrutExpected)
-            patConstraints ::: genConstraints(cse.expr, expected)(env ++ moreEnv)
+            patConstraints ::: genConstraints(cse.expr, rt)(env ++ moreEnv)
           }
 
           val st = TypeVariable.fresh()
-          genConstraints(scrut, st) ++ cases.flatMap(cse => handleCase(cse, st))
+          val rt = TypeVariable.fresh()
+          genConstraints(scrut, st) ++ cases.flatMap(cse => handleCase(cse, st, rt)) ++ topLevelConstraint(rt)
 
         // ============================= Type Check Errors =====================================
         case Error(msg) =>
