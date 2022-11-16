@@ -17,9 +17,9 @@ object CodePrinter extends Pipeline[Module, Unit]{
     val (local, inPath) = {
       import Env._
       os match {
-        case Linux   => ("./bin/linux/wat2wasm",       "wat2wasm")
-        case Windows => ("./bin/windows/wat2wasm.exe", "wat2wasm.exe")
-        case Mac     => ("./bin/macos/wat2wasm",       "wat2wasm")
+        case Linux   => ("./bin/wat2wasm",     "wat2wasm")
+        case Windows => ("./bin/wat2wasm.exe", "wat2wasm.exe")
+        case Mac     => ("./bin/wat2wasm",     "wat2wasm")
       }
     }
 
@@ -43,7 +43,7 @@ object CodePrinter extends Pipeline[Module, Unit]{
       case _: IOException =>
         ctx.reporter.fatal(
           "wat2wasm utility was not found under ./bin or in system path, " +
-          "or did not have permission to execute"
+          "or did not have permission to execute. Make sure it is either in the system path, or in <root of the project>/bin"
         )
       case _: RuntimeException =>
         ctx.reporter.fatal(s"wat2wasm failed to translate WebAssembly text file ${pathWithExt("wat")} to binary")

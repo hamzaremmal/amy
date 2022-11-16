@@ -22,12 +22,13 @@ class ParserTests extends TestSuite {
 
   val baseDir = "amyc/parser"
 
-  val outputExt = "scala"
+  val outputExt = "amy"
 
   @Test def testLL1 = {
     assert(Parser.program.isLL1)
   }
 
+  
   @Test def testEmpty = shouldOutput("Empty")
 
   @Test def testErrorToken1 = shouldOutput("ErrorToken1")
@@ -94,4 +95,5 @@ class ParserTests extends TestSuite {
   @Test def testWrongQName2 = shouldFail("WrongQName2")
   @Test def testWrongQName3 = shouldFail("WrongQName3")
   @Test def testWrongQName4 = shouldFail("WrongQName4")
+
 }
