@@ -38,6 +38,14 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         List(Constraint(found, expected, e.position))
 
       e match {
+        // ===================== Type Check Variables =============================
+        case Variable(name) =>
+          env.get(name) match
+            case Some(tpe) => topLevelConstraint(tpe)
+            case None =>
+              ctx.reporter.error(s"Cannot find symbol $name")
+              Nil
+        // ===================== Type Check Literals ==============================
         case IntLiteral(_) =>
           topLevelConstraint(IntType)
         case BooleanLiteral(_) =>
@@ -46,54 +54,62 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
           topLevelConstraint(StringType)
         case UnitLiteral() =>
           topLevelConstraint(UnitType)
+        // ========================== Type Check Binary Operators =========================
         case Plus(lhs, rhs) =>
-          topLevelConstraint(IntType) :::
-            genConstraints(lhs, IntType) :::
-            genConstraints(rhs, IntType)
+          topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
         case Minus(lhs, rhs) =>
-          topLevelConstraint(IntType)
-          genConstraints(lhs, IntType) :::
-            genConstraints(rhs, IntType)
+          topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
         case Times(lhs, rhs) =>
-          topLevelConstraint(IntType) :::
-            genConstraints(lhs, IntType) :::
-            genConstraints(rhs, IntType)
+          topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
         case Div(lhs, rhs) =>
-          topLevelConstraint(IntType) :::
-            genConstraints(lhs, IntType) :::
-            genConstraints(rhs, IntType)
+          topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
         case Mod(lhs, rhs) =>
-          topLevelConstraint(IntType) :::
-            genConstraints(lhs, IntType) :::
-            genConstraints(rhs, IntType)
-        case Neg(expr) =>
-          topLevelConstraint(IntType)
-          genConstraints(expr, IntType)
-        case Not(expr) =>
-          topLevelConstraint(BooleanType)
-          genConstraints(expr, BooleanType)
+          topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
         case LessThan(lhs, rhs) =>
-          topLevelConstraint(BooleanType) :::
-            genConstraints(lhs, IntType) :::
-            genConstraints(rhs, IntType)
+          topLevelConstraint(BooleanType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
         case LessEquals(lhs, rhs) =>
-          topLevelConstraint(BooleanType) :::
-            genConstraints(lhs, IntType) :::
-            genConstraints(rhs, IntType)
+          topLevelConstraint(BooleanType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
         case And(lhs, rhs) =>
-          topLevelConstraint(BooleanType) :::
-            genConstraints(lhs, BooleanType) :::
-            genConstraints(rhs, BooleanType)
+          topLevelConstraint(BooleanType) ::: genConstraints(lhs, BooleanType) ::: genConstraints(rhs, BooleanType)
         case Or(lhs, rhs) =>
-          topLevelConstraint(BooleanType) :::
-            genConstraints(lhs, BooleanType) :::
-            genConstraints(rhs, BooleanType)
+          topLevelConstraint(BooleanType) ::: genConstraints(lhs, BooleanType) ::: genConstraints(rhs, BooleanType)
         case Equals(lhs, rhs) =>
           val generic = TypeVariable.fresh()
-          topLevelConstraint(BooleanType) :::
-            genConstraints(lhs, generic) :::
-            genConstraints(rhs, generic)
-
+          topLevelConstraint(BooleanType) ::: genConstraints(lhs, generic) ::: genConstraints(rhs, generic)
+        case Concat(lhs, rhs) =>
+          topLevelConstraint(StringType) ::: genConstraints(lhs, StringType) ::: genConstraints(rhs, StringType)
+        // ============================== Type Check Unary Operators ==============================
+        case Not(expr) =>
+          topLevelConstraint(BooleanType) ::: genConstraints(expr, BooleanType)
+        case Neg(expr) =>
+          topLevelConstraint(IntType) ::: genConstraints(expr, IntType)
+        // ============================== Type Check Applications =================================
+        case Call(qname, args) =>
+          // WARNING BY HR : An Application can either be a call to a constructor of a function
+          val constructor = table.getConstructor(qname)
+          constructor match
+            case Some(constr@ConstrSig(args_tpe, _, _)) =>
+              val argsConstraint = (args zip args_tpe) flatMap {(expr, tpe) => genConstraints(expr, tpe)}
+              topLevelConstraint(constr.retType) ::: argsConstraint
+            case None =>
+              table.getFunction(qname) match
+                case Some(FunSig(args_tpe, rte_tpe, _)) =>
+                  val argsConstraint = (args zip args_tpe) flatMap { (expr, tpe) => genConstraints(expr, tpe) }
+                  topLevelConstraint(rte_tpe) ::: argsConstraint
+                case None =>
+                  ctx.reporter.error(s"unknown symbol $qname")
+                  Nil
+        // ================================ Type Check Sequences ==================================
+        case Sequence(e1, e2) =>
+          genConstraints(e1, TypeVariable.fresh()) ::: genConstraints(e2, expected)
+        //  ========================== Type Check Variable Definitions ============================
+        case Let(df, value, body) =>
+          genConstraints(value, df.tt.tpe) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe))
+        // =========================== Type Check Conditions ======================================
+        case Ite(cond, thenn, elze) =>
+          val generic = TypeVariable.fresh()
+          genConstraints(cond, BooleanType) ::: genConstraints(thenn, generic) ::: genConstraints(elze, generic)
+        // =============================== Type Check Pattern Matching ============================
         case Match(scrut, cases) =>
           // Returns additional constraints from within the pattern with all bindings
           // from identifiers to types for names bound in the pattern.
@@ -111,9 +127,12 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
           val st = TypeVariable.fresh()
           genConstraints(scrut, st) ++ cases.flatMap(cse => handleCase(cse, st))
 
-        case e =>
-          println(s"this is missing ${e}")
-          ??? // TODO: Implement the remaining cases
+        // ============================= Type Check Errors =====================================
+        case Error(msg) =>
+          genConstraints(msg, StringType)
+        // ============================= DEFAULT ====================================
+        case expr =>
+          ctx.reporter.fatal(s"Cannot type check tree $expr of type ${expr.getClass.getTypeName}")
       }
     }
 
@@ -138,30 +157,28 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     //  using `ctx.reporter.error` if they are not satisfiable.
     // We consider a set of constraints to be satisfiable exactly if they unify.
     def solveConstraints(constraints: List[Constraint]): Unit = {
-      println(constraints)
       constraints match {
         case Nil => ()
         case Constraint(found, expected, pos) :: more =>
-          // HINT: You can use the `subst_*` helper above to replace a type variable
-          //       by another type in your current set of constraints.
           (found, expected) match
-            case (t1: TypeVariable, t2: TypeVariable) =>
-              if t1.id == t2.id then
+            case (TypeVariable(id1), TypeVariable(id2)) if id1 == id2 =>
                 solveConstraints(more)
-              else
-                val newList = subst_*(constraints, t1.id, t2)
-                solveConstraints(newList)
+            case (TypeVariable(id1), t2@TypeVariable(_))=>
+              solveConstraints(subst_*(constraints, id1, t2))
             case (TypeVariable(_), _) =>
               solveConstraints(Constraint(expected, found, pos) :: more)
             case (type1, TypeVariable(i)) =>
               val newList = subst_*(constraints, i, type1)
               solveConstraints(newList)
-            case (type1, type2) =>
-              if type1 == type2 then
-                solveConstraints(more)
-            case _ | null =>
-              error(s"Type error,found $found instead of $expected", pos)
+            // TODO HR : Modify this code here to take into account subtyping :-) - lab 5
+            case (lhs_tpe, rhs_tpe) if lhs_tpe == rhs_tpe =>
               solveConstraints(more)
+            case (lhs_tpe, rhs_tpe) if lhs_tpe != rhs_tpe =>
+              error(s"{Type error} found $lhs_tpe instead of $rhs_tpe", pos)
+              solveConstraints(more)
+            case _ | null => // TODO HR: null needs to be removed when Explicit nulls will be released ;-)
+              ctx.reporter.fatal(s"TypeChecker, found= $found & expected= $expected", pos)
+
       }
     }
 
