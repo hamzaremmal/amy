@@ -123,6 +123,8 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
               case LiteralPattern(lit) =>
                 (genConstraints(lit, scrutExpected), Map.empty)
               case CaseClassPattern(constr, args) =>
+                if(table.getType(constr) != scrutExpected)
+                  ctx.reporter.fatal(s"Not the same type in the pattern")
                 val constructor = table.getConstructor(constr) match
                     case Some(c) => c
                     case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
