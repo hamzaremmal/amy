@@ -114,14 +114,29 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
           // Returns additional constraints from within the pattern with all bindings
           // from identifiers to types for names bound in the pattern.
           // (This is analogous to `transformPattern` in NameAnalyzer.)
-          def handlePattern(pat: Pattern, scrutExpected: Type):
-          (List[Constraint], Map[Identifier, Type]) = {
-            ??? // TODO
+          def handlePattern(pat: Pattern, scrutExpected: Type): (List[Constraint], Map[Identifier, Type]) = {
+            pat match
+              case WildcardPattern() =>
+                (Nil, Map.empty)
+              case IdPattern(name) =>
+                (Nil, Map(name -> scrutExpected))
+              case LiteralPattern(lit) =>
+                (genConstraints(lit, scrutExpected), Map.empty)
+              case CaseClassPattern(constr, args) =>
+                val constructor = table.getConstructor(constr) match
+                    case Some(c) => c
+                    case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
+                val pat_tpe = args zip constructor.argTypes
+                pat_tpe.foldLeft((List[Constraint](), Map.empty[Identifier, Type])){
+                  case (acc, (pat, tpe)) =>
+                    val handle = handlePattern(pat, tpe)
+                    (acc._1 ::: handle._1, acc._2 ++ handle._2)
+                }
           }
 
           def handleCase(cse: MatchCase, scrutExpected: Type): List[Constraint] = {
             val (patConstraints, moreEnv) = handlePattern(cse.pat, scrutExpected)
-            ??? // TODO
+            patConstraints ::: genConstraints(cse.expr, expected)(env ++ moreEnv)
           }
 
           val st = TypeVariable.fresh()

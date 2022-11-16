@@ -2,8 +2,8 @@ object t0003
 
   fn testMatch(i : Int(32)) : Unit = {
     i match {
-      case 0 =>
-        Std.printString("Found 0")
+      case ab =>
+        Std.printString("Found ab")
       case 1 =>
         Std.printString("Found 1")
       case _ =>
