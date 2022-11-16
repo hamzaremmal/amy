@@ -132,7 +132,7 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
                     val handle = handlePattern(pat, tpe)
                     (acc._1 ::: handle._1, acc._2 ++ handle._2)
                 }
-                (Constraint(constructor.retType, scrutExpected, null) :: a._1, a._2)
+                (Constraint(constructor.retType, scrutExpected, pat.position) :: a._1, a._2)
           }
 
           def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {
