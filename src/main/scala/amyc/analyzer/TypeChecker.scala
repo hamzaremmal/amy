@@ -123,17 +123,16 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
               case LiteralPattern(lit) =>
                 (genConstraints(lit, scrutExpected), Map.empty)
               case CaseClassPattern(constr, args) =>
-                if(table.getType(constr) != scrutExpected)
-                  ctx.reporter.fatal(s"Not the same type in the pattern")
                 val constructor = table.getConstructor(constr) match
                     case Some(c) => c
                     case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
                 val pat_tpe = args zip constructor.argTypes
-                pat_tpe.foldLeft((List[Constraint](), Map.empty[Identifier, Type])){
+                val a = pat_tpe.foldLeft((List[Constraint](), Map.empty[Identifier, Type])){
                   case (acc, (pat, tpe)) =>
                     val handle = handlePattern(pat, tpe)
                     (acc._1 ::: handle._1, acc._2 ++ handle._2)
                 }
+                (Constraint(constructor.retType, scrutExpected, null) :: a._1, a._2)
           }
 
           def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {
