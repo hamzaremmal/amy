@@ -1,0 +1,9 @@
+object Locals
+  fn foo(i: Int(32)): Int(32) = {
+    val i: Int(32) = 0;
+    if (i == 0) { error("") }
+    else { 0 }
+  }
+
+  foo(1)
+end Locals

@@ -1,0 +1,3 @@
+object TypeWidth
+  fn foo(): Boolean(32) = { true }
+end TypeWidth
