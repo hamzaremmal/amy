@@ -1,0 +1,3 @@
+object LogicalError
+  1 || 2
+end LogicalError

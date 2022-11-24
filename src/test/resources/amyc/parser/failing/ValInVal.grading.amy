@@ -1,0 +1,3 @@
+object Val
+  val x: Int(32) = val y: Int = 10; 5; 42
+end Val

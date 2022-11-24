@@ -1,0 +1,9 @@
+object Factorial
+  fn fact(i: Int(32)): Int(32) = {
+    if (i < 2) { 1 }
+    else { i * fact(i-1) }
+  }
+
+  Std.printString("5! = "  ++ Std.intToString(fact(5)));
+  Std.printString("10! = " ++ Std.intToString(fact(10)))
+end Factorial

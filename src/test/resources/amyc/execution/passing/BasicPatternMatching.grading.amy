@@ -1,0 +1,51 @@
+object BasicPatternMatching
+  abstract class Letter
+  case class A() extends Letter
+  case class APrim(i: Int(32)) extends Letter
+  case class B() extends Letter
+  case class BPrim(i: Int(32)) extends Letter
+ 
+  fn isRegularLetter(l: Letter): Boolean = { 
+  	l match {
+		case A() => true
+		case B() => true
+		case APrim(_) => false 
+		case BPrim(_) => false
+	}
+  }
+
+  fn getPrimNumber(l: Letter): Int(32) = {
+  	!isRegularLetter(l) match {
+  		case false => 42
+  		case true => l match {
+  			case APrim(i) => i
+  			case BPrim(i) => i
+  		}
+  	}
+  }
+
+  fn isPrimLetter(l: Letter): String = {
+    getPrimNumber(l) match {
+      case 42 => "not prim"
+      case _ => "prim"
+    }
+  }
+
+
+  val a: Letter = A();
+  val ap: Letter = APrim(2);
+  val b: Letter = B();
+  val bp: Letter = BPrim(3);
+  
+  Std.printString(Std.intToString(getPrimNumber(a)));
+  Std.printString(Std.intToString(getPrimNumber(b)));
+  Std.printString(Std.intToString(getPrimNumber(ap)));
+  Std.printString(Std.intToString(getPrimNumber(bp)));
+
+  Std.printString(isPrimLetter(ap));
+  Std.printString(isPrimLetter(bp));
+  Std.printString(isPrimLetter(a));
+  Std.printString(isPrimLetter(b));
+
+  Std.printString("test finished")
+end BasicPatternMatching

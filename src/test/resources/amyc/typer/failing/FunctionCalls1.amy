@@ -1,0 +1,5 @@
+object FunctionCall
+  fn foo(i: Int(32)): Boolean = { i < 0 }
+  
+  foo(true)
+end FunctionCall

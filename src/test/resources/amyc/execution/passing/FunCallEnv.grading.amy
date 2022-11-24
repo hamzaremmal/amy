@@ -1,0 +1,12 @@
+object FunCallEnv
+  fn printRec(i: Int(32), j: Int(32)): Unit = {
+    if (i <= 0) { () } else {
+      Std.printInt(i);
+      Std.printInt(j);
+      printRec(i - 1, j / 2)
+    }
+  }
+
+  printRec(3, 8)
+
+end FunCallEnv

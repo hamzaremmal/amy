@@ -1,0 +1,3 @@
+object Division
+  1/0
+end Division
