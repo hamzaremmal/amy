@@ -1,0 +1,168 @@
+\subsection{Typing Rules and Semantics of Expressions}
+\label{sec:expr}
+
+Each expression in \langname is associated with a \emph{typing rule},
+which constrains and connects its type and the types of its subexpressions.
+An \langname program is said to \emph{typecheck} if 
+(1) all its expressions obey their respective typing rules, and
+(2) the body of each function corresponds to its declared return type.
+A program that does not typecheck will be rejected by the compiler.
+
+\newcommand\Int{\gtns{Int(32)}\xspace}
+\newcommand\Boolean{\gtns{Boolean}\xspace}
+\newcommand\String{\gtns{String}\xspace}
+\newcommand\Unit{\gtns{Unit}\xspace}
+\newcommand{\typeI}[2]{\ensuremath{( #1 ) \RA #2 }}
+\newcommand{\typeII}[3]{\ensuremath{( #1 , #2 ) \RA #3 }}
+\newcommand{\typeIII}[4]{\ensuremath{( #1 , #2 , #3 ) \RA #4 }}
+
+In the following, we will informally give the typing rules
+and explain the semantics (meaning) of each type of expression in \langname.
+We will use function type notation for typing of the various operators.
+For example, $(A, B) \Rightarrow C$ denotes that an operator takes arguments of types $A$ and $B$
+and returns a value of type $C$.
+
+When talking about the semantics of an expression we will refer to a \emph{context}.
+A context is a mapping from variables to the values that have been assigned to them.
+
+\begin{itemize}
+    \item Literals of \langname are expressions of the base types that are \emph{values},
+        i.e. they cannot be evaluated further.
+        The literals \lstinline{true} and \lstinline{false} have type \Boolean.
+        \lstinline{()}, the unit literal, has type \Unit.
+        String literals have type \String and integer literals have type \Int.
+    \item A variable has the type of the corresponding definition
+        (function parameter or local variable definition).
+        Its value is the value assigned to it in the current context.
+    \item \gtns{+}, \gtns{-}, \gtns{*}, \gtns{/} and \gtns{\%} have type \typeII{\Int}{\Int}{\Int},
+        and are the usual integer operators.
+    \item Unary \gtns{-} has type \typeI{\Int}{\Int} and is the integer negation.
+    \item \gtns{<} and \gtns{<=} have type \typeII{\Int}{\Int}{\Boolean} and are the usual arithmetic
+        comparison operators.
+    \item \gtns{\&\&} and \gtns{||} have type \typeII{\Boolean}{\Boolean}{\Boolean}
+        and are the boolean conjunction and disjunction. \emph{Notice that these operators
+        are short-circuiting}. This means that the second argument does not get evaluated
+        if the result is known after computing the first one.
+        For example, \lstinline{true || error("")} will yield \lstinline{true} and not result in an error,
+        whereas \lstinline{false || error("")} will result in an error in the program.
+    \item \gtns{!} has type \typeI{\Boolean}{\Boolean} and is the boolean negation.
+    \item \gtns{++} has type \typeII{\String}{\String}{\String} and is the string concatenation.
+    \item \gtns{==} is the equality operator. It has type \typeII{A}{A}{\Boolean} for every type A.
+        Equality for values of the \lstinline{Int(32)}, \lstinline{Boolean} and \lstinline{Unit} types
+        is defined as \emph{value equality}, i.e. two values are equal if they have the
+        same representation. E.g. \lstinline{0 == 0}, \lstinline{() == ()} and \lstinline{(1 + 2) == 3}.
+        Equality for the \emph{reference types} \lstinline{String} and all user-defined types
+        is defined as \emph{reference equality}, i.e. two values are equal only if they refer to the
+        same object.
+        I.e. \hbox{\lstinline{""}\ \lstinline{ == ""}},
+        \hbox{\lstinline{"a"}\ \lstinline{++ "b"}\ \lstinline{ == "ab"}} and
+        \hbox{\lstinline{Nil() == Nil()}} all evaluate to \lstinline{false},
+        whereas \hbox{\lstinline{(val s = "Hello"; s == s)}} evaluates to \lstinline{true}.
+    \item \gtns{error()} has type \typeI{\String}{A} for any type $A$, i.e. \gtns{error} is always acceptable,
+        regardless of the expected type. When a program encounters \gtns{error}, it needs to print
+        something like \lstinline{Error: <msg>}, where \lstinline{<msg>} is its evaluated argument,
+        and then exit immediately.
+    \item \lstinline|if(..) {..} else {..}| has type \typeIII{\Boolean}{A}{A}{A} for any type $A$,
+        and has the following meaning:
+        First, evaluate the condition of \lstinline{if}. If it evaluates to \lstinline{true},
+        evaluate and return the then-branch; otherwise, evaluate and return the else-branch.
+        Notice that the value that is not taken is not evaluated.
+    \item \lstinline{;} is the \emph{sequence} operator. It has type
+        \typeII{A}{B}{B} for any types $A$ and $B$.
+        Notice that the first expression has to be well typed, although its precise type does not matter.
+        \lstinline{;} evaluates and discards its first argument
+        (which we will usually invoke just for its side-effects)
+        and then evaluates and returns its second argument.
+    \item \lstinline{val n = e; b} defines a local variable with name \lstinline{n} and
+        adds it to the context, mapped to the value of \lstinline{e}.
+        It is visible in \lstinline{b} but not in \lstinline{e}.
+        \lstinline{n} has to obey the name restrictions described in Section~\ref{sec:names}.
+    \item An expression \lstinline{f(..)} or \lstinline{m.f(..)} denotes either a function call,
+        or an invocation of a type constructor.
+        \lstinline{f} has to be the name of a function/constructor defined in the program.
+        The types of the real arguments of the function/constructor invocation have to match
+        the corresponding types of the formal arguments in the definition of the function/constructor.
+        The type of a function/constructor call is the return type of the function,
+        or the parent type of the constructor respectively.
+
+        Evaluating a function call means evaluating its body in a new context,
+        containing the function's formal arguments mapped to the values of the real
+        arguments provided at the function call.
+        Evaluating a call to a constructor means generating and returning a fresh object
+        containing (a reference to) the constructor and the arguments passed to it.
+
+        Notice that an invocation of a type constructor \emph{on values} is itself a value,
+        i.e. cannot be evaluated further. It corresponds to literals of the other types.
+
+    \item \lstinline{match} is the pattern-matching construct of \langname.
+        It corresponds to Scala's pattern matching. Java programmers can think of
+        it as a generalized switch-statement.
+        \lstinline{match} is the only way to access the structure of a value
+        of a class type. It also happens to be the most complicated structure
+        of \langname.
+        
+        \paragraph{Terminology:} To explain how the match-expression works, let us first establish some
+        terminology. A match case has a \emph{scrutinee} (the first operand,
+        which gets pattern matched on), and a number of \emph{match cases}
+        (or simply cases). A case is introduced with the keyword \gt{case},
+        followed by the \emph{(case) pattern}, then the symbol \gt{=>} and finally
+        an expression, which we will call the \emph{case expression}.
+
+        As seen in Section~\ref{sec:syntax}, a pattern comes in four different forms,
+        which in the grammar are denoted as
+        (1) $Id\gtns{(}Patterns\gtns{)}$, (2) $Id$, (3) $Literal$ and \hbox{(4) $\gnt{\_}$}.
+        We will call those forms \emph{case class pattern}, \emph{identifier pattern},
+        \emph{literal pattern} and \emph{wildcard pattern} respectively.
+        The identifier at the beginning of case class pattern is called the \emph{constructor} of the pattern,
+        and its arguments are called its \emph{subpatterns}.
+
+        \paragraph{Typing rules:} For the match-expression to typecheck, two conditions have to hold:
+        \begin{itemize}
+            \item All its case expressions have the same type,
+                which is also the type of the whole match expression.
+            \item All case patterns have to \emph{follow} the type of the scrutinee.
+                For a pattern to follow a type means the following, according to its form:
+                \begin{itemize}
+                    \item Each literal pattern follows exactly the type of its literal.
+                    \item Wildcard and identifier patterns follow any type.
+                    \item A case class pattern follows only the resulting type of its constructor,
+                        if and only if all its subpatterns follow the types of the respective
+                        fields of the constructor.
+
+                        For example, \lstinline|Nil() match { case Cons(_, t) => () }| typechecks,
+                        whereas \lstinline|Nil() match { case 0 => () }| does not.
+                \end{itemize}
+        \end{itemize}
+
+        \paragraph{Semantics:} The semantics of pattern matching are as follows:
+        First, the scrutinee is evaluated, then cases are scanned one by one
+        until one is found whose pattern \emph{matches} the scrutinee value.
+        If such case is found, its case expression is evaluated,
+        after adding to the environment the variables bound in the case pattern (see below).
+        The value produced in this way is returned as the value of the match-expression.
+        If none is found, the program terminates with an error.
+
+        We say that a pattern \emph{matches} a value when the following holds:
+        \begin{itemize}
+            \item A wildcard pattern $\gtns{\_}$ or an identifier pattern
+                \lstinline{x} match any value. In the second case,
+                \lstinline{x} is bound to that value when evaluating
+                the case expression.
+            \item A literal pattern matches exactly the value of its literal.
+                Notice that string literals are compared by reference,
+                so they can never match.
+            \item A case class pattern \lstinline{case C(..)} matches a value $v$,
+                if and only if $v$ has been constructed with the same constructor \lstinline{C}
+                and every subpattern of the pattern matches the corresponding field of $v$.
+                Notice that we have to recursively bind identifiers in subpatterns.
+        \end{itemize}
+
+	\item Parentheses \lstinline{(e)} can be used freely around an expression \lstinline{e},
+		mainly to override operator precedence or to make the program more readable.
+		\lstinline{(e)} is equivalent to \lstinline{e}.
+
+    \item When evaluating an expression composed of sub-expressions (e.g. \lstinline{f(a,b)}),
+    the different sub-expressions are evaluated in left-to-right order (i.e. in the previous example, the sub-expressions would be valuated in the following order: \lstinline{f} then \lstinline{a} then \lstinline{b}).
+    Function calls are done using the call by value strategy.
+\end{itemize}
+

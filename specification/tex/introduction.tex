@@ -1,0 +1,142 @@
+\section{Introduction}
+
+Welcome to the \langname project! This semester you will learn how to compile a simple functional
+Scala-like language
+from source files down to executable code. When your compiler is complete,
+it will be able to take \langname source (text) files as input and produce
+\href{http://webassembly.org}{WebAssembly} bytecode files.
+WebAssembly is a new format for portable bytecode which is meant to be run in browsers.
+
+This document is the specification of \langname. Its purpose is to help you clearly
+and unambiguously understand what an \langname program means,
+and to be the \langname language reference,
+along with the reference compiler.
+It does not deal with how you will actually implement the compiler;
+this will be described to you as assignments are released.
+
+\subsection{Features of \langname}
+Let us demonstrate the basic features of \langname through some examples:
+
+\subsubsection{The factorial function}
+
+\begin{figure}[h]
+    \lstinputlisting{Factorial.scala}
+\end{figure}
+
+Every program in \langname is contained in a module, also called \lstinline{object}.
+A function is introduced with the keyword \lstinline{fn}, and all its parameters
+and result type must be explicitly typed.
+\langname supports conditional (or \lstinline{if}-) expressions with obligatory brackets.
+Notice that conditionals are not statements, but return a value,
+in this case an \lstinline{Int}(32).
+
+In fact, there is no distinction between expressions
+and statements in \langname. Even expressions that are called only for their
+side-effects return a value of type \lstinline{Unit}.
+
+The condition of an \lstinline{if}-expression must be of type \lstinline{Boolean}
+and its branches must have the same type, which is also the type of the whole expression.
+
+\subsubsection{Saying hello}
+
+\begin{figure}[h]
+    \lstinputlisting{Hello1.scala}
+\end{figure}
+
+\langname supports compiling multiple modules together.
+To refer to functions (or other definitions) in another module,
+one must explicitly use a qualified name.
+There is no import statement like in Scala.
+
+In this example, we refer to the \lstinline{printString} function in the
+\lstinline{Std} module, which contains some builtin functions to interact with the user.
+The string we print is constructed by concatenating two smaller strings
+with the \lstinline{++} operator.
+
+\subsubsection{Input, local variables and sequencing expressions}
+
+\begin{figure}[h]
+    \lstinputlisting{Hello2.scala}
+\end{figure}
+
+We can read input from the console with the \lstinline{readX} functions
+provided in \lstinline{Std}.
+
+We can define local variables with \lstinline{val},
+which must always be typed explicitly.
+The value of the variable is given after ``\lstinline{=}'',
+followed by a semicolon.
+
+We can sequence expressions with ``\lstinline{;}''.
+The value of the first expression is discarded,
+and the value of the second one is returned.
+Note that ``\lstinline{;}'' is an \emph{operator}
+and not a terminator: you are not allowed to put it 
+at the end of a sequence of expressions.
+
+\subsubsection{Type definitions}
+
+\begin{figure}[h]
+    \lstinputlisting{List1.scala}
+\end{figure}
+
+Except for the basic types, a user can define their own types in \langname.
+The user-definable types in \langname come from functional programming and
+are called \emph{algebraic data types}.
+In this case, we define a type, \lstinline{List},
+and two constructors \lstinline{Nil} and \lstinline{Cons},
+which we can call to construct values of type \lstinline{List}.
+
+\subsubsection{Constructing ADT values}
+
+\begin{figure}[h!]
+    \lstinputlisting{List2.scala}
+\end{figure}
+
+We can create a \lstinline{List} by calling one of its two constructors like a function,
+as demonstrated in the \lstinline{range} function.
+
+\subsubsection{Pattern matching}
+
+\begin{figure}[h!]
+    \lstinputlisting{List3.scala}
+\end{figure}
+
+To use a list value in any meaningful way,
+we have to break it down, according to the constructor used to construct it.
+This is called \emph{pattern matching} and is a powerful feature of functional programming.
+
+In \lstinline{length} we pattern match against the input value \lstinline{l}.
+Pattern matching will check if its argument matches the pattern of the first case,
+and if so will evaluate the corresponding expression.
+Otherwise it will continue with the second case etc.
+If no pattern matches, the program will exit with an error.
+If the constructor has arguments, as does \lstinline{Cons} in this case,
+we can bind their values to fresh variables in the pattern,
+so we can use them in the case expression.
+
+\subsubsection{Wildcard patterns and errors}
+
+\begin{figure}[h]
+    \lstinputlisting{List4.scala}
+\end{figure}
+
+The \lstinline{error} keyword takes a string as argument,
+prints \lstinline{Error: } and its argument on the screen,
+then exits the program immediately with an error code.
+In this function, we are trying to compute the head of a list,
+which should fail if the list is empty.
+
+Notice that in the second case,
+we don't really care what the tail of the list is.
+Therefore, we use a \emph{wildcard pattern} (\lstinline{_}),
+which matches any value without binding it to a name.
+
+\subsection{Relation to Scala}
+\langname, with mild syntactic variations, is designed to be as close to a simple subset of Scala as possible.
+However, it is not a perfect subset. You can easily come up with \langname programs
+that are not legal in Scala.
+However, many ``reasonable'' programs will be compilable with \lstinline{scalac},
+provided you provide an implementation of the \langname standard library along with your code.
+This should not be required however, as we are providing a reference implementation of \langname.
+
