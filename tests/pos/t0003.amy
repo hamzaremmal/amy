@@ -1,0 +1,18 @@
+object t0003
+
+  fn testMatch(i : Int(32)) : Unit = {
+    i match {
+      case ab =>
+        Std.printString("Found ab")
+      case 1 =>
+        Std.printString("Found 1")
+      case _ =>
+        Std.printString("Unknown number")
+    }
+  }
+
+testMatch(0);
+testMatch(1);
+testMatch(2)
+
+end t0003

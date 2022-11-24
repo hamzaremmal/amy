@@ -1,0 +1,3 @@
+object ClassDef
+  case class Foo(x, y: Int(32)) extends Bar
+end ClassDef
