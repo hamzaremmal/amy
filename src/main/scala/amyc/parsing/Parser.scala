@@ -401,8 +401,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
     }
   }
 
-  override def run(ctx: Context)(tokens: Iterator[Token]): Program = {
-    import ctx.reporter._
+  override def run(tokens: Iterator[Token])(using Context): Program = {
     if (!checkLL1) {
       ctx.reporter.fatal("Program grammar is not LL1!")
     }
@@ -411,8 +410,8 @@ object Parser extends Pipeline[Iterator[Token], Program]
 
     parser(tokens) match {
       case Parsed(result, _) => result
-      case UnexpectedEnd(_) => fatal("Unexpected end of input.")
-      case UnexpectedToken(token, rest) => fatal(s"Unexpected token: $token, possible kinds: ${rest.first.map(_.toString).mkString(", ")}")
+      case UnexpectedEnd(_) => ctx.reporter.fatal("Unexpected end of input.")
+      case UnexpectedToken(token, rest) => ctx.reporter.fatal(s"Unexpected token: $token, possible kinds: ${rest.first.map(_.toString).mkString(", ")}")
     }
   }
 }
