@@ -12,7 +12,7 @@ object Lab3 {
   }
 
   def main(args: Array[String]): Unit = {
-    val ctx = parseArgs(args)
+    given ctx : Context = parseArgs(args)
     val pipeline = Lexer andThen Parser andThen treePrinterN("Trees after parsing")
 
     val files = ctx.files.map(new File(_))
@@ -24,7 +24,7 @@ object Lab3 {
       files.find(!_.exists()).foreach { f =>
         ctx.reporter.fatal(s"File not found: ${f.getName}")
       }
-      pipeline.run(ctx)(files)
+      pipeline.run(files)
       ctx.reporter.terminateIfErrors()
     } catch {
       case AmycFatalError(_) =>
@@ -37,7 +37,7 @@ object Lab3 {
 
   def treePrinterN(title: String): Pipeline[NP, Unit] = {
     new Pipeline[NP, Unit] {
-      def run(ctx: Context)(v: NP) = {
+      def run(v: NP)(using Context) = {
         println(title)
         println(NominalPrinter(v))
       }

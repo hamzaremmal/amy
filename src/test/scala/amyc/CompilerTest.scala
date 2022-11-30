@@ -7,11 +7,11 @@ import org.junit.Assert.fail
 
 abstract class CompilerTest extends TestUtils {
   private def runPipeline(pipeline: Pipeline[List[File], Unit], fileNames: List[String]) = {
-    val ctx = Context(new Reporter, fileNames)
+    given ctx : Context = Context(new Reporter, fileNames)
     val files = ctx.files.map(new File(_))
     for (f <- files) do
       assert(f != null && f.exists, s"Could not read test file ${f.getPath()}")
-    pipeline.run(ctx)(files)
+    pipeline.run(files)
     ctx.reporter.terminateIfErrors()
   }
 

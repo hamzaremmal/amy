@@ -5,17 +5,20 @@ package amyc.utils
 abstract class Pipeline[-F, +T] {
   self =>
 
+  final def ctx(using ctx1 : Context): Context = ctx1
+
   def andThen[G](thenn: Pipeline[T, G]): Pipeline[F, G] = new Pipeline[F,G] {
-    def run(ctx : Context)(v : F) : G = {
-      val first = self.run(ctx)(v)
+    def run(v : F)(using Context) : G = {
+      val first = self.run(v)
       ctx.reporter.terminateIfErrors()
-      thenn.run(ctx)(first)
+      thenn.run(first)
     }
   }
 
-  def run(ctx: Context)(v: F): T
+  def run(v: F)(using Context): T
+
 }
 
 case class Noop[T]() extends Pipeline[T, T] {
-  def run(ctx: Context)(v: T) = v
+  def run(v: T)(using Context): T = v
 }

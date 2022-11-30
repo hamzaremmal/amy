@@ -11,7 +11,7 @@ object Lab1 {
   }
 
   def main(args: Array[String]): Unit = {
-    val ctx = parseArgs(args)
+    given ctx : Context = parseArgs(args)
     val pipeline = Frontend.pipeline andThen Interpreter
 
     val files = ctx.files.map(new File(_))
@@ -23,7 +23,7 @@ object Lab1 {
       files.find(!_.exists()).foreach { f =>
         ctx.reporter.fatal(s"File not found: ${f.getName}")
       }
-      pipeline.run(ctx)(files)
+      pipeline.run(files)
       ctx.reporter.terminateIfErrors()
     } catch {
       case AmycFatalError(_) =>

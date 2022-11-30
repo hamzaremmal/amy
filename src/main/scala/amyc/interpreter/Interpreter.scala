@@ -30,7 +30,7 @@ object Interpreter extends Pipeline[(Program, SymbolTable), Unit] {
   case object UnitValue extends Value
   case class CaseClassValue(constructor: Identifier, args: List[Value]) extends Value
 
-  def run(ctx: Context)(v: (Program, SymbolTable)): Unit = {
+  def run(v: (Program, SymbolTable))(using Context): Unit = {
     val (program, table) = v
 
     // These built-in functions do not have an Amy implementation in the program,
