@@ -52,6 +52,11 @@ object Utils {
     Identifier.fresh(name).fullName
   }
 
+
+  inline def withComment(comment : String)(code: => Code) : Code =
+    Comment(comment) <:>
+    code
+
   // Creates a known string constant s in memory
   def mkString(s: String): Code = {
     val size = s.length
@@ -70,6 +75,19 @@ object Utils {
 
     Comment(s"mkString: $s") <:> setChars <:> setMemory
   }
+
+  inline def mkBoolean(b : Boolean): Code =
+    Const(if b then 1 else 0)
+
+  inline def mkUnit : Code = Const(0)
+
+  inline def mkBinOp(lhs : Code, rhs : Code)(op : Instruction) : Code =
+    lhs <:>
+    rhs <:>
+    op
+
+  inline def mkUnaryOp(expr :Code)(op  :Instruction) : Code =
+    Comment("Not implemented")
 
   // Built-in implementation of concatenation
   val concatImpl: Function = {
