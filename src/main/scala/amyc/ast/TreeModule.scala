@@ -1,6 +1,6 @@
 package amyc.ast
 
-import amyc.utils.Positioned
+import amyc.utils.{Positioned, UniqueCounter}
 
 /* A polymorphic module containing definitions of Amy trees.
  *
@@ -124,6 +124,17 @@ trait TreeModule { self =>
   // A wrapper for types that is also a Tree (i.e. has a position)
   // This here should not have a type
   case class TypeTree(override val tpe: Type) extends Tree
+
+  // Represents a type variable.
+  // It extends Type, but it is meant only for internal type checker use,
+  //  since no Amy value can have such type.
+  case class TypeVariable private(id: Int) extends Type
+
+  object TypeVariable {
+    private val c = new UniqueCounter[Unit]
+
+    def fresh(): TypeVariable = TypeVariable(c.next(()))
+  }
 
   // All is wrapped in a program
   case class Program(modules: List[ModuleDef]) extends Tree

@@ -1,50 +1,38 @@
-package amyc
-package analyzer
+package amyc.typer
 
+import amyc.analyzer.TypeChecker.ctx
+import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
+import amyc.ast.{Identifier, SymbolicTreeModule}
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
-import amyc.ast.Identifier
+import amyc.utils.Pipeline
 
-// The type checker for Amy
-// Takes a symbolic program and rejects it if it does not follow the Amy typing rules.
-object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)] {
+object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTable, List[(Type, Type)])]{
 
-  def run(v: (Program, SymbolTable))(using Context): (Program, SymbolTable) = {
+  override def run(v: (SymbolicTreeModule.Program, SymbolTable))(using Context) = {
     val (program, table) = v
     // We will first type check each function defined in a module
-    for
+    val inferred1 = for
       mod <- program.modules
       f@FunDef(name, params, retType, body) <- mod.defs
-    do
+    yield
       val env = params.map { case ParamDef(name, tt) => name -> tt.tpe }.toMap
-      val cst = solveConstraints(genConstraints(body, retType.tpe)(env, table, ctx))
-      //ctx.reporter.warning(s"$cst for ${mod.name}::$name")
+      solveConstraints(genConstraints(body, retType.tpe)(env, table, ctx))
 
     // Type-check expression if present. We allow the result to be of an arbitrary type by
     // passing a fresh (and therefore unconstrained) type variable as the expected type.
-    for
+    val inferred2 = for
       mod <- program.modules
       expr <- mod.optExpr
-    do
+    yield
       val tv = TypeVariable.fresh()
-      val cst = solveConstraints(genConstraints(expr, tv)(Map(), table, ctx))
-      //ctx.reporter.warning(s"$cst for ${mod.name}")
+      solveConstraints(genConstraints(expr, tv)(Map(), table, ctx))
 
-    v
+    (program, table, inferred1.flatten ::: inferred2.flatten)
   }
+
 
   private case class Constraint(found: Type, expected: Type, pos: Position)
-
-
-  // Represents a type variable.
-  // It extends Type, but it is meant only for internal type checker use,
-  //  since no Amy value can have such type.
-  private case class TypeVariable private(id: Int) extends Type
-
-  private object TypeVariable {
-    private val c = new UniqueCounter[Unit]
-    def fresh(): TypeVariable = TypeVariable(c.next(()))
-  }
 
   // Given a list of constraints `constraints`, replace every occurence of type variable
   //  with id `from` by type `to`.
@@ -56,6 +44,7 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         case other => other
       }
     }
+
     constraints map { case Constraint(found, expected, pos) =>
       Constraint(subst(found, from, to), subst(expected, from, to), pos)
     }
@@ -243,5 +232,6 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
             ctx.reporter.fatal(s"TypeChecker, found= $found & expected= $expected", pos)
     }
   }
+
 
 }
