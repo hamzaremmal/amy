@@ -45,6 +45,8 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
 
     def transformType(tt: N.TypeTree, inModule: String): S.Type = {
       tt.tpe match {
+        case N.NoType =>
+          fatal(s"Type tree $tt has a type of NoType")
         case N.IntType => S.IntType
         case N.BooleanType => S.BooleanType
         case N.StringType => S.StringType

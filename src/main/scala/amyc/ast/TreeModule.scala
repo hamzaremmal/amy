@@ -26,6 +26,13 @@ trait TreeModule { self =>
 
   // Common ancestor for all trees
   trait Tree extends Positioned {
+
+    private var tpe_ : Type = NoType
+
+    def tpe: Type = tpe_
+
+    final def withType(tpe: Type) =
+      tpe_ = tpe
     override def toString: String = printer(this)
   }
 
@@ -96,6 +103,8 @@ trait TreeModule { self =>
 
   // Types
   trait Type
+
+  case object NoType extends Type
   case object IntType extends Type {
     override def toString: String = "Int"
   }
@@ -113,7 +122,8 @@ trait TreeModule { self =>
   }
 
   // A wrapper for types that is also a Tree (i.e. has a position)
-  case class TypeTree(tpe: Type) extends Tree
+  // This here should not have a type
+  case class TypeTree(override val tpe: Type) extends Tree
 
   // All is wrapped in a program
   case class Program(modules: List[ModuleDef]) extends Tree
