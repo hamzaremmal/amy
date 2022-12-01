@@ -90,6 +90,9 @@ trait TreeModule { self =>
   case class LiteralPattern[+T](lit: Literal[T]) extends Pattern // 42, true
   case class CaseClassPattern(constr: QualifiedName, args: List[Pattern]) extends Pattern // C(arg1, arg2)
 
+  // All is wrapped in a program
+  case class Program(modules: List[ModuleDef]) extends Tree
+
   // Definitions
   trait Definition extends Tree { val name: Name }
   case class ModuleDef(name: Name, defs: List[ClassOrFunDef], optExpr: Option[Expr]) extends Definition
@@ -100,6 +103,10 @@ trait TreeModule { self =>
   case class AbstractClassDef(name: Name) extends ClassOrFunDef
   case class CaseClassDef(name: Name, fields: List[TypeTree], parent: Name) extends ClassOrFunDef
   case class ParamDef(name: Name, tt: TypeTree) extends Definition
+
+  // A wrapper for types that is also a Tree (i.e. has a position)
+  // This here should not have a type
+  case class TypeTree(override val tpe: Type) extends Tree
 
   // Types
   trait Type
@@ -121,10 +128,6 @@ trait TreeModule { self =>
     override def toString: String = printer.printQName(qname)(false).print
   }
 
-  // A wrapper for types that is also a Tree (i.e. has a position)
-  // This here should not have a type
-  case class TypeTree(override val tpe: Type) extends Tree
-
   // Represents a type variable.
   // It extends Type, but it is meant only for internal type checker use,
   //  since no Amy value can have such type.
@@ -136,8 +139,6 @@ trait TreeModule { self =>
     def fresh(): TypeVariable = TypeVariable(c.next(()))
   }
 
-  // All is wrapped in a program
-  case class Program(modules: List[ModuleDef]) extends Tree
 }
 
 /* A module containing trees where the names have not been resolved.
