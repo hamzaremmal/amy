@@ -1,6 +1,5 @@
 package amyc.typer
 
-import amyc.analyzer.Symbols.ClassSymbol
 import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
