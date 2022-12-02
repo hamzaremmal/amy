@@ -12,12 +12,16 @@ object TypeAssigner extends Pipeline[(Program, SymbolTable, Map[Type, Type]), (P
     (v._1, v._2)
 
   def infer(tree: Tree)(using bindings : Map[Type, Type])(using Context) =
+    def bind(tpe: TypeVariable) : Type =
+      val b = bindings.getOrElse(tpe,
+        reporter.fatal(s"$tpe has leaked from the bindings while inferring the type ($bindings)"))
+      b match
+        case tv@TypeVariable(_) => bind(tv)
+        case _ => b
+
     tree.tpe match
       case tv@TypeVariable(_) =>
-        tree.withType{
-          bindings.getOrElse(tv,
-            reporter.fatal(s"TypeVariable ($tv) has leaked from the bindings while inferring the type ($bindings)"))
-        }
+        tree.withType(bind(tv))
       case NoType =>
         reporter.fatal(
           s"""
@@ -183,9 +187,13 @@ object TypeAssigner extends Pipeline[(Program, SymbolTable, Map[Type, Type]), (P
     assign(thenn)
     assign(elze)
     infer(expr)
+    expr
 
   def assignMatch(expr: Match)(using Map[Type, Type])(using Context) =
-    ???
+    val Match(scrut, cases) = expr
+    assign(scrut)
+    for c <- cases do assign(c)
+    infer(expr)
 
   def assignError(expr: Error)(using Map[Type, Type])(using Context) =
     val Error(msg) = expr
@@ -193,19 +201,26 @@ object TypeAssigner extends Pipeline[(Program, SymbolTable, Map[Type, Type]), (P
     infer(expr)
 
   def assignMatchCase(expr: MatchCase)(using Map[Type, Type])(using Context) =
-    ???
+    val MatchCase(pat, e) = expr
+    assign(pat)
+    assign(e)
+    infer(expr)
 
   def assignWildCardPattern(expr: WildcardPattern)(using Map[Type, Type])(using Context) =
-    ???
+    infer(expr)
 
   def assignIdPattern(expr: IdPattern)(using Map[Type, Type])(using Context) =
-    ???
+    infer(expr)
 
   def assignLiteralPattern[T](expr: LiteralPattern[T])(using Map[Type, Type])(using Context) =
-    ???
+    val LiteralPattern(lit) = expr
+    assign(lit)
+    infer(expr)
 
   def assignCaseClassPattern(expr: CaseClassPattern)(using Map[Type, Type])(using Context) =
-    ???
+    val CaseClassPattern(_, patterns) = expr
+    for pat <- patterns do assign(pat)
+    infer(expr)
 
   def assignModule(module: ModuleDef)(using Map[Type, Type])(using Context) =
     val ModuleDef(_, defs, expr) = module

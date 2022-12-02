@@ -157,9 +157,10 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         genConstraints(e1, TypeVariable.fresh()) ::: genConstraints(e2, expected)
       //  ========================== Type Check Variable Definitions ============================
       case Let(df, value, body) =>
+        val tv = TypeVariable.fresh()
         e.withType(expected)
         df.withType(df.tt.tpe)
-        genConstraints(value, df.tt.tpe) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), table, ctx)
+        genConstraints(value, tv) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), table, ctx)
       // =========================== Type Check Conditions ======================================
       case Ite(cond, thenn, elze) =>
         val generic = TypeVariable.fresh()
@@ -173,16 +174,21 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         def handlePattern(pat: Pattern, scrutExpected: Type): (List[Constraint], Map[Identifier, Type]) = {
           pat match
             case WildcardPattern() =>
+              pat.withType(WildCardType)
               (Nil, Map.empty)
             case IdPattern(name) =>
+              pat.withType(scrutExpected)
               (Nil, Map(name -> scrutExpected))
             case LiteralPattern(lit) =>
+              pat.withType(scrutExpected)
               (genConstraints(lit, scrutExpected), Map.empty)
             case CaseClassPattern(constr, args) =>
+              pat.withType(ClassType(constr))
               val constructor = table.getConstructor(constr) match
                 case Some(c) => c
                 case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
               val pat_tpe = args zip constructor.argTypes
+              for (p, t) <- pat_tpe do p.withType(t)
               val a = pat_tpe.foldLeft((List[Constraint](), Map.empty[Identifier, Type])) {
                 case (acc, (pat, tpe)) =>
                   val handle = handlePattern(pat, tpe)
@@ -192,6 +198,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         }
 
         def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {
+          cse.withType(rt)
           val (patConstraints, moreEnv) = handlePattern(cse.pat, scrutExpected)
           patConstraints ::: genConstraints(cse.expr, rt)(env ++ moreEnv, table, ctx)
         }
@@ -199,12 +206,15 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         val st = TypeVariable.fresh()
         val rt = TypeVariable.fresh()
         e.withType(rt)
-        genConstraints(scrut, st) ++ cases.flatMap(cse => handleCase(cse, st, rt)) ++ topLevelConstraint(rt)
+        genConstraints(scrut, st) ++ cases.flatMap(cse => {
+          val tv = TypeVariable.fresh()
+          Constraint(tv, rt, cse.position) :: handleCase(cse, st, tv)
+        }) ++ topLevelConstraint(rt)
 
       // ============================= Type Check Errors =====================================
       case Error(msg) =>
         e.withType(expected)
-        genConstraints(msg, StringType)
+        genConstraints(msg, StringType) ::: topLevelConstraint(BottomType)
       // ============================= DEFAULT ====================================
       case expr =>
         ctx.reporter.fatal(s"Cannot type check tree $expr of type ${expr.getClass.getTypeName}")

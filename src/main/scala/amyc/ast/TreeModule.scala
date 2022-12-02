@@ -110,7 +110,20 @@ trait TreeModule { self =>
   case class TypeTree(override val tpe: Type) extends Tree
 
   // Types
-  trait Type
+  trait Type {
+
+    // Check subtyping
+    infix def <:< (lhs: Type) : Boolean =
+      isBottomType || this =:= lhs
+
+      // Check the equality of 2 types
+    infix def =:= (lhs: Type) : Boolean =
+      this == lhs
+
+    def isBottomType : Boolean =
+      this =:= BottomType
+
+  }
 
   // To mark the fact that a tree has no type
   // This usually means that the type should be inferred
@@ -119,6 +132,12 @@ trait TreeModule { self =>
   // This type is used to fill the type information of a tree
   // when an error happens at the typer level
   case object ErrorType extends Type
+
+  case object WildCardType extends Type
+
+  // Bottom type (Should not be defined like this)
+  // This type will be removed in the future
+  case object BottomType extends Type
 
   case object IntType extends Type {
     override def toString: String = "Int"
