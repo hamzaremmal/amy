@@ -180,8 +180,9 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
               pat.withType(scrutExpected)
               (Nil, Map(name -> scrutExpected))
             case LiteralPattern(lit) =>
-              pat.withType(scrutExpected)
-              (genConstraints(lit, scrutExpected), Map.empty)
+              val tv = TypeVariable.fresh()
+              pat.withType(tv)
+              (genConstraints(lit, tv), Map.empty)
             case CaseClassPattern(constr, args) =>
               pat.withType(ClassType(constr))
               val constructor = table.getConstructor(constr) match
@@ -204,12 +205,13 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         }
 
         val st = TypeVariable.fresh()
-        val rt = TypeVariable.fresh()
-        e.withType(rt)
+        val mul = MultiTypeVariable()
+        e.withType(mul)
         genConstraints(scrut, st) ++ cases.flatMap(cse => {
           val tv = TypeVariable.fresh()
-          Constraint(tv, rt, cse.position) :: handleCase(cse, st, tv)
-        }) ++ topLevelConstraint(rt)
+          mul.add(tv)
+          handleCase(cse, st, tv)
+        }) ++ topLevelConstraint(mul)
 
       // ============================= Type Check Errors =====================================
       case Error(msg) =>
@@ -242,13 +244,10 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
           case (lhs_tpe, rhs_tpe) if lhs_tpe == rhs_tpe =>
             solveConstraints(more)
           case (lhs_tpe, rhs_tpe) if lhs_tpe != rhs_tpe =>
-            //ctx.reporter.error(s"{Type error} found $lhs_tpe instead of $rhs_tpe", pos)
-            // TODO HR : Remove the error above when the TypeChecker is ready
             solveConstraints(more)
           case _ =>
             ctx.reporter.fatal(s"TypeChecker, found= $found & expected= $expected", pos)
     }
   }
-
 
 }

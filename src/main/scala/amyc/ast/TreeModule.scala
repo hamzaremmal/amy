@@ -1,6 +1,8 @@
 package amyc.ast
 
-import amyc.utils.{Positioned, UniqueCounter}
+import amyc.analyzer.NameAnalyzer.reporter
+import amyc.analyzer.Symbols.ClassSymbol
+import amyc.utils.{Context, Positioned, UniqueCounter}
 
 /* A polymorphic module containing definitions of Amy trees.
  *
@@ -114,11 +116,13 @@ trait TreeModule { self =>
 
     // Check subtyping
     infix def <:< (lhs: Type) : Boolean =
-      isBottomType || this =:= lhs
+      isBottomType || lhs.isBottomType || this =:= lhs
 
       // Check the equality of 2 types
     infix def =:= (lhs: Type) : Boolean =
-      this == lhs
+      (this, lhs) match
+        case (ClassType(i), ClassType(j)) if i == j => true
+        case _ => this == lhs
 
     def isBottomType : Boolean =
       this =:= BottomType
@@ -155,6 +159,8 @@ trait TreeModule { self =>
     override def toString: String = printer.printQName(qname)(false).print
   }
 
+  case class OrType(lhs : Type, rhs: Type) extends Type
+
   // Represents a type variable.
   // It extends Type, but it is meant only for internal type checker use,
   //  since no Amy value can have such type.
@@ -164,6 +170,41 @@ trait TreeModule { self =>
     private val c = new UniqueCounter[Unit]
 
     def fresh(): TypeVariable = TypeVariable(c.next(()))
+  }
+
+  case class MultiTypeVariable() extends Type {
+    private var t: List[Type] = Nil
+
+
+    override def toString: String =
+      t.toString()
+
+    def add(tpe: Type) =
+      t ::= tpe
+
+    def resolve : Type = {
+      def consistentacc(xs: List[Type], acc: Type): Type =
+        xs match
+          case y :: ys if y <:< acc => consistentacc(ys, y)
+          case y :: ys => consistentacc(ys, OrType(acc, y))
+          case Nil => acc
+      consistentacc(t, BottomType)
+    }
+
+    def bind(bindings : Map[Type, Type])(using Context) : MultiTypeVariable =
+      def bindt(tpe: Type): Type =
+        tpe match
+          case TypeVariable(_) =>
+            val b = bindings.getOrElse(tpe,
+              reporter.fatal(s"$tpe has leaked from the bindings while inferring the type ($bindings)"))
+            bindt(b)
+          case MultiTypeVariable() =>
+            ???
+          case _ =>  tpe
+
+      t = for tp <- t yield bindt(tp)
+      this
+
   }
 
 }

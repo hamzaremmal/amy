@@ -8,6 +8,7 @@ object TypeAssigner extends Pipeline[(Program, SymbolTable, Map[Type, Type]), (P
 
   override def run(v: (Program, SymbolTable, Map[Type, Type]))(using Context) =
     val (program, _, bindings) = v
+    reporter.warning(bindings)
     assign(program)(using bindings)
     (v._1, v._2)
 
@@ -22,6 +23,11 @@ object TypeAssigner extends Pipeline[(Program, SymbolTable, Map[Type, Type]), (P
     tree.tpe match
       case tv@TypeVariable(_) =>
         tree.withType(bind(tv))
+      case m : MultiTypeVariable =>
+
+        val t = m.bind(bindings).resolve
+        reporter.warning(s"2 $t")
+        tree.withType(m.bind(bindings).resolve)
       case NoType =>
         reporter.fatal(
           s"""

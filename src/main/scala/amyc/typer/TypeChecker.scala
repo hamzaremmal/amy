@@ -1,5 +1,6 @@
 package amyc.typer
 
+import amyc.analyzer.Symbols.ClassSymbol
 import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
@@ -36,11 +37,11 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       case ite : Ite => checkIte(ite)
       case m : Match => checkMatch(m)
       case e : Error => checkError(e)
-      case m : MatchCase => checkMatchCase(m)
-      case t : WildcardPattern => checkWildCardPattern(t)
-      case t : IdPattern => checkIdPattern(t)
-      case t : LiteralPattern[_] => checkLiteralPattern(t)
-      case t : CaseClassPattern => checkCaseClassPattern(t)
+      case m : MatchCase => checkMatchCase(m, ErrorType)
+      case t : WildcardPattern => checkWildCardPattern(t, ErrorType)
+      case t : IdPattern => checkIdPattern(t,ErrorType)
+      case t : LiteralPattern[_] => checkLiteralPattern(t, ErrorType)
+      case t : CaseClassPattern => checkCaseClassPattern(t, ErrorType)
       case p : Program => checkProgram(p)
       case m : ModuleDef => checkModule(m)
       case fn : FunDef => checkFunctionDefinition(fn)
@@ -217,7 +218,7 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     for
       c <- cases
     do
-      check(c)
+      checkMatchCase(c, scrut.tpe)
       =:=(expr, c.tpe)
     expr
 
@@ -227,27 +228,42 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     =:=(msg, StringType)
     expr
 
-  def checkMatchCase(expr: MatchCase)(using SymbolTable)(using Context) =
+  def checkPattern(pat: Pattern, scrut: Type)(using SymbolTable)(using Context): Tree =
+    pat match
+      case t@WildcardPattern() => checkWildCardPattern(t, scrut)
+      case t@IdPattern(_) => checkIdPattern(t, scrut)
+      case t@LiteralPattern(_) => checkLiteralPattern(t, scrut)
+      case t@CaseClassPattern(_, _) => checkCaseClassPattern(t, scrut)
+    pat
+
+  def checkMatchCase(expr: MatchCase, scrut: Type)(using SymbolTable)(using Context) =
     val MatchCase(pat, e) = expr
-    check(pat)
+    checkPattern(pat, scrut)
     check(e)
     expr
 
-  def checkWildCardPattern(expr: WildcardPattern)(using SymbolTable)(using Context) =
+  def checkWildCardPattern(expr: WildcardPattern, scrut : Type)(using SymbolTable)(using Context) =
     =:=(expr, WildCardType)
     expr
 
-  def checkIdPattern(expr: IdPattern)(using SymbolTable)(using Context) =
+  def checkIdPattern(expr: IdPattern, scrut : Type)(using SymbolTable)(using Context) =
+    =:=(expr, scrut)
     expr
 
-  def checkLiteralPattern[T](expr: LiteralPattern[T])(using SymbolTable)(using Context) =
+  def checkLiteralPattern[T](expr: LiteralPattern[T], scrut : Type)(using SymbolTable)(using Context) =
+    reporter.warning(s"${expr}, $scrut")
+    =:=(expr, scrut)
     expr
 
-  def checkCaseClassPattern(expr: CaseClassPattern)(using sym : SymbolTable)(using Context) =
+  def checkCaseClassPattern(expr: CaseClassPattern, scrut: Type)(using sym : SymbolTable)(using Context) =
     val CaseClassPattern(constr, args) = expr
     sym.getConstructor(constr) match
-      case Some(cs) =>
-        (args zip cs.argTypes) foreach ((p, t) => =:=(check(p), t))
+      case Some(ConstrSig(argTypes, parent, _)) =>
+        if ClassType(constr) =:= scrut || ClassType(parent) =:= scrut then
+          // TODO HR : Need to have a symbol as the type not a qualified name
+          (args zip argTypes) foreach ((p, t) => checkPattern(p, t))
+        else
+          reporter.error(s"found $constr instead of $scrut")
       case None => reporter.error(s"Constructor not found")
     expr
 
