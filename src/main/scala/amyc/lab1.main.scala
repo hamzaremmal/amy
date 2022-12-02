@@ -12,7 +12,7 @@ object Lab1 {
 
   def main(args: Array[String]): Unit = {
     given ctx : Context = parseArgs(args)
-    val pipeline = Frontend.pipeline andThen Interpreter
+    val pipeline = Frontend andThen Interpreter
 
     val files = ctx.files.map(new File(_))
 
