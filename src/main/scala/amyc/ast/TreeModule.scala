@@ -33,6 +33,7 @@ trait TreeModule { self =>
 
     final def withType(tpe: Type) =
       tpe_ = tpe
+      this
     override def toString: String = printer(this)
   }
 
@@ -111,7 +112,14 @@ trait TreeModule { self =>
   // Types
   trait Type
 
+  // To mark the fact that a tree has no type
+  // This usually means that the type should be inferred
   case object NoType extends Type
+
+  // This type is used to fill the type information of a tree
+  // when an error happens at the typer level
+  case object ErrorType extends Type
+
   case object IntType extends Type {
     override def toString: String = "Int"
   }

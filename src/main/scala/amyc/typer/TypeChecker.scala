@@ -8,8 +8,7 @@ import amyc.utils.{Context, Pipeline}
 object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)]{
 
   override def run(v: (Program, SymbolTable))(using Context) =
-    //check(v._1) TODO HR : Remove the comment here when the TypeChecker is ready
-    v
+    (checkProgram(v._1), v._2)
 
   def check(tree: Tree)(using Context): Tree =
     tree match
@@ -51,7 +50,7 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       case tt : TypeTree => checkType(tt)
       case _ => reporter.fatal(s"TypeChecker cannot handle tree of type $tree")
 
-  def verifiy(actual: Type, expected: Type)(using Context)=
+  def verify(actual: Type, expected: Type)(using Context)=
     if actual != expected then
       reporter.error(
         s"""Found    : $actual
@@ -66,27 +65,27 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     * @param Context
     */
   def checkVariable(v: Variable)(using Context) =
-    ???
+    v
 
   def checkIntLiteral(i: IntLiteral)(using Context) =
-    ???
+    i
 
   def checkBooleanLiteral(b: BooleanLiteral)(using Context) =
-    verifiy(b.tpe, BooleanType)
+    verify(b.tpe, BooleanType)
     b
 
   def checkStringLiteral(s: StringLiteral)(using Context) =
-    verifiy(s.tpe, StringType)
+    verify(s.tpe, StringType)
     s
 
   def checkUnitLiteral(u: UnitLiteral)(using Context) =
-    verifiy(u.tpe, UnitType)
+    verify(u.tpe, UnitType)
     u
 
   def checkPlusOp(expr: Plus)(using Context) =
-    verifiy(check(expr.lhs).tpe, IntType) // LHS =:= Int
-    verifiy(check(expr.rhs).tpe, IntType) // RHS =:= Int
-    verifiy(expr.tpe, IntType) // (LHS + RHS) =:= Int
+    verify(check(expr.lhs).tpe, IntType) // LHS =:= Int
+    verify(check(expr.rhs).tpe, IntType) // RHS =:= Int
+    verify(expr.tpe, IntType) // (LHS + RHS) =:= Int
     expr
   def checkMinusOp(expr: Minus)(using Context) =
     ???
@@ -122,19 +121,35 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     ???
 
   def checkNeg(expr: Neg)(using Context) =
-    ???
+    val Neg(e) = expr
+    check(e)
+    verify(e.tpe,IntType)
+    verify(expr.tpe, IntType)
+    expr
 
   def checkCall(expr: Call)(using Context) =
     ???
 
   def checkSequence(seq: Sequence)(using Context) =
-    ???
+    val Sequence(e1, e2) = seq
+    check(e1)
+    check(e2)
+    seq
 
   def checkLet(expr: Let)(using Context) =
-    ???
+    val Let(df, value, body) = expr
+    check(value)
+    verify(value.tpe, df.tpe)
+    check(body)
 
   def checkIte(expr: Ite)(using Context) =
-    ???
+    val Ite(cond, thenn, elze) = expr
+    check(cond)
+    verify(cond.tpe, BooleanType)
+    check(thenn)
+    check(elze)
+    verify(thenn.tpe, elze.tpe)
+    expr
 
   def checkMatch(expr: Match)(using Context) =
     ???
@@ -158,10 +173,16 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     ???
 
   def checkModule(module: ModuleDef)(using Context) =
-    ???
+    val ModuleDef(_, defs, expr) = module
+    for df <- defs do check(df)
+    for e <- expr do check(e)
+    module
 
   def checkFunctionDefinition(fn: FunDef)(using Context) =
-    ???
+    val FunDef(_, _, retType, body) = fn
+    check(body)
+    verify(body.tpe, retType.tpe)
+    fn
 
   def checkAbstractClassDef(cls: AbstractClassDef)(using Context) =
     ???
@@ -173,7 +194,11 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     ???
 
   def checkProgram(prog: Program)(using Context) =
-    ???
+    for
+      mod <- prog.modules
+    do
+      check(mod)
+    prog
 
   def checkType(tt : TypeTree)(using Context) =
     ???

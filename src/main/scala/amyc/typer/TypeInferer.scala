@@ -1,23 +1,28 @@
 package amyc.typer
 
-import amyc.analyzer.TypeChecker.ctx
 import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.{Identifier, SymbolicTreeModule}
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.utils.Pipeline
 
-object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTable, List[(Type, Type)])]{
+object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTable, Map[Type, Type])]{
 
   override def run(v: (SymbolicTreeModule.Program, SymbolTable))(using Context) = {
     val (program, table) = v
     // We will first type check each function defined in a module
     val inferred1 = for
       mod <- program.modules
-      FunDef(_, params, retType, body) <- mod.defs
+      FunDef(_, params, _, body) <- mod.defs
     yield
-      val env = params.map { case ParamDef(name, tt) => name -> tt.tpe }.toMap
-      solveConstraints(genConstraints(body, retType.tpe)(env, table, ctx))
+      val env = params.map {
+        case df@ParamDef(name, tt) =>
+          df.withType(tt.tpe)
+          name -> tt.tpe
+      }.toMap
+      // we will need to infer the type of the result. If we assume that the type is correct
+      // This will always type check.
+      solveConstraints(genConstraints(body, TypeVariable.fresh())(env, table, ctx))
 
     // Type-check expression if present. We allow the result to be of an arbitrary type by
     // passing a fresh (and therefore unconstrained) type variable as the expected type.
@@ -28,7 +33,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       val tv = TypeVariable.fresh()
       solveConstraints(genConstraints(expr, tv)(Map(), table, ctx))
 
-    (program, table, inferred1.flatten ::: inferred2.flatten)
+    (program, table, (inferred1.flatten ::: inferred2.flatten).toMap)
   }
 
 
@@ -70,6 +75,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
             e.withType(tpe)
             topLevelConstraint(tpe)
           case None =>
+            e.withType(ErrorType)
             ctx.reporter.error(s"Cannot find symbol $name")
             Nil
       // ===================== Type Check Literals ==============================
@@ -152,7 +158,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       //  ========================== Type Check Variable Definitions ============================
       case Let(df, value, body) =>
         e.withType(expected)
-        e.withType(df.tt.tpe)
+        df.withType(df.tt.tpe)
         genConstraints(value, df.tt.tpe) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), table, ctx)
       // =========================== Type Check Conditions ======================================
       case Ite(cond, thenn, elze) =>
@@ -226,7 +232,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
           case (lhs_tpe, rhs_tpe) if lhs_tpe == rhs_tpe =>
             solveConstraints(more)
           case (lhs_tpe, rhs_tpe) if lhs_tpe != rhs_tpe =>
-            ctx.reporter.error(s"{Type error} found $lhs_tpe instead of $rhs_tpe", pos)
+            //ctx.reporter.error(s"{Type error} found $lhs_tpe instead of $rhs_tpe", pos)
             // TODO HR : Remove the error above when the TypeChecker is ready
             solveConstraints(more)
           case _ =>

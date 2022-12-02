@@ -20,9 +20,9 @@ object Lab4 {
       Parser andThen
       //treePrinterN("Tree after Parser") andThen
       NameAnalyzer andThen
-      treePrinterS("Tree after NameAnalyzer") andThen
-      Typer andThen
-      treePrinterS("Tree after type Checking")
+      //treePrinterS("Tree after NameAnalyzer") andThen
+      Typer //andThen
+      //treePrinterS("Tree after type Checking")
 
     val files = ctx.files.map(new File(_))
 
