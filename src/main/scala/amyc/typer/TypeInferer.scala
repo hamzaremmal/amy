@@ -227,8 +227,9 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
             solveConstraints(more)
           case (lhs_tpe, rhs_tpe) if lhs_tpe != rhs_tpe =>
             ctx.reporter.error(s"{Type error} found $lhs_tpe instead of $rhs_tpe", pos)
+            // TODO HR : Remove the error above when the TypeChecker is ready
             solveConstraints(more)
-          case _ | null => // TODO HR: null needs to be removed when Explicit nulls will be released ;-)
+          case _ =>
             ctx.reporter.fatal(s"TypeChecker, found= $found & expected= $expected", pos)
     }
   }

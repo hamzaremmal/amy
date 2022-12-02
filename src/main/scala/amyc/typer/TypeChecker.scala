@@ -7,10 +7,49 @@ import amyc.utils.{Context, Pipeline}
 
 object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)]{
 
-  override def run(v: (Program, SymbolTable))(using Context) = ???
+  override def run(v: (Program, SymbolTable))(using Context) =
+    //check(v._1) TODO HR : Remove the comment here when the TypeChecker is ready
+    v
 
-  def check(tree: Tree)(using Context): Tree = ???
-    // TODO HR : Big pattern matching here to check each case separately
+  def check(tree: Tree)(using Context): Tree =
+    tree match
+      case v : Variable => checkVariable(v)
+      case i : IntLiteral => checkIntLiteral(i)
+      case b : BooleanLiteral => checkBooleanLiteral(b)
+      case s : StringLiteral => checkStringLiteral(s)
+      case u : UnitLiteral => checkUnitLiteral(u)
+      case op : Plus => checkPlusOp(op)
+      case op : Minus => checkMinusOp(op)
+      case op : Times => checkTimesOp(op)
+      case op : Div => checkDivOp(op)
+      case op : Mod => checkModOp(op)
+      case op : LessThan => checkLessThan(op)
+      case op : LessEquals => checkLessEquals(op)
+      case op : And => checkAnd(op)
+      case op : Or => checkOr(op)
+      case op : Equals => checkEquals(op)
+      case op : Concat => checkConcat(op)
+      case op : Not => checkNot(op)
+      case op : Neg => checkNeg(op)
+      case op : Call => checkCall(op)
+      case seq : Sequence => checkSequence(seq)
+      case let : Let => checkLet(let)
+      case ite : Ite => checkIte(ite)
+      case m : Match => checkMatch(m)
+      case e : Error => checkError(e)
+      case m : MatchCase => checkMatchCase(m)
+      case t : WildcardPattern => checkWildCardPattern(t)
+      case t : IdPattern => checkIdPattern(t)
+      case t : LiteralPattern[_] => checkLiteralPattern(t)
+      case t : CaseClassPattern => checkCaseClassPattern(t)
+      case p : Program => checkProgram(p)
+      case m : ModuleDef => checkModule(m)
+      case fn : FunDef => checkFunctionDefinition(fn)
+      case cls : AbstractClassDef => checkAbstractClassDef(cls)
+      case cls : CaseClassDef => checkCaseClassDef(cls)
+      case df : ParamDef => checkParamDef(df)
+      case tt : TypeTree => checkType(tt)
+      case _ => reporter.fatal(s"TypeChecker cannot handle tree of type $tree")
 
   def verifiy(actual: Type, expected: Type)(using Context)=
     if actual != expected then
@@ -26,14 +65,11 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     * @param env
     * @param Context
     */
-  def checkVariable(v: Variable)(env : Map[Identifier, Type])(using Context) =
-    val expected = env.getOrElse(v.name, reporter.error(s"variable ${v.name} is not declared"))
-    //verifiy(v.tpe, expected) TODO HR : Fix here
-    v
+  def checkVariable(v: Variable)(using Context) =
+    ???
 
   def checkIntLiteral(i: IntLiteral)(using Context) =
-    verifiy(i.tpe, IntType)
-    i
+    ???
 
   def checkBooleanLiteral(b: BooleanLiteral)(using Context) =
     verifiy(b.tpe, BooleanType)
@@ -51,7 +87,7 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     verifiy(check(expr.lhs).tpe, IntType) // LHS =:= Int
     verifiy(check(expr.rhs).tpe, IntType) // RHS =:= Int
     verifiy(expr.tpe, IntType) // (LHS + RHS) =:= Int
-
+    expr
   def checkMinusOp(expr: Minus)(using Context) =
     ???
 
@@ -103,6 +139,9 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
   def checkMatch(expr: Match)(using Context) =
     ???
 
+  def checkError(expr: Error)(using Context) =
+    ???
+
   def checkMatchCase(expr: MatchCase)(using Context) =
     ???
 
@@ -134,6 +173,9 @@ object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     ???
 
   def checkProgram(prog: Program)(using Context) =
+    ???
+
+  def checkType(tt : TypeTree)(using Context) =
     ???
 
 }
