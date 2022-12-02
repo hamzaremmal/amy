@@ -14,7 +14,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     // We will first type check each function defined in a module
     val inferred1 = for
       mod <- program.modules
-      f@FunDef(name, params, retType, body) <- mod.defs
+      FunDef(_, params, retType, body) <- mod.defs
     yield
       val env = params.map { case ParamDef(name, tt) => name -> tt.tpe }.toMap
       solveConstraints(genConstraints(body, retType.tpe)(env, table, ctx))
