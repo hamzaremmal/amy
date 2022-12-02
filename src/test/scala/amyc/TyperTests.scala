@@ -3,7 +3,8 @@ package amyc
 import parsing._
 import amyc.ast.{Identifier, SymbolicPrinter}
 import amyc.ast.SymbolicTreeModule.Program
-import analyzer.{NameAnalyzer, TypeChecker}
+import analyzer.NameAnalyzer
+import typer.Typer
 import amyc.utils._
 import org.junit.Test
 
@@ -15,7 +16,7 @@ class TyperTests extends TestSuite {
     }
   }
 
-  val pipeline = Lexer andThen Parser andThen NameAnalyzer andThen TypeChecker andThen unit
+  val pipeline = Lexer andThen Parser andThen NameAnalyzer andThen Typer andThen unit
 
   val baseDir = "amyc/typer"
 
