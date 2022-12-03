@@ -54,8 +54,7 @@ object Utils {
 
 
   inline def withComment(comment : String)(code: => Code) : Code =
-    Comment(comment) <:>
-    code
+    Comment(comment) <:> code
 
   // Creates a known string constant s in memory
   def mkString(s: String): Code = {

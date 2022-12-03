@@ -31,8 +31,9 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
   private def cgModule(moduleDef: ModuleDef)(using SymbolTable)(using Context): List[Function] = {
     val ModuleDef(name, defs, optExpr) = moduleDef
     // Generate code for all functions
-    defs.collect { case fd: FunDef if !builtInFunctions(fullName(name, fd.name)) =>
-      cgFunction(fd, name, false)
+    defs.collect {
+      case fd: FunDef if !builtInFunctions(fullName(name, fd.name)) =>
+        cgFunction(fd, name, false)
     } ++
       // Generate code for the "main" function, which contains the module expression
       optExpr.toList.map { expr =>
@@ -67,8 +68,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
     def cgExpr1  :Code =
       expr match {
         case Variable(name) =>
-          // TODO HR : We will need to check if it's a local of global varibale
-          GetLocal(locals(name))
+          GetLocal(locals(name)) // HR : Only use locals here since variables in amy only refer to local variables
         case IntLiteral(i) =>
             Const(i)
         case BooleanLiteral(b) =>
@@ -100,34 +100,33 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
         case Concat(lhs, rhs) =>
             mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call("String_concat"))
         case Not(e) =>
+          //mkBinOp(cgExpr(e), Const(-1))(XOR)
           Comment("Not implemented") // TODO HR : Implement here
         case Neg(e) =>
-          Comment("Not implemented") // TODO HR : Implement here
+          mkBinOp(Const(0), cgExpr(e))(Sub)
         case AmyCall(qname, args) =>
-          Comment("Not implemented") // TODO HR : Implement here
-          //val argsCode = for v <- args yield cgExpr(v)
-          //Comment(expr.toString) <:>
-          //if args.nonEmpty then
-          //  argsCode.reduce(_ <:> _) <:>
-          //    Call(fullName(table.getFunction(qname).get.owner, qname))
-          //else
-          //  Call(fullName(table.getFunction(qname).get.owner, qname))
+          val argsCode = for v <- args yield cgExpr(v)
+          withComment(expr.toString){
+            if args.nonEmpty then
+              argsCode.reduce(_ <:> _) <:>
+                Call(fullName(table.getFunction(qname).get.owner, qname))
+            else
+              Call(fullName(table.getFunction(qname).get.owner, qname))
+          }
         case Sequence(e1, e2) =>
           withComment(e1.toString) {
-            cgExpr(e1) <:>
-              Drop
+            cgExpr(e1) <:> Drop
           } <:>
           withComment(e2.toString) {
             cgExpr(e2)
           }
         case Let(paramDf, value, body) =>
           val idx = lh.getFreshLocal()
-          // TODO HR : Implement here
-          Comment(expr.toString) <:>
+          withComment(expr.toString){
             cgExpr(value) <:>
             SetLocal(idx) <:>
-            Drop <:>
             cgExpr(body)(using locals + (paramDf.name -> idx), lh)
+          }
         case Ite(cond, thenn, elze) =>
           cgExpr(cond) <:>
           If_i32 <:>
