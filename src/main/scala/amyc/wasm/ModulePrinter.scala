@@ -74,6 +74,7 @@ object ModulePrinter {
       case Rem => "i32.rem_s"
       case And => "i32.and"
       case Or  => "i32.or"
+      case Xor => "i32.xor"
       case Eqz => "i32.eqz"
       case Lt_s => "i32.lt_s"
       case Le_s => "i32.le_s"

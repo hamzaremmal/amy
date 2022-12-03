@@ -18,6 +18,9 @@ object Instructions {
   case object Rem  extends Instruction
   case object And  extends Instruction
   case object Or   extends Instruction
+
+  case object Xor extends Instruction
+
   case object Eqz  extends Instruction // Return 1 if operand is 0, 0 otherwise
   case object Lt_s extends Instruction // Signed less-than
   case object Le_s extends Instruction // Signed less-equals

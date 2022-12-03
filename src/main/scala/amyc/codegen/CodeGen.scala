@@ -100,7 +100,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
         case Concat(lhs, rhs) =>
             mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call("String_concat"))
         case Not(e) =>
-          //mkBinOp(cgExpr(e), Const(-1))(XOR)
+          mkBinOp(cgExpr(e), Const(-1))(Xor)
           Comment("Not implemented") // TODO HR : Implement here
         case Neg(e) =>
           mkBinOp(Const(0), cgExpr(e))(Sub)
