@@ -72,7 +72,9 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
         // HR : Only use locals here since variables in amy only refer to local variables
         GetLocal(locals(name))
       case IntLiteral(i) => Const(i)
-      case BooleanLiteral(b) => mkBoolean(b)
+      case BooleanLiteral(b) => //withComment(expr.toString){
+        mkBoolean(b)
+      //}
       case StringLiteral(s) => mkString(s)
       case UnitLiteral() => mkUnit
       case Plus(lhs, rhs) =>
@@ -98,7 +100,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
       case Concat(lhs, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(concatImpl.name))
       case Not(e) =>
-        mkBinOp(cgExpr(e), Const(-1))(Xor)
+        cgExpr(e) <:> Eqz
       case Neg(e) =>
         mkBinOp(Const(0), cgExpr(e))(Sub)
       case AmyCall(qname, args) =>
@@ -136,7 +138,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
           // Last bloc will be concatenated with the Match error below and the
           // match error case there
         } <:>
-        error(mkString("Match error!")) <:>
+        error(mkString("Match error!" + scrut.toString)) <:>
         cases.map(_ => End) // HR: Autant de End que de cases
       case Error(msg) =>
         error(cgExpr(msg))
