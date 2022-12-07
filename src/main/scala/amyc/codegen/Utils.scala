@@ -1,9 +1,10 @@
 package amyc
 package codegen
 
+import amyc.analyzer.ConstrSig
 import amyc.ast.Identifier
 import wasm.Function
-import wasm.Instructions._
+import wasm.Instructions.*
 
 // Utilities for CodeGen
 object Utils {
@@ -35,25 +36,28 @@ object Utils {
   // A globally unique name for definitions
   def fullName(owner: Identifier, df: Identifier): String = owner.name + "_" + df.name
 
-  // Given a pointer to an ADT on the top of the stack,
-  // will point at its field in index (and consume the ADT).
-  // 'index' MUST be 0-based.
-  def adtField(index: Int): Code = {
-    Comment(s"adtField index: $index") <:> Const(4* (index + 1)) <:> Add
-  }
-
-  // Increment a local variable
-  def incr(local: Int): Code = {
-    GetLocal(local) <:> Const(1) <:> Add <:> SetLocal(local)
-  }
-
   // A fresh label name
   def getFreshLabel(name: String = "label") = {
     Identifier.fresh(name).fullName
   }
 
+  // ==============================================================================================
+  // =============================== CODE GENERATOR FUNCTIONS =====================================
+  // ==============================================================================================
 
-  inline def withComment(comment : String)(code: => Code) : Code =
+  // Given a pointer to an ADT on the top of the stack,
+  // will point at its field in index (and consume the ADT).
+  // 'index' MUST be 0-based.
+  inline def adtField(inline base: Code, inline index: Int): Code =
+    withComment(s"adtField index: $index from base : $base"){
+      base <:> Const(4* (index + 1)) <:> Add
+    }
+
+  // Increment a local variable
+  inline def incr(local: Int) =
+    GetLocal(local) <:> Const(1) <:> Add <:> SetLocal(local)
+
+  inline def withComment(inline comment : String)(inline code: Code) : Code =
     Comment(comment) <:> code
 
   // Creates a known string constant s in memory
@@ -72,21 +76,57 @@ object Utils {
       GetGlobal(memoryBoundary) <:> GetGlobal(memoryBoundary) <:> Const(size + padding) <:> Add <:>
         SetGlobal(memoryBoundary)
 
-    Comment(s"mkString: $s") <:> setChars <:> setMemory
+    withComment(s"mkString: $s"){
+      setChars <:> setMemory
+    }
   }
 
-  inline def mkBoolean(b : Boolean): Code =
+  inline def mkBoolean(inline b : Boolean): Code =
     Const(if b then 1 else 0)
 
   inline def mkUnit : Code = Const(0)
 
-  inline def mkBinOp(lhs : Code, rhs : Code)(op : Instruction) : Code =
-    lhs <:>
-    rhs <:>
-    op
+  inline def mkBinOp(inline lhs : Code, inline rhs : Code)(op : Instruction) : Code =
+    lhs <:> rhs <:> op
 
-  inline def mkUnaryOp(expr :Code)(op  :Instruction) : Code =
-    Comment("Not implemented")
+  inline def equ(inline lhs: Code, inline rhs: Code) : Code =
+    mkBinOp(lhs, rhs)(Eq)
+
+  inline def and(inline lhs: Code, inline rhs: Code) : Code =
+    ift(lhs, rhs, mkBoolean(false))
+
+  inline def or(lhs: Code, rhs: Code) : Code =
+    ift(lhs, mkBoolean(true), rhs)
+
+  inline def loadGlobal(inline idx: Int) : Code =
+    GetGlobal(idx) <:> Load
+
+  inline def setGlobal(inline code: Code, inline idx: Int): Code =
+    code <:> SetGlobal(idx)
+
+  inline def loadLocal(inline idx: Int) : Code =
+    GetLocal(idx) <:> Load
+
+  inline def setLocal(inline code: Code, inline idx: Int): Code =
+    code <:> SetLocal(idx)
+
+  inline def constructor(inline const: ConstrSig) : Code =
+    Const(const.index)
+
+  inline def error(inline msg: Code) : Code =
+    msg <:> Call("Std_printString") <:> Unreachable
+
+  inline def ift(inline cond: Code, inline thenn: Code, elze: Code) =
+    cond <:>
+    If_i32 <:>
+    thenn <:>
+    Else <:>
+    elze <:>
+    End
+
+  // ==============================================================================================
+  // ================================ NATIVE FUNCTIONS IMPL =======================================
+  // ==============================================================================================
 
   // Built-in implementation of concatenation
   val concatImpl: Function = {
@@ -143,7 +183,6 @@ object Utils {
       Else <:>
       End <:>
       End <:>
-      //
       // Put string pointer to stack, set new memory boundary and return
       GetGlobal(memoryBoundary) <:> GetLocal(ptrD) <:> Const(1) <:> Add <:> SetGlobal(memoryBoundary)
     }

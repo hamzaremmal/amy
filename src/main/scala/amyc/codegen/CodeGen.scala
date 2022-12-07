@@ -14,10 +14,12 @@ import scala.annotation.tailrec
 // Generates WebAssembly code for an Amy program
 object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
   def run(ctx: Context)(v: (Program, SymbolTable)): Module = {
-    given ctx1 : Context = ctx
-    given program : Program = v._1
-    given table : SymbolTable = v._2
-    
+    given ctx1: Context = ctx
+
+    given program: Program = v._1
+
+    given table: SymbolTable = v._2
+
     Module(
       program.modules.last.name.name,
       defaultImports,
@@ -65,104 +67,210 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
   // their index in the wasm local variables, and a LocalsHandler which will generate
   // fresh local slots as required.
   private def cgExpr(expr: Expr)(using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)(using ctx: Context): Code = {
-    def cgExpr1  :Code =
-      expr match {
-        case Variable(name) =>
-          GetLocal(locals(name)) // HR : Only use locals here since variables in amy only refer to local variables
-        case IntLiteral(i) =>
-            Const(i)
-        case BooleanLiteral(b) =>
-            mkBoolean(b)
-        case StringLiteral(s) =>
-            mkString(s)
-        case UnitLiteral() =>
-            mkUnit
-        case Plus(lhs, rhs) =>
-            mkBinOp(cgExpr(lhs), cgExpr(rhs))(Add)
-        case Minus(lhs, rhs) =>
-            mkBinOp(cgExpr(lhs), cgExpr(rhs))(Sub)
-        case Times(lhs, rhs) =>
-          mkBinOp(cgExpr(lhs), cgExpr(rhs))(Mul)
-        case AmyDiv(lhs, rhs) =>
-          mkBinOp(cgExpr(lhs), cgExpr(rhs))(Div)
-        case Mod(lhs, rhs) =>
-          mkBinOp(cgExpr(lhs), cgExpr(rhs))(Rem)
-        case LessThan(lhs, rhs) =>
-          mkBinOp(cgExpr(lhs), cgExpr(rhs))(Lt_s)
-        case LessEquals(lhs, rhs) =>
-          mkBinOp(cgExpr(lhs), cgExpr(rhs))(Le_s)
-        case AmyAnd(lhs, rhs) =>
-          mkBinOp(cgExpr(lhs), cgExpr(rhs))(And)
-        case AmyOr(lhs, rhs) =>
-            mkBinOp(cgExpr(lhs), cgExpr(rhs))(Or)
-        case Equals(lhs, rhs) =>
-            mkBinOp(cgExpr(lhs), cgExpr(rhs))(Eq)
-        case Concat(lhs, rhs) =>
-            mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call("String_concat"))
-        case Not(e) =>
-          mkBinOp(cgExpr(e), Const(-1))(Xor)
-          Comment("Not implemented") // TODO HR : Implement here
-        case Neg(e) =>
-          mkBinOp(Const(0), cgExpr(e))(Sub)
-        case AmyCall(qname, args) =>
-          val argsCode = for v <- args yield cgExpr(v)
-          withComment(expr.toString){
-            if args.nonEmpty then
-              argsCode.reduce(_ <:> _) <:>
-                Call(fullName(table.getFunction(qname).get.owner, qname))
-            else
-              Call(fullName(table.getFunction(qname).get.owner, qname))
-          }
-        case Sequence(e1, e2) =>
-          withComment(e1.toString) {
-            cgExpr(e1) <:> Drop
-          } <:>
-          withComment(e2.toString) {
-            cgExpr(e2)
-          }
-        case Let(paramDf, value, body) =>
-          val idx = lh.getFreshLocal()
-          withComment(expr.toString){
-            cgExpr(value) <:>
-            SetLocal(idx) <:>
-            cgExpr(body)(using locals + (paramDf.name -> idx), lh)
-          }
-        case Ite(cond, thenn, elze) =>
-          cgExpr(cond) <:>
-          If_i32 <:>
-          cgExpr(thenn) <:>
-          Else <:>
-          cgExpr(elze) <:>
-          End
-        case Match(scrut, cases) =>
-          // Checks if a value matches a pattern.
-          // Assumes value is on top of stack (and CONSUMES it)
-          // Returns the code to check the value, and a map of bindings.
-          def matchAndBind(pat: Pattern): (Code, Map[Identifier, Int]) = pat match {
-            case IdPattern(id) =>
-              val idLocal = lh.getFreshLocal()
-              (Comment(pat.toString) <:>
-                // Assign val to id.
-                SetLocal(idLocal) <:>
-                // Return true (IdPattern always matches).
-                Const(1),
-                // Let the code generation of the expression which corresponds to this pattern
-                // know that the bound id is at local idLocal.
-                Map(id -> idLocal))
-
-            case _ => ???
-          }
-
-          Comment(expr.toString) // TODO HR : Implement here
-        case Error(msg) =>
-          mkUnaryOp(cgExpr(msg))(Call("Std_error"))
-        case _ =>
-          ctx.reporter.fatal(s"Cannot generate wasm code for ${expr}", expr.position)
-      }
-
-    withComment(expr.toString){
-      cgExpr1
+    expr match {
+      case Variable(name) =>
+        // HR : Only use locals here since variables in amy only refer to local variables
+        GetLocal(locals(name))
+      case IntLiteral(i) => Const(i)
+      case BooleanLiteral(b) => mkBoolean(b)
+      case StringLiteral(s) => mkString(s)
+      case UnitLiteral() => mkUnit
+      case Plus(lhs, rhs) =>
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Add)
+      case Minus(lhs, rhs) =>
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Sub)
+      case Times(lhs, rhs) =>
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Mul)
+      case AmyDiv(lhs, rhs) =>
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Div)
+      case Mod(lhs, rhs) =>
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Rem)
+      case LessThan(lhs, rhs) =>
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Lt_s)
+      case LessEquals(lhs, rhs) =>
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Le_s)
+      case AmyAnd(lhs, rhs) =>
+        and(cgExpr(lhs), cgExpr(rhs))
+      case AmyOr(lhs, rhs) =>
+        or(cgExpr(lhs), cgExpr(rhs))
+      case Equals(lhs, rhs) =>
+        equ(cgExpr(lhs), cgExpr(rhs))
+      case Concat(lhs, rhs) =>
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(concatImpl.name))
+      case Not(e) =>
+        mkBinOp(cgExpr(e), Const(-1))(Xor)
+      case Neg(e) =>
+        mkBinOp(Const(0), cgExpr(e))(Sub)
+      case AmyCall(qname, args) =>
+        table.getConstructor(qname)
+          .map(genConstructorCall(_, args))
+          .getOrElse(genFunctionCall(args, qname))
+      case Sequence(e1, e2) =>
+        withComment(e1.toString) {
+          cgExpr(e1)
+        } <:> Drop <:>
+        withComment(e2.toString) {
+          cgExpr(e2)
+        }
+      case Let(paramDf, value, body) =>
+        val idx = lh.getFreshLocal()
+        withComment(expr.toString) {
+          setLocal(cgExpr(value), idx) <:>
+          cgExpr(body)(using locals + (paramDf.name -> idx), lh)
+        }
+      case Ite(cond, thenn, elze) =>
+        ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
+      case Match(scrut, cases) =>
+        val local = lh.getFreshLocal()
+        setLocal(cgExpr(scrut), local) <:> {
+          for
+            c <- cases
+            (cond, loc) =  matchAndBind(c.pat)
+          yield
+            GetLocal(local) <:>
+            cond <:>
+            If_i32 <:>
+            cgExpr(c.expr)(using locals ++ loc, lh, table) <:>
+            Else
+          // Else here become we are building a big if else bloc.
+          // Last bloc will be concatenated with the Match error below and the
+          // match error case there
+        } <:>
+        error(mkString("Match error!")) <:>
+        cases.map(_ => End) // HR: Autant de End que de cases
+      case Error(msg) =>
+        error(cgExpr(msg))
+      case _ =>
+        ctx.reporter.fatal(s"Cannot generate wasm code for $expr", expr.position)
     }
+  }
+
+  // ==============================================================================================
+  // ==================================== GENERATE APPLICATIONS ===================================
+  // ==============================================================================================
+
+  def genFunctionCall(args: List[Expr], qname: Identifier)
+                     (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                     (using Context) =
+    args.map(cgExpr) <:>
+    Call(fullName(table.getFunction(qname).get.owner, qname))
+
+  def genConstructorCall(constrSig: ConstrSig, args: List[Expr])
+                        (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                        (using Context) = {
+    val ConstrSig(_, _, index) = constrSig
+    val local = lh.getFreshLocal()
+
+    GetGlobal(memoryBoundary) <:>
+    SetLocal(local) <:>
+    adtField(GetGlobal(memoryBoundary), args.size) <:>
+    SetGlobal(memoryBoundary) <:>
+    GetLocal(local) <:>
+    Const(index) <:>
+    Store <:> {
+      // HR: Store each of the constructor parameter
+      for
+        (arg, idx) <- args.zipWithIndex
+      yield
+        adtField(GetLocal(local), idx) <:> // Compute the offset to store in
+        cgExpr(arg) <:> // Compute the data to store
+        Store
+    } <:>
+    GetLocal(local)
+  }
+
+  // ==============================================================================================
+  // =============================== GENERATE PATTERN MATCHING ====================================
+  // ==============================================================================================
+
+  // Checks if a value matches a pattern.
+  // Assumes value is on top of stack (and CONSUMES it)
+  // Returns the code to check the value, and a map of bindings.
+  def matchAndBind(pat: Pattern)
+                  (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                  (using Context) : (Code, Map[Identifier, Int]) = pat match {
+    case WildcardPattern() => genWildCardPattern
+    case IdPattern(id) => genIdPattern(id)
+    case LiteralPattern(lit) => genLiteralPattern(lit)
+    case CaseClassPattern(constr, args) => genCaseClassPattern(constr, args)
+    case _ => ???
+  }
+
+  /**
+    *
+    * @param locals
+    * @param lh
+    * @param table
+    * @param Context
+    * @return
+    */
+  def genWildCardPattern(using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                        (using Context) =
+  // HR : We return true as this pattern will be executed if encountered
+    (Drop <:> mkBoolean(true), locals)
+
+  /**
+    *
+    * @param id
+    * @param locals
+    * @param lh
+    * @param table
+    * @param Context
+    * @return
+    */
+  def genIdPattern(id:Name)
+                  (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                  (using Context) =
+    val idLocal = lh.getFreshLocal()
+    // HR : We return true as this pattern will be executed if encountered
+    (SetLocal(idLocal) <:> mkBoolean(true), Map(id -> idLocal))
+
+  /**
+    *
+    * @param lit
+    * @param locals
+    * @param lh
+    * @param table
+    * @param Context
+    * @return
+    */
+  def genLiteralPattern(lit: Literal[_])
+                       (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                       (using Context) =
+    (cgExpr(lit) <:> Eq, locals)
+
+  /**
+    *
+    * @param constr
+    * @param args
+    * @param locals
+    * @param lh
+    * @param table
+    * @param Context
+    * @return
+    */
+  def genCaseClassPattern(constr: QualifiedName, args: List[Pattern])
+                         (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                         (using Context) = {
+    val idx = lh.getFreshLocal()
+    val code = args.map(matchAndBind).zipWithIndex.map{
+      p => (adtField(GetLocal(idx), p._2) <:> Load <:> p._1._1, p._1._2)
+    }
+    val lc = code.map(_._2).foldLeft(Map[Identifier, Int]())(_ ++ _)
+
+    // HR : Setting the constructor index we are checking as a local variable
+    (
+      SetLocal(idx) <:>
+      ift({
+        // HR : First check if the primary constructor is the same
+        equ(loadLocal(idx), constructor(table.getConstructor(constr).get))
+      }, {
+        // HR : Check if all the pattern applies
+        // HR : if the constructor has no parameters the foldLeft returns true
+        code.foldLeft(mkBoolean(true))((acc, c) => and(c._1, acc))
+      }, {
+        mkBoolean(false) // HR : Signal that the scrut does not follow this pattern
+      }), lc)
   }
 
 }
