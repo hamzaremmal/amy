@@ -32,7 +32,7 @@ object Lab5 {
       files.find(!_.exists()).foreach { f =>
         ctx.reporter.fatal(s"File not found: ${f.getName}")
       }
-      pipeline.run(ctx)(files)
+      pipeline.run(files)(using ctx)
       ctx.reporter.terminateIfErrors()
     } catch {
       case AmycFatalError(_) =>
@@ -46,7 +46,7 @@ object Lab5 {
 
   def treePrinterS(title: String): Pipeline[(SP, SymbolTable), Unit] = {
     new Pipeline[(SP, SymbolTable), Unit] {
-      def run(ctx: Context)(v: (SP, SymbolTable)) = {
+      def run(v: (SP, SymbolTable))(using Context) = {
         println(title)
         println(SymbolicPrinter(v._1)(true))
       }
@@ -55,7 +55,7 @@ object Lab5 {
 
   def treePrinterN(title: String): Pipeline[NP, Unit] = {
     new Pipeline[NP, Unit] {
-      def run(ctx: Context)(v: NP) = {
+      def run(v: NP)(using Context) = {
         println(title)
         println(NominalPrinter(v))
       }

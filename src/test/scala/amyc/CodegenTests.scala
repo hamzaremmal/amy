@@ -12,8 +12,8 @@ import java.io.ByteArrayInputStream
 class CodegenTests extends ExecutionTests {
 
   object CodePrinterExecutor extends Pipeline[Module, Unit] {
-    def run(ctx: Context)(m: Module) = {
-      CodePrinter.run(ctx)(m)
+    def run(m: Module)(using Context) = {
+      CodePrinter.run(m)(using ctx)
       val fileName = s"${m.name}.js"
 
       // Consume all standard input!

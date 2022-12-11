@@ -13,8 +13,7 @@ import scala.annotation.tailrec
 
 // Generates WebAssembly code for an Amy program
 object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
-  def run(ctx: Context)(v: (Program, SymbolTable)): Module = {
-    given ctx1: Context = ctx
+  def run(v: (Program, SymbolTable))(using Context): Module = {
 
     given program: Program = v._1
 
