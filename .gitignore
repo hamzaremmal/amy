@@ -4,7 +4,6 @@
 *.class
 *.tasty
 target/
-project/target
 metals.sbt
 logs/
 .bloop

@@ -18,10 +18,18 @@ abstract class TestSuite extends CompilerTest {
 
   val outputExt: String
 
-  def getResourcePath(relativePath: String): String =
-    val stream = getClass.getResourceAsStream(s"/$baseDir/$relativePath")
-    assert(stream != null, s"can not read $baseDir/$relativePath")
-    val targetPath = tmpDir.resolve(relativePath)
+  def getResourcePath(relativePath: String, otherPath: Option[String] = None): String =
+    var stream = getClass.getResourceAsStream(s"/$baseDir/$relativePath")
+    var path = relativePath
+    if stream == null then
+      otherPath match
+        case None => assert(stream != null, s"can not read $baseDir/$relativePath")
+        case Some(p) =>
+          stream = getClass.getResourceAsStream(s"/$baseDir/$p")
+          assert(stream != null, s"can not read $baseDir/$p")
+          path = p
+
+    val targetPath = tmpDir.resolve(path)
     Files.createDirectories(targetPath.getParent())
     Files.copy(stream, targetPath, StandardCopyOption.REPLACE_EXISTING)
     targetPath.toAbsolutePath().toString()
@@ -29,8 +37,8 @@ abstract class TestSuite extends CompilerTest {
   def shouldOutput(inputFiles: List[String], outputFile: String, input: String = ""): Unit = {
     compareOutputs(
       pipeline,
-      inputFiles map (f => getResourcePath(s"$passing/$f.amy")),
-      getResourcePath(s"$outputs/$outputFile.$outputExt"),
+      inputFiles map (f => getResourcePath(s"$passing/$f.amy", Some(s"$passing/$f.grading.amy"))),
+      getResourcePath(s"$outputs/$outputFile.$outputExt", Some(s"$outputs/$outputFile.grading.$outputExt")),
       input
     )
   }
@@ -42,7 +50,7 @@ abstract class TestSuite extends CompilerTest {
   def shouldFail(inputFiles: List[String], input: String = ""): Unit = {
     demandFailure(
       pipeline,
-      inputFiles map (f => getResourcePath(s"$failing/$f.amy")),
+      inputFiles map (f => getResourcePath(s"$failing/$f.amy", Some(s"$failing/$f.grading.amy"))),
       input
     )
   }
@@ -52,7 +60,7 @@ abstract class TestSuite extends CompilerTest {
   }
 
   def shouldPass(inputFiles: List[String], input: String = ""): Unit = {
-    demandPass(pipeline, inputFiles map (f => getResourcePath(s"$passing/$f.amy")), input)
+    demandPass(pipeline, inputFiles map (f => getResourcePath(s"$passing/$f.amy", Some(s"$passing/$f.grading.amy"))), input)
   }
 
   def shouldPass(inputFile: String): Unit = {
