@@ -4,5 +4,5 @@ import amyc.utils.Frontend
 import interpreter.Interpreter
 
 class InterpreterTests extends ExecutionTests {
-  val pipeline = Frontend.pipeline andThen Interpreter
+  val pipeline = Frontend andThen Interpreter
 }

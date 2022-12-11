@@ -1,6 +1,7 @@
 package amyc.ast
 
-import amyc.utils.Positioned
+import amyc.analyzer.NameAnalyzer.reporter
+import amyc.utils.{Context, Positioned, UniqueCounter}
 
 /* A polymorphic module containing definitions of Amy trees.
  *
@@ -26,6 +27,14 @@ trait TreeModule { self =>
 
   // Common ancestor for all trees
   trait Tree extends Positioned {
+
+    private var tpe_ : Type = NoType
+
+    def tpe: Type = tpe_
+
+    final def withType(tpe: Type) =
+      tpe_ = tpe
+      this
     override def toString: String = printer(this)
   }
 
@@ -83,6 +92,9 @@ trait TreeModule { self =>
   case class LiteralPattern[+T](lit: Literal[T]) extends Pattern // 42, true
   case class CaseClassPattern(constr: QualifiedName, args: List[Pattern]) extends Pattern // C(arg1, arg2)
 
+  // All is wrapped in a program
+  case class Program(modules: List[ModuleDef]) extends Tree
+
   // Definitions
   trait Definition extends Tree { val name: Name }
   case class ModuleDef(name: Name, defs: List[ClassOrFunDef], optExpr: Option[Expr]) extends Definition
@@ -94,8 +106,42 @@ trait TreeModule { self =>
   case class CaseClassDef(name: Name, fields: List[TypeTree], parent: Name) extends ClassOrFunDef
   case class ParamDef(name: Name, tt: TypeTree) extends Definition
 
+  // A wrapper for types that is also a Tree (i.e. has a position)
+  // This here should not have a type
+  case class TypeTree(override val tpe: Type) extends Tree
+
   // Types
-  trait Type
+  trait Type {
+
+    // Check subtyping
+    infix def <:< (lhs: Type) : Boolean =
+      isBottomType || lhs.isBottomType || this =:= lhs
+
+      // Check the equality of 2 types
+    infix def =:= (lhs: Type) : Boolean =
+      (this, lhs) match
+        case (ClassType(i), ClassType(j)) if i == j => true
+        case _ => this == lhs
+
+    def isBottomType : Boolean =
+      this =:= BottomType
+
+  }
+
+  // To mark the fact that a tree has no type
+  // This usually means that the type should be inferred
+  case object NoType extends Type
+
+  // This type is used to fill the type information of a tree
+  // when an error happens at the typer level
+  case object ErrorType extends Type
+
+  case object WildCardType extends Type
+
+  // Bottom type (Should not be defined like this)
+  // This type will be removed in the future
+  case object BottomType extends Type
+
   case object IntType extends Type {
     override def toString: String = "Int"
   }
@@ -112,11 +158,54 @@ trait TreeModule { self =>
     override def toString: String = printer.printQName(qname)(false).print
   }
 
-  // A wrapper for types that is also a Tree (i.e. has a position)
-  case class TypeTree(tpe: Type) extends Tree
+  case class OrType(lhs : Type, rhs: Type) extends Type
 
-  // All is wrapped in a program
-  case class Program(modules: List[ModuleDef]) extends Tree
+  // Represents a type variable.
+  // It extends Type, but it is meant only for internal type checker use,
+  //  since no Amy value can have such type.
+  case class TypeVariable private(id: Int) extends Type
+
+  object TypeVariable {
+    private val c = new UniqueCounter[Unit]
+
+    def fresh(): TypeVariable = TypeVariable(c.next(()))
+  }
+
+  case class MultiTypeVariable() extends Type {
+    private var t: List[Type] = Nil
+
+
+    override def toString: String =
+      t.toString()
+
+    def add(tpe: Type) =
+      t ::= tpe
+
+    def resolve : Type = {
+      def consistentacc(xs: List[Type], acc: Type): Type =
+        xs match
+          case y :: ys if y <:< acc => consistentacc(ys, y)
+          case y :: ys => consistentacc(ys, OrType(acc, y))
+          case Nil => acc
+      consistentacc(t, BottomType)
+    }
+
+    def bind(bindings : Map[Type, Type])(using Context) : MultiTypeVariable =
+      def bindt(tpe: Type): Type =
+        tpe match
+          case TypeVariable(_) =>
+            val b = bindings.getOrElse(tpe,
+              reporter.fatal(s"$tpe has leaked from the bindings while inferring the type ($bindings)"))
+            bindt(b)
+          case MultiTypeVariable() =>
+            ???
+          case _ =>  tpe
+
+      t = for tp <- t yield bindt(tp)
+      this
+
+  }
+
 }
 
 /* A module containing trees where the names have not been resolved.
