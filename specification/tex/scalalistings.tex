@@ -1,0 +1,87 @@
+%% To import in the preambule
+%\usepackage{listings}
+
+\usepackage{letltxmacro}
+\newcommand*{\SavedLstInline}{}
+\LetLtxMacro\SavedLstInline\lstinline
+\DeclareRobustCommand*{\lstinline}{%
+  \ifmmode
+    \let\SavedBGroup\bgroup
+    \def\bgroup{%
+      \let\bgroup\SavedBGroup
+      \hbox\bgroup
+    }%
+  \fi
+  \SavedLstInline
+}
+
+\lstdefinelanguage{ML}{
+  alsoletter={*},
+  morekeywords={datatype, of, if, *},
+  sensitive=true,
+  morecomment=[s]{/*}{*/},
+  morestring=[b]"
+}
+
+% "define" Scala
+\lstdefinelanguage{scala}{
+  alsoletter={@,=,>},
+  morekeywords={abstract, Boolean, case, class, fn,
+        else, error, extends, false, if, Int, match,
+        object,  String, true, Unit, val, end},
+  sensitive=true,
+  morecomment=[l]{//},
+  morecomment=[s]{/*}{*/},
+  morestring=[b]"
+}
+
+% \newcommand{\codestyle}{\tiny\sffamily}
+\newcommand{\codestyle}{\ttfamily}
+
+\newcommand{\SAND}{\mbox{\tt \&\&}\xspace}
+\newcommand{\SOR}{\mbox{\tt ||}\xspace}
+\newcommand{\MOD}{\mbox{\tt \%}\xspace}
+\newcommand{\DIV}{\mbox{\tt /}\xspace}
+\newcommand{\PP}{\mbox{\tt ++}\xspace}
+\newcommand{\MM}{\mbox{\tt {-}{-}}\xspace}
+\newcommand{\RA}{\Rightarrow}
+\newcommand{\EQ}{\mbox{\tt ==}}
+\newcommand{\NEQ}{\mbox{\tt !=}}
+\newcommand{\SLE}{\ensuremath{\leq}}
+\newcommand{\SGE}{\ensuremath{\geq}}
+\newcommand{\SGT}{\mbox{\tt >}}
+\newcommand{\SLT}{\mbox{\tt <}}
+\newcommand{\rA}{\rightarrow}
+\newcommand{\lA}{\leftarrow}
+
+%============================
+% To make it colorful uncomment \color  in next 30 lines
+%\makeatletter
+%\newcommand*\idstyle{%
+%        \expandafter\id@style\the\lst@token\relax
+%}
+%\def\id@style#1#2\relax{%
+%        \ifcat#1\relax\else
+%                \ifnum`#1=\uccode`#1\color{blue!60!black}
+%                \fi
+%        \fi
+    %}
+\makeatother
+% Default settings for code listings
+\lstset{
+  language=scala,
+  showstringspaces=false,
+  columns=fullflexible,
+  mathescape=true,
+  numbers=none,
+  % numberstyle=\tiny,
+  basicstyle=\codestyle,
+  keywordstyle=\bfseries\color{blue!60!black}
+  ,
+  commentstyle=\itshape\color{red!60!black}
+  ,
+  %identifierstyle=\idstyle,
+  tabsize=2,
+  aboveskip=0pt,
+  belowskip=0pt
+}

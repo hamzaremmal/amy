@@ -1,3 +1,0 @@
-object ArithError2
-  true - 1
-end ArithError2

@@ -1,0 +1,120 @@
+\section{Semantics}
+In this section we will give the semantics of \langname, i.e. we
+will systematically explain what an \langname program represents,
+as well as give the restrictions that a legal \langname program must obey.
+The discussion will be informal, except for the typing rules
+of \langname.
+
+
+\subsection{Program Structure}
+An \langname program consists of one or more source files.
+Each file contains a single module (\gtns{object}),
+which in turn consists of a series of type and function definitions,
+optionally followed by an expression.
+We will use the terms object and module interchangeably.
+
+\subsection{Execution}
+When an \langname program is executed,
+the expression at the end of each module, if present, is evaluated.
+The order of execution among modules is the same that the user gave
+when compiling or interpreting the program.
+Each module's definitions are visible within the module automatically,
+and in all other modules provided a qualified name is used.
+
+\subsection{Naming rules}
+In this section, we will give the restrictions that a legal \langname program
+must obey with regard to naming or referring to entities defined in the program.
+Any program not following these restrictions should be rejected by the \langname
+name analyzer.
+
+\label{sec:names}
+\begin{itemize}
+    \item \langname is case-sensitive.
+    \item No two modules in the program can have the same name.
+    \item No two classes, constructors, and/or functions in the same module can have the same name.
+    \item No two parameters of the same function can have the same name.
+    \item No two local variables of the same function can have the same name if they are visible from
+        one another.
+        This includes binders in patterns of match-expressions.
+        Variables that are not mutually visible can have the same name.
+        E.g. the program \\
+        \lstinline{val x : Int(32) = 0; val x : Int(32) = 1; 2} is not legal, whereas \\
+        \lstinline{(val x : Int(32) = 0; 1); (val x : Int(32) = 1; 2)} is.
+    \item A local variable can have the same name as a parameter. In this case, the local
+        variable definition shadows the parameter definition.
+    \item Every variable encountered in an expression
+        has to refer to a function parameter or a local variable definition.
+    \item All case classes have to extend a class in the same module.
+    \item All function or constructor calls or type references have to refer to a function/constructor/type
+        defined in the same module, or another module provided a qualified name is given.
+        It is allowed to refer to a constructor/type/function before declaring it.
+    \item All calls to constructors and functions have to have the same number of arguments
+        as the respective constructor/function definition.
+\end{itemize}
+
+\subsection{Types and Classes}
+\label{sec:classes}
+Every expression, function parameter, and class parameter in \langname has a \emph{type}.
+Types catch some common programming errors by introducing \emph{typing restrictions}.
+Programs that do not obey these restrictions are illegal and will be rejected by
+the \langname type checker.
+
+The built-in types of \langname are \gtns{Int(32)}, \gtns{String}, \gtns{Boolean} and \gtns{Unit}.
+
+\gtns{Int(32)} represents 32-bit signed integers.
+\gtns{String} is a sequence of characters. Strings have poor support in \langname:
+the only operations defined on them are are concatenation and conversion to integer.
+In fact, not even equality is ``properly'' supported (see Section~\ref{sec:expr}). 
+\gtns{Boolean} values can take the values \gtns{true} and \gtns{false}.
+\gtns{Unit} represents a type with a single value, \gtns{()}.
+It is usually used as the result of a computation which is invoked for its side-effects only,
+for example, printing some output to the user.
+It corresponds to Java's \gtns{void}.
+
+In addition to the built-in types, the programmer can define their own types.
+The sort of types that are definable in \langname are called
+\href{https://en.wikipedia.org/wiki/Algebraic_data_type}{Algebraic Data Types} (ADTs)
+and come from the functional programming world,
+but they have also been successfully adopted in Scala.
+
+An ADT is a \emph{type} along with several \emph{constructors} that can create
+values of that type. For example, an ADT defining a list of integers
+in pseudo syntax may look like this:
+\lstinline{type List = Nil() | Cons(Int(32), List)},
+which states that a \lstinline{List} is either \lstinline{Nil} (the empty list),
+or a \lstinline{Cons} of an integer and another list.
+We will say that \lstinline{Cons} has two \emph{fields} of types \lstinline{Int(32)} and \lstinline{List},
+whereas \lstinline{Nil} has no fields.
+Inside the program, the only way to construct values of the \lstinline{List} type
+is to call one of these constructors, e.g. \lstinline{Nil()} or \lstinline{Cons(1, Cons(2, Nil()))}.
+You can think of them as functions from their field types to the \lstinline{List} type.
+
+Notice that in the above syntax, \lstinline{Nil} and \lstinline{Cons}
+are \textbf{not} types. More specifically, they are not subtypes of \lstinline{List}:
+in fact, there is no subtyping in \langname.
+Only \lstinline{List} is a type, and values such as \lstinline{Nil()} or \lstinline{Cons(1, Cons(2, Nil()))}
+have the type \lstinline{List}.
+
+In \langname, we use Scala syntax to define ADTs.
+A type is defined with an abstract class and the constructors with case classes.
+The above definition in \langname would be:
+\begin{figure}[h]
+\begin{lstlisting}
+abstract class List
+case class Nil() extends List
+case class Cons(h: Int(32), t: List) extends List
+\end{lstlisting}
+\end{figure}
+
+Notice that the names of the fields have no practical meaning,
+and we only use then to stay close to Scala.
+
+We will sometimes use the term abstract class for a type
+and case class for a type constructor.
+
+The main programming structure to manipulate class types
+is \emph{pattern matching}. In Section~\ref{sec:expr} we define how pattern matching works.
+
+
+% Cont. in informal.tex
+

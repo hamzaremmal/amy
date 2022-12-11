@@ -9,9 +9,9 @@ import amyc.ast.Identifier
 // Takes a symbolic program and rejects it if it does not follow the Amy typing rules.
 object TypeChecker extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)] {
 
-  def run(ctx: Context)(v: (Program, SymbolTable)): (Program, SymbolTable) = {
-    import ctx.reporter._
-
+  def run(v: (Program, SymbolTable))(using Context): (Program, SymbolTable) = {
+    val context = ctx
+    import context.reporter._
     val (program, table) = v
 
     case class Constraint(found: Type, expected: Type, pos: Position)

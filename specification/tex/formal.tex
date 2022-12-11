@@ -1,0 +1,36 @@
+\subsection{Formal discussion of types}
+
+\newcommand{\hastype}[2]{\Gamma \vdash #1: #2}
+
+In this section, we give a formal (i.e. mathematically robust) description of the Amy typing rules.
+A typing rule will be given as
+\begin{mathpar}
+    \inferrule[Rule Name]{P_1 \and \ldots \and P_n}{C}
+\end{mathpar}
+
+\noindent where $P_i$ are the rule \emph{premises} and $C$ is the rule \emph{conclusion}.
+A typing rule means that the conclusion is true under the premises.
+
+Conclusions and most premises will be \emph{type judgements} in an \emph{environment}.
+A type judgement $\hastype{e}{T}$ means that an expression (or pattern) $e$ has type $T$
+in environment $\Gamma$.
+Environments $\Gamma$ are mappings from variables to types and will be written as
+\hbox{$\Gamma = v_1: T_1, \ldots, v_n: T_n$}. We can add a new pair to an environment $\Gamma$
+by writing $\Gamma, v_{n+1}: T_{n+1}$.
+We will also sometimes write a type judgement of the form $\Gamma \vdash p$.
+This means that $p$ typechecks, but we don't assign a type to it.
+Type checking will try to typecheck a program under the \emph{initial environment},
+and reject the program if it fails to do so.
+
+The \emph{initial environment} $\Gamma_0(p)$ of a program $p$ is one
+that contains the types of all functions and constructors in $p$,
+where a constructor is treated as a function from its fields to its parent type
+(see Section~\ref{sec:classes}).
+The initial environment is used to kickstart typechecking at the function definition level.
+
+Figure~\ref{figure:types} lists typing rules for expressions.
+Figure~\ref{figure:moretypes} lists typing rules for patterns, functions and programs.
+In the typing rule for pattern matching,
+$bindings(p)$ refers to the variable bindings implied by a pattern as explained in Section~\ref{sec:expr}.
+Rules for literal patterns are omitted because they are the same as literal expressions.
+

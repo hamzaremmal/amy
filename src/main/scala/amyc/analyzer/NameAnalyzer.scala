@@ -10,8 +10,9 @@ import amyc.ast.{Identifier, NominalTreeModule => N, SymbolicTreeModule => S}
 // Rejects programs that violate the Amy naming rules.
 // Also populates symbol table.
 object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
-  def run(ctx: Context)(p: N.Program): (S.Program, SymbolTable) = {
-    import ctx.reporter._
+  def run(p: N.Program)(using Context): (S.Program, SymbolTable) = {
+    val ctx1 = ctx
+    import ctx1.reporter._
 
     // Step 0: Initialize symbol table
     val table = new SymbolTable

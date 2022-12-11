@@ -152,7 +152,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]]
     pos => EOFToken().setPos(pos)
   }
 
-  override def run(ctx: amyc.utils.Context)(files: List[File]): Iterator[Token] = {
+  override def run(files: List[File])(using amyc.utils.Context): Iterator[Token] = {
     var it = Seq[Token]().iterator
 
     for (file <- files) {
@@ -172,7 +172,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]]
 
 /** Extracts all tokens from input and displays them */
 object DisplayTokens extends Pipeline[Iterator[Token], Unit] {
-  override def run(ctx: Context)(tokens: Iterator[Token]): Unit = {
+  override def run(tokens: Iterator[Token])(using Context): Unit = {
     tokens.foreach(println(_))
   }
 }

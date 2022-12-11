@@ -1,5 +1,0 @@
-object Match2
-  1 match {
-    case x => x + 1
-  }
-end Match2
