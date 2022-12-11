@@ -1,12 +1,14 @@
 package amyc
 
-import amyc.utils._
-import amyc.ast._
-import parsing._
-import analyzer._
-import codegen._
+import amyc.utils.*
+import amyc.ast.*
+import parsing.*
+import analyzer.*
+import typer.Typer as tp
+import codegen.*
 
 import java.io.File
+import scala.compiletime.testing.ErrorKind.Typer
 
 object Lab5 {
   private def parseArgs(args: Array[String]): Context = {
@@ -19,7 +21,7 @@ object Lab5 {
       Lexer andThen
       Parser andThen
       NameAnalyzer andThen
-      TypeChecker andThen
+      tp andThen
       CodeGen andThen
       CodePrinter
 

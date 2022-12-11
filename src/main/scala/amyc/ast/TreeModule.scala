@@ -197,8 +197,8 @@ trait TreeModule { self =>
             val b = bindings.getOrElse(tpe,
               reporter.fatal(s"$tpe has leaked from the bindings while inferring the type ($bindings)"))
             bindt(b)
-          case MultiTypeVariable() =>
-            ???
+          case t@MultiTypeVariable() =>
+            t.bind(bindings).resolve
           case _ =>  tpe
 
       t = for tp <- t yield bindt(tp)

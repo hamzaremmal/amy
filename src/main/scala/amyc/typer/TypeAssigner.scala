@@ -18,16 +18,15 @@ object TypeAssigner extends Pipeline[(Program, SymbolTable, Map[Type, Type]), (P
         reporter.fatal(s"$tpe has leaked from the bindings while inferring the type ($bindings)"))
       b match
         case tv@TypeVariable(_) => bind(tv)
+        case mtv@MultiTypeVariable() => mtv.bind(bindings).resolve
         case _ => b
 
     tree.tpe match
       case tv@TypeVariable(_) =>
         tree.withType(bind(tv))
       case m : MultiTypeVariable =>
-
         val t = m.bind(bindings).resolve
-        reporter.warning(s"2 $t")
-        tree.withType(m.bind(bindings).resolve)
+        tree.withType(t)
       case NoType =>
         reporter.fatal(
           s"""

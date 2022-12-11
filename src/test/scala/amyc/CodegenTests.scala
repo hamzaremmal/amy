@@ -1,7 +1,8 @@
 package amyc
 
 import parsing._
-import analyzer.{NameAnalyzer, TypeChecker}
+import analyzer.NameAnalyzer
+import typer.Typer
 import codegen._
 import wasm.Module
 import amyc.utils._
@@ -30,7 +31,7 @@ class CodegenTests extends ExecutionTests {
     Lexer andThen
     Parser andThen
     NameAnalyzer andThen
-    TypeChecker andThen
+    Typer andThen
     CodeGen andThen
     CodePrinterExecutor
 }
