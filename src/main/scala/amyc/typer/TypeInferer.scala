@@ -30,8 +30,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       mod <- program.modules
       expr <- mod.optExpr
     yield
-      val tv = TypeVariable.fresh()
-      solveConstraints(genConstraints(expr, tv)(Map(), table, ctx))
+      solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), table, ctx))
 
     (program, table, (inferred1.flatten ::: inferred2.flatten).toMap)
   }
@@ -227,27 +226,29 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
   // Solve the given set of typing constraints and report errors
   //  using `ctx.reporter.error` if they are not satisfiable.
   // We consider a set of constraints to be satisfiable exactly if they unify.
-  private def solveConstraints(constraints: List[Constraint])(using Context): List[(Type, Type)] = {
-    constraints match {
-      case Nil => Nil
-      case Constraint(found, expected, pos) :: more =>
-        (found, expected) match
-          case (TypeVariable(id1), TypeVariable(id2)) if id1 == id2 =>
-            solveConstraints(more)
-          case (TypeVariable(id1), t2@TypeVariable(_)) =>
-            (found -> t2) :: solveConstraints(subst_*(constraints, id1, t2))
-          case (TypeVariable(_), _) =>
-            solveConstraints(Constraint(expected, found, pos) :: more)
-          case (type1, TypeVariable(i)) =>
-            val newList = subst_*(constraints, i, type1)
-            (expected -> type1) :: solveConstraints(newList)
-          case (lhs_tpe, rhs_tpe) if lhs_tpe == rhs_tpe =>
-            solveConstraints(more)
-          case (lhs_tpe, rhs_tpe) if lhs_tpe != rhs_tpe =>
-            solveConstraints(more)
-          case _ =>
-            ctx.reporter.fatal(s"TypeChecker, found= $found & expected= $expected", pos)
-    }
+
+
+    private def solveConstraints(constraints: List[Constraint])(using Context): List[(Type, Type)] = {
+      constraints match {
+        case Nil => Nil
+        case Constraint(found, expected, pos) :: more =>
+          (found, expected) match
+            case (TypeVariable(id1), TypeVariable(id2)) if id1 == id2 =>
+              solveConstraints(more)
+            case (TypeVariable(id1), t2@TypeVariable(_)) =>
+              (found -> t2) :: solveConstraints(subst_*(constraints, id1, t2))
+            case (TypeVariable(_), _) =>
+              solveConstraints(Constraint(expected, found, pos) :: more)
+            case (type1, TypeVariable(i)) =>
+              val newList = subst_*(constraints, i, type1)
+              (expected -> type1) :: solveConstraints(newList)
+            case (lhs_tpe, rhs_tpe) if lhs_tpe == rhs_tpe =>
+              solveConstraints(more)
+            case (lhs_tpe, rhs_tpe) if lhs_tpe != rhs_tpe =>
+              solveConstraints(more)
+            case _ =>
+              ctx.reporter.fatal(s"TypeChecker, found= $found & expected= $expected", pos)
+      }
   }
 
 }
