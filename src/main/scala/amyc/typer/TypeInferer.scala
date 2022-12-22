@@ -6,7 +6,7 @@ import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.utils.Pipeline
 
-object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTable, Map[Type, Type])]{
+object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)]{
 
   override def run(v: (SymbolicTreeModule.Program, SymbolTable))(using Context) = {
     val (program, table) = v
@@ -32,7 +32,9 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     yield
       solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), table, ctx))
 
-    (program, table, (inferred1.flatten ::: inferred2.flatten).toMap)
+    ctx.tv.addAll(inferred1.flatten.toMap)
+    ctx.tv.addAll(inferred2.flatten.toMap)
+    (program, table)
   }
 
 
@@ -214,8 +216,9 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
 
       // ============================= Type Check Errors =====================================
       case Error(msg) =>
-        e.withType(expected)
-        genConstraints(msg, StringType) ::: topLevelConstraint(BottomType)
+        val tv = TypeVariable.fresh()
+        e.withType(tv)
+        genConstraints(msg, StringType) ::: topLevelConstraint(tv)
       // ============================= DEFAULT ====================================
       case expr =>
         ctx.reporter.fatal(s"Cannot type check tree $expr of type ${expr.getClass.getTypeName}")
