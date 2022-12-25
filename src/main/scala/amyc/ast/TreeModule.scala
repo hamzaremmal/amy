@@ -158,6 +158,8 @@ trait TreeModule { self =>
     override def toString: String = printer.printQName(qname)(false).print
   }
 
+  case class FunctionType(args: List[TypeTree], rte: TypeTree) extends Type
+
   case class OrType(lhs : Type, rhs: Type) extends Type
 
 }
