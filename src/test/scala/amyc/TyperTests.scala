@@ -78,4 +78,8 @@ class TyperTests extends TestSuite {
   def testLetWithError = shouldPass("LetWithError")
   @Test def testError = shouldPass("Error")
 
+  @Test def highOrderFunctionParam = shouldPass("FunctionInParameter")
+
+  @Test def highOrderFunctionRte = shouldPass("FunctionInReturnType")
+
 }

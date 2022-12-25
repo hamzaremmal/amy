@@ -58,6 +58,9 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
             case None =>
               fatal(s"Could not find type $qn", tt)
           }
+
+        case N.FunctionType(params, rte) =>
+          S.FunctionType(params.map(tt => S.TypeTree(transformType(tt, inModule))), S.TypeTree(transformType(rte, inModule)))
       }
     }
 

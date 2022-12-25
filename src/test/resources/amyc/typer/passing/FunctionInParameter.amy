@@ -1,0 +1,7 @@
+object highOrderFunction
+
+    fn test(f: () => String): Unit = {
+        ()
+    }
+
+end highOrderFunction
