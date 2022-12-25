@@ -28,6 +28,6 @@ jobs:
     - name: Install deasync
       run: npm install deasync
     - name: Install wat2wasm
-      run: apt install wabt
+      run: sudo apt install wabt
     - name: Run tests
       run: sbt test
