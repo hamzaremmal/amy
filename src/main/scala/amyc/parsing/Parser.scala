@@ -169,7 +169,9 @@ object Parser extends Pipeline[Iterator[Token], Program]
   // ==============================================================================================
 
   // A type expression.
-  lazy val typeTree: Syntax[TypeTree] = primitiveType | identifierType
+  lazy val typeTree: Syntax[TypeTree] = recursive {
+      primitiveType | identifierType | functionType
+    }
 
   // A built-in type (such as `Int`).
   val primitiveType: Syntax[TypeTree] = (accept(PrimTypeKind) {
@@ -198,6 +200,11 @@ object Parser extends Pipeline[Iterator[Token], Program]
     qualifiedName map {
       case (Some(id), id2) => TypeTree(ClassType(QualifiedName(Some(id), id2)))
       case (None, id) => TypeTree(ClassType(QualifiedName(None, id)))
+    }
+
+  lazy val functionType: Syntax[TypeTree] =
+    ("(" ~>~ repsep(typeTree, ",") ~<~ ")" ~<~ "=>" ~ typeTree) map {
+      case params ~ rte => TypeTree(FunctionType(params.toList, rte))
     }
 
   // ==============================================================================================
