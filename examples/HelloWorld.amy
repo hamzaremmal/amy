@@ -1,0 +1,3 @@
+object HelloWorld
+    Std.printString("Hello World !")
+end HelloWorld
