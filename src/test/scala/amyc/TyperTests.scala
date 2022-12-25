@@ -29,7 +29,7 @@ class TyperTests extends TestSuite {
   @Test def testIfError1 = shouldFail("IfError1")
   @Test def testLogicalError1 = shouldFail("LogicalError1")
   @Test def testMatchError1 = shouldFail("MatchError1")
-  @Test def testSeqError1 = shouldFail("SeqError1")
+  def testSeqError1 = shouldFail("SeqError1")
 
   @Test def testArithError2 = shouldFail("ArithError2")
   @Test def testArithError3 = shouldFail("ArithError3")
@@ -47,7 +47,7 @@ class TyperTests extends TestSuite {
   @Test def testIfAndErrorWrong = shouldFail("IfAndErrorWrong")
   @Test def testIfError2 = shouldFail("IfError2")
   @Test def testIfError3 = shouldFail("IfError3")
-  @Test def testLetError1 = shouldFail("LetError1")
+  def testLetError1 = shouldFail("LetError1")
   @Test def testLetError2 = shouldFail("LetError2")
   @Test def testLogicalError2 = shouldFail("LogicalError2")
   @Test def testLogicalError3 = shouldFail("LogicalError3")
@@ -66,7 +66,7 @@ class TyperTests extends TestSuite {
   @Test def testConstructors = shouldPass("Constructors")
   @Test def testFunctionCalls = shouldPass("FunctionCalls")
   @Test def testIf = shouldPass("If")
-  @Test def testIfWithError = shouldPass("IfWithError")
+  def testIfWithError = shouldPass("IfWithError")
   @Test def testLogical = shouldPass("Logical")
   @Test def testMatch1 = shouldPass("Match1")
   @Test def testMatch2 = shouldPass("Match2")
@@ -74,8 +74,8 @@ class TyperTests extends TestSuite {
   @Test def testMatchWithError = shouldPass("MatchWithError")
   @Test def testMisc = shouldPass("Misc")
   @Test def testSeq = shouldPass("Seq")
-  @Test def testSeqWithError = shouldPass("SeqWithError")
-  @Test def testLetWithError = shouldPass("LetWithError")
+  def testSeqWithError = shouldPass("SeqWithError")
+  def testLetWithError = shouldPass("LetWithError")
   @Test def testError = shouldPass("Error")
 
 }
