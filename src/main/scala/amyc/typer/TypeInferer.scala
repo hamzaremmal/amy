@@ -22,7 +22,7 @@ object TypeInferer extends Pipeline[Program, Program]{
       }.toMap
       // we will need to infer the type of the result. If we assume that the type is correct
       // This will always type check.
-      solveConstraints(genConstraints(body, TypeVariable.fresh())(env, symbols, ctx))
+      solveConstraints(genConstraints(body, TypeVariable.fresh())(env, ctx))
 
     // Type-check expression if present. We allow the result to be of an arbitrary type by
     // passing a fresh (and therefore unconstrained) type variable as the expected type.
@@ -30,7 +30,7 @@ object TypeInferer extends Pipeline[Program, Program]{
       mod <- program.modules
       expr <- mod.optExpr
     yield
-      solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), symbols, ctx))
+      solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), ctx))
 
     ctx.tv.addAll(inferred1.flatten.toMap)
     ctx.tv.addAll(inferred2.flatten.toMap)
@@ -62,7 +62,7 @@ object TypeInferer extends Pipeline[Program, Program]{
   //  extend these, e.g., to account for local variables).
   // Returns a list of constraints among types. These will later be solved via unification.
   private def genConstraints(e: Expr, expected: Type)
-                            (implicit env: Map[Identifier, Type], table: SymbolTable, ctx: Context): List[Constraint] = {
+                            (implicit env: Map[Identifier, Type], ctx: Context): List[Constraint] = {
 
     // This helper returns a list of a single constraint recording the type
     //  that we found (or generated) for the current expression `e`
@@ -138,8 +138,9 @@ object TypeInferer extends Pipeline[Program, Program]{
       // ============================== Type Check Applications =================================
       case Call(qname, args) =>
         // WARNING BY HR : An Application can either be a call to a constructor of a function
-        val application = table.getConstructor(qname).orElse{
-          table.getFunction(qname)
+        val application =
+          symbols.getConstructor(qname).orElse{
+          symbols.getFunction(qname)
         }
         application match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
@@ -166,7 +167,7 @@ object TypeInferer extends Pipeline[Program, Program]{
         val tv = TypeVariable.fresh()
         e.withType(expected)
         df.withType(df.tt.tpe)
-        genConstraints(value, tv) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), table, ctx)
+        genConstraints(value, tv) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), ctx)
       // =========================== Type Check Conditions ======================================
       case Ite(cond, thenn, elze) =>
         val generic = TypeVariable.fresh()
@@ -191,7 +192,7 @@ object TypeInferer extends Pipeline[Program, Program]{
               (genConstraints(lit, tv), Map.empty)
             case CaseClassPattern(constr, args) =>
               pat.withType(ClassType(constr))
-              val constructor = table.getConstructor(constr) match
+              val constructor = symbols.getConstructor(constr) match
                 case Some(c) => c
                 case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
               val pat_tpe = args zip constructor.argTypes
@@ -207,7 +208,7 @@ object TypeInferer extends Pipeline[Program, Program]{
         def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {
           cse.withType(rt)
           val (patConstraints, moreEnv) = handlePattern(cse.pat, scrutExpected)
-          patConstraints ::: genConstraints(cse.expr, rt)(env ++ moreEnv, table, ctx)
+          patConstraints ::: genConstraints(cse.expr, rt)(env ++ moreEnv, ctx)
         }
 
         val st = TypeVariable.fresh()
