@@ -179,7 +179,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
         entry match {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
-          case Some((sym: Identifier, sig: FunSig)) =>
+          case Some((sym: Identifier, sig: Signature[_])) =>
             if (sig.argTypes.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
