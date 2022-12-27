@@ -1,13 +1,11 @@
 package amyc.utils
 
+import amyc.ctx
+
 // A sequence of operations to be run by the compiler,
 // with interruption at every stage if there is an error
 abstract class Pipeline[-F, +T] {
   self =>
-
-  final def ctx(using ctx1 : Context): Context = ctx1
-
-  final def reporter(using Context) = ctx.reporter
 
   def andThen[G](thenn: Pipeline[T, G]): Pipeline[F, G] = new Pipeline[F,G] {
     def run(v : F)(using Context) : G = {

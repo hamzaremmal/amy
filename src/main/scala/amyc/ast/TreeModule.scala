@@ -1,6 +1,5 @@
 package amyc.ast
 
-import amyc.analyzer.NameAnalyzer.reporter
 import amyc.utils.{Context, Positioned, UniqueCounter}
 
 /* A polymorphic module containing definitions of Amy trees.

@@ -4,6 +4,7 @@ import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.{Identifier, SymbolicTreeModule}
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
+import amyc.ctx
 import amyc.utils.Pipeline
 
 object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)]{

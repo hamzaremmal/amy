@@ -2,6 +2,7 @@ package amyc.typer
 
 import amyc.analyzer.SymbolTable
 import amyc.ast.SymbolicTreeModule.*
+import amyc.{ctx, reporter}
 import amyc.utils.{Context, Pipeline}
 
 object TypeAssigner extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)]{
