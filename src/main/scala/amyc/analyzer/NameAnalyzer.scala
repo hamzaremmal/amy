@@ -62,7 +62,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
         reporter.fatal(s"Two modules named $name in program", modules.head.position)
       }
     for mod <- modNames.keys.toList do
-     symbols.addModule(mod)
+      symbols.addModule(mod)
 
   def registerTypes(mod: N.ModuleDef)(using Context) =
      for N.AbstractClassDef(name) <- mod.defs do
@@ -168,17 +168,26 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       case N.Call(qname, args) =>
         val owner = qname.module.getOrElse(module)
         val name = qname.name
-        val entry = symbols.getConstructor(owner, name).orElse{
+        val entry =
+          locals.get(qname.name).orElse{
+            params.get(qname.name)
+          }.orElse{
+            symbols.getConstructor(owner, name)
+          }.orElse{
           symbols.getFunction(owner, name)
         }
         entry match {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
-          case Some((sym, sig)) =>
+          case Some((sym: Identifier, sig: FunSig)) =>
             if (sig.argTypes.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
             S.Call(sym, args.map(transformExpr(_)))
+          case Some(sym: Identifier) =>
+            S.Call(sym, args.map(transformExpr(_)))
+          case _ =>
+            reporter.fatal(s"NameAnalyzer resolved to $entry")
         }
       case N.Sequence(e1, e2) =>
         S.Sequence(transformExpr(e1), transformExpr(e2))
