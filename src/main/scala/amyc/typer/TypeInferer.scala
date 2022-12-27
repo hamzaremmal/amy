@@ -4,7 +4,7 @@ import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
-import amyc.{ctx, symbols}
+import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
 object TypeInferer extends Pipeline[Program, Program]{
@@ -139,8 +139,10 @@ object TypeInferer extends Pipeline[Program, Program]{
       case Call(qname, args) =>
         // WARNING BY HR : An Application can either be a call to a constructor of a function
         val application =
-          symbols.getConstructor(qname).orElse{
-          symbols.getFunction(qname)
+          env.get(qname) orElse {
+            symbols.getConstructor(qname)
+          } orElse {
+            symbols.getFunction(qname)
         }
         application match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
@@ -155,9 +157,17 @@ object TypeInferer extends Pipeline[Program, Program]{
             }
             e.withType(rte_tpe)
             topLevelConstraint(rte_tpe) ::: argsConstraint
-          case _ =>
+          case Some(FunctionType(args_tpe, rte_tpe)) =>
+            val argsConstraint = (args zip args_tpe) flatMap {
+              (expr, tpe) => expr.withType(tpe.tpe); genConstraints(expr, tpe.tpe)
+            }
+            e.withType(rte_tpe.tpe)
+            topLevelConstraint(rte_tpe.tpe) ::: argsConstraint
+          case None =>
             ctx.reporter.error(s"unknown symbol $qname")
             Nil
+          case _ =>
+            reporter.fatal(s"Match case is missing in TypeInferer ($application)")
       // ================================ Type Check Sequences ==================================
       case Sequence(e1, e2) =>
         e.withType(expected)
