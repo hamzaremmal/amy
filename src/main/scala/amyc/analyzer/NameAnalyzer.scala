@@ -1,7 +1,8 @@
 package amyc
 package analyzer
 
-import amyc.utils._
+import amyc.*
+import amyc.utils.*
 import amyc.ast.{Identifier, NominalTreeModule => N, SymbolicTreeModule => S}
 
 // Name analyzer for Amy
@@ -9,14 +10,14 @@ import amyc.ast.{Identifier, NominalTreeModule => N, SymbolicTreeModule => S}
 // and returns a symbolic program, where all names have been resolved to unique Identifiers.
 // Rejects programs that violate the Amy naming rules.
 // Also populates symbol table.
-object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
-  def run(p: N.Program)(using Context): (S.Program, SymbolTable) = {
+object NameAnalyzer extends Pipeline[N.Program, S.Program] {
+  override def run(p: N.Program)(using Context): S.Program = {
 
     // Step 0: Initialize symbol table
-    val table = new SymbolTable
+    ctx.withSymTable(new SymbolTable)
 
     // Step 1: Add modules
-    registerModules(p, table)
+    registerModules(p)
 
     // Step 2: Check name uniqueness in modules
     for mod <- p.modules do
@@ -24,18 +25,18 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
 
     // Step 3: Discover types
     for mod <- p.modules do
-      registerTypes(mod, table)
+      registerTypes(mod)
 
     // Step 4: Discover type constructors
     for {
       m <- p.modules
       cc@N.CaseClassDef(name, fields, parent) <- m.defs
     } {
-      val argTypes = fields map (tt => transformType(tt, m.name, table))
-      val retType = table.getType(m.name, parent).getOrElse{
+      val argTypes = fields map (tt => transformType(tt, m.name))
+      val retType = symbols.getType(m.name, parent).getOrElse{
         reporter.fatal(s"Parent class $parent not found", cc)
       }
-      table.addConstructor(m.name, name, argTypes, retType)
+      symbols.addConstructor(m.name, name, argTypes, retType)
     }
 
     // Step 5: Discover functions signatures.
@@ -43,31 +44,29 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
       m <- p.modules
       N.FunDef(name, params, retType1, _) <- m.defs
     } {
-      val argTypes = params map (p => transformType(p.tt, m.name, table))
-      val retType2 = transformType(retType1, m.name, table)
-      table.addFunction(m.name, name, argTypes, retType2)
+      val argTypes = params map (p => transformType(p.tt, m.name))
+      val retType2 = transformType(retType1, m.name)
+      symbols.addFunction(m.name, name, argTypes, retType2)
     }
 
     // Step 6: We now know all definitions in the program.
     //         Reconstruct modules and analyse function bodies/ expressions
-    val symProgram = transformProgram(p, table)
-
-    (symProgram, table)
+    transformProgram(p)
 
   }
 
-  def registerModules(prog: N.Program, table: SymbolTable)(using Context) =
+  def registerModules(prog: N.Program)(using Context) =
     val modNames = prog.modules.groupBy(_.name)
     for (name, modules) <- modNames do
       if (modules.size > 1) {
         reporter.fatal(s"Two modules named $name in program", modules.head.position)
       }
     for mod <- modNames.keys.toList do
-     table.addModule(mod)
+     symbols.addModule(mod)
 
-  def registerTypes(mod: N.ModuleDef, table: SymbolTable)(using Context) =
+  def registerTypes(mod: N.ModuleDef)(using Context) =
      for N.AbstractClassDef(name) <- mod.defs do
-       table.addType(mod.name, name)
+       symbols.addType(mod.name, name)
 
   def checkModuleConsistency(mod: N.ModuleDef)(using Context) =
      val names = mod.defs.groupBy(_.name)
@@ -80,9 +79,9 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
   // =================================== TRANSFORM METHODS ========================================
   // ==============================================================================================
 
-  def transformFunDef(fd: N.FunDef, module: String, table: SymbolTable)(using Context): S.FunDef = {
+  def transformFunDef(fd: N.FunDef, module: String)(using Context): S.FunDef = {
     val N.FunDef(name, params, retType, body) = fd
-    val Some((sym, sig)) = table.getFunction(module, name)
+    val Some((sym, sig)) = symbols.getFunction(module, name)
 
     params.groupBy(_.name).foreach { case (name, ps) =>
       if (ps.size > 1) {
@@ -103,27 +102,27 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
       sym,
       newParams,
       S.TypeTree(sig.retType).setPos(retType),
-      transformExpr(body, table)(module, (paramsMap, Map()), ctx)
+      transformExpr(body)(module, (paramsMap, Map()), ctx)
     ).setPos(fd)
   }
 
-  def transformDef(df: N.ClassOrFunDef, module: String, table: SymbolTable)(using Context): S.ClassOrFunDef = {
+  def transformDef(df: N.ClassOrFunDef, module: String)(using Context): S.ClassOrFunDef = {
     df match {
       case N.AbstractClassDef(name) =>
-        S.AbstractClassDef(table.getType(module, name).get)
+        S.AbstractClassDef(symbols.getType(module, name).get)
       case N.CaseClassDef(name, _, _) =>
-        val Some((sym, sig)) = table.getConstructor(module, name)
+        val Some((sym, sig)) = symbols.getConstructor(module, name)
         S.CaseClassDef(
           sym,
           sig.argTypes map S.TypeTree.apply,
           sig.parent
         )
       case fd: N.FunDef =>
-        transformFunDef(fd, module, table)
+        transformFunDef(fd, module)
     }
   }.setPos(df)
 
-  def transformExpr(expr: N.Expr, table: SymbolTable)
+  def transformExpr(expr: N.Expr)
                    (implicit module: String, names: (Map[String, Identifier], Map[String, Identifier]), context: Context): S.Expr = {
     val (params, locals) = names
     val res = expr match {
@@ -141,35 +140,37 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
       case N.UnitLiteral() =>
         S.UnitLiteral()
       case N.Plus(lhs, rhs) =>
-        S.Plus(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.Plus(transformExpr(lhs), transformExpr(rhs))
       case N.Minus(lhs, rhs) =>
-        S.Minus(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.Minus(transformExpr(lhs), transformExpr(rhs))
       case N.Times(lhs, rhs) =>
-        S.Times(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.Times(transformExpr(lhs), transformExpr(rhs))
       case N.Div(lhs, rhs) =>
-        S.Div(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.Div(transformExpr(lhs), transformExpr(rhs))
       case N.Mod(lhs, rhs) =>
-        S.Mod(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.Mod(transformExpr(lhs), transformExpr(rhs))
       case N.LessThan(lhs, rhs) =>
-        S.LessThan(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.LessThan(transformExpr(lhs), transformExpr(rhs))
       case N.LessEquals(lhs, rhs) =>
-        S.LessEquals(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.LessEquals(transformExpr(lhs), transformExpr(rhs))
       case N.And(lhs, rhs) =>
-        S.And(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.And(transformExpr(lhs), transformExpr(rhs))
       case N.Or(lhs, rhs) =>
-        S.Or(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.Or(transformExpr(lhs), transformExpr(rhs))
       case N.Equals(lhs, rhs) =>
-        S.Equals(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.Equals(transformExpr(lhs), transformExpr(rhs))
       case N.Concat(lhs, rhs) =>
-        S.Concat(transformExpr(lhs, table), transformExpr(rhs, table))
+        S.Concat(transformExpr(lhs), transformExpr(rhs))
       case N.Not(e) =>
-        S.Not(transformExpr(e, table))
+        S.Not(transformExpr(e))
       case N.Neg(e) =>
-        S.Neg(transformExpr(e, table))
+        S.Neg(transformExpr(e))
       case N.Call(qname, args) =>
         val owner = qname.module.getOrElse(module)
         val name = qname.name
-        val entry = table.getConstructor(owner, name).orElse(table.getFunction(owner, name))
+        val entry = symbols.getConstructor(owner, name).orElse{
+          symbols.getFunction(owner, name)
+        }
         entry match {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
@@ -177,10 +178,10 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
             if (sig.argTypes.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
-            S.Call(sym, args.map(transformExpr(_,table)))
+            S.Call(sym, args.map(transformExpr(_)))
         }
       case N.Sequence(e1, e2) =>
-        S.Sequence(transformExpr(e1, table), transformExpr(e2, table))
+        S.Sequence(transformExpr(e1), transformExpr(e2))
       case N.Let(vd, value, body) =>
         if (locals.contains(vd.name)) {
           reporter.fatal(s"Variable redefinition: ${vd.name}", vd)
@@ -189,19 +190,19 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
           reporter.warning(s"Local variable ${vd.name} shadows function parameter", vd)
         }
         val sym = Identifier.fresh(vd.name)
-        val tpe = transformType(vd.tt, module, table)
+        val tpe = transformType(vd.tt, module)
         S.Let(
           S.ParamDef(sym, S.TypeTree(tpe)).setPos(vd),
-          transformExpr(value, table),
-          transformExpr(body, table)(module, (params, locals + (vd.name -> sym)), ctx)
+          transformExpr(value),
+          transformExpr(body)(module, (params, locals + (vd.name -> sym)), ctx)
         )
       case N.Ite(cond, thenn, elze) =>
-        S.Ite(transformExpr(cond, table), transformExpr(thenn, table), transformExpr(elze, table))
+        S.Ite(transformExpr(cond), transformExpr(thenn), transformExpr(elze))
       case N.Match(scrut, cases) =>
         def transformCase(cse: N.MatchCase) = {
           val N.MatchCase(pat, rhs) = cse
           val (newPat, moreLocals) = transformPattern(pat)
-          S.MatchCase(newPat, transformExpr(rhs, table)(module, (params, locals ++ moreLocals), ctx).setPos(rhs)).setPos(cse)
+          S.MatchCase(newPat, transformExpr(rhs)(module, (params, locals ++ moreLocals), ctx).setPos(rhs)).setPos(cse)
         }
 
         def transformPattern(pat: N.Pattern): (S.Pattern, List[(String, Identifier)]) = {
@@ -215,7 +216,7 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
               if (params.contains(name)) {
                 reporter.warning("Suspicious shadowing by an Id Pattern", pat)
               }
-              table.getConstructor(module, name) match {
+              symbols.getConstructor(module, name) match {
                 case Some((_, ConstrSig(Nil, _, _))) =>
                   reporter.warning(s"There is a nullary constructor in this module called '$name'. Did you mean '$name()'?", pat)
                 case _ =>
@@ -223,9 +224,9 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
               val sym = Identifier.fresh(name)
               (S.IdPattern(sym), List(name -> sym))
             case N.LiteralPattern(lit) =>
-              (S.LiteralPattern(transformExpr(lit, table).asInstanceOf[S.Literal[_]]), List())
+              (S.LiteralPattern(transformExpr(lit).asInstanceOf[S.Literal[_]]), List())
             case N.CaseClassPattern(constr, args) =>
-              val (sym, sig) = table
+              val (sym, sig) = symbols
                 .getConstructor(constr.module.getOrElse(module), constr.name)
                 .getOrElse {
                   reporter.fatal(s"Constructor $constr not found", pat)
@@ -245,15 +246,15 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
           (newPat.setPos(pat), newNames)
         }
 
-        S.Match(transformExpr(scrut, table), cases map transformCase)
+        S.Match(transformExpr(scrut), cases map transformCase)
 
       case N.Error(msg) =>
-        S.Error(transformExpr(msg, table))
+        S.Error(transformExpr(msg))
     }
     res.setPos(expr)
   }
 
-  def transformType(tt: N.TypeTree, inModule: String, table: SymbolTable)(using Context): S.Type = {
+  def transformType(tt: N.TypeTree, inModule: String)(using Context): S.Type = {
     tt.tpe match {
       case N.NoType =>
         reporter.fatal(s"Type tree $tt has a type of NoType")
@@ -262,7 +263,7 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
       case N.StringType => S.StringType
       case N.UnitType => S.UnitType
       case N.ClassType(qn@N.QualifiedName(module, name)) =>
-        table.getType(module getOrElse inModule, name) match {
+        symbols.getType(module getOrElse inModule, name) match {
           case Some(symbol) =>
             S.ClassType(symbol)
           case None =>
@@ -270,22 +271,22 @@ object NameAnalyzer extends Pipeline[N.Program, (S.Program, SymbolTable)] {
         }
 
       case N.FunctionType(params, rte) =>
-        S.FunctionType(params.map(tt => S.TypeTree(transformType(tt, inModule, table))), S.TypeTree(transformType(rte, inModule, table)))
+        S.FunctionType(params.map(tt => S.TypeTree(transformType(tt, inModule))), S.TypeTree(transformType(rte, inModule)))
     }
   }
 
-  def transformProgram(p: N.Program, table: SymbolTable)(using Context): S.Program =
+  def transformProgram(p: N.Program)(using Context): S.Program =
     val symMods = for mod <- p.modules yield
-      transformModule(mod, table).setPos(mod)
+      transformModule(mod).setPos(mod)
     S.Program(symMods).setPos(p)
 
-  def transformModule(mod: N.ModuleDef, table: SymbolTable)(using Context) =
+  def transformModule(mod: N.ModuleDef)(using Context) =
     val N.ModuleDef(name, defs, optExpr) = mod
-    val symName = table.getModule(name).getOrElse{
+    val symName = symbols.getModule(name).getOrElse{
       reporter.fatal(s"Cannot find symbol for module $name")
     }
-    val symDefs = for d <- defs yield transformDef(d, name, table)
-    val symExpr = optExpr.map(transformExpr(_, table)(name, (Map(), Map()), ctx))
+    val symDefs = for d <- defs yield transformDef(d, name)
+    val symExpr = optExpr.map(transformExpr(_)(name, (Map(), Map()), ctx))
     S.ModuleDef(symName, symDefs, symExpr)
 
 

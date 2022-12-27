@@ -8,7 +8,7 @@ import amyc.ast.SymbolicTreeModule.Program
 
 import java.io.File
 
-object Frontend extends Pipeline[List[File], (Program, SymbolTable)]{
+object Frontend extends Pipeline[List[File], Program]{
 
   private lazy val pipeline =
     Lexer andThen

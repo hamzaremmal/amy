@@ -12,12 +12,8 @@ import Utils.*
 import scala.annotation.tailrec
 
 // Generates WebAssembly code for an Amy program
-object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
-  def run(v: (Program, SymbolTable))(using Context): Module = {
-
-    given program: Program = v._1
-
-    given table: SymbolTable = v._2
+object CodeGen extends Pipeline[Program, Module] {
+  def run(program: Program)(using Context): Module = {
 
     Module(
       program.modules.last.name.name,
@@ -29,7 +25,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
   }
 
   // Generate code for an Amy module
-  private def cgModule(moduleDef: ModuleDef)(using SymbolTable)(using Context): List[Function] = {
+  private def cgModule(moduleDef: ModuleDef)(using Context): List[Function] = {
     val ModuleDef(name, defs, optExpr) = moduleDef
     // Generate code for all functions
     defs.collect {
@@ -44,7 +40,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
   }
 
   // Generate code for a function in module 'owner'
-  private def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using SymbolTable)(using Context): Function = {
+  private def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
     val name = fullName(owner, fd.name)
@@ -65,7 +61,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
   // Additional arguments are a mapping from identifiers (parameters and variables) to
   // their index in the wasm local variables, and a LocalsHandler which will generate
   // fresh local slots as required.
-  private def cgExpr(expr: Expr)(using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)(using ctx: Context): Code = {
+  private def cgExpr(expr: Expr)(using locals: Map[Identifier, Int], lh: LocalsHandler)(using Context): Code = {
     expr match {
       case Variable(name) =>
         // HR : Only use locals here since variables in amy only refer to local variables
@@ -103,7 +99,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
       case Neg(e) =>
         mkBinOp(Const(0), cgExpr(e))(Sub)
       case AmyCall(qname, args) =>
-        table.getConstructor(qname)
+        symbols.getConstructor(qname)
           .map(genConstructorCall(_, args))
           .getOrElse(genFunctionCall(args, qname))
       case Sequence(e1, e2) =>
@@ -131,7 +127,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
             GetLocal(local) <:>
             cond <:>
             If_i32 <:>
-            cgExpr(c.expr)(using locals ++ loc, lh, table) <:>
+            cgExpr(c.expr)(using locals ++ loc, lh) <:>
             Else
           // Else here become we are building a big if else bloc.
           // Last bloc will be concatenated with the Match error below and the
@@ -151,13 +147,13 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
   // ==============================================================================================
 
   def genFunctionCall(args: List[Expr], qname: Identifier)
-                     (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                     (using locals: Map[Identifier, Int], lh: LocalsHandler)
                      (using Context) =
     args.map(cgExpr) <:>
-    Call(fullName(table.getFunction(qname).get.owner, qname))
+    Call(fullName(symbols.getFunction(qname).get.owner, qname))
 
   def genConstructorCall(constrSig: ConstrSig, args: List[Expr])
-                        (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                        (using locals: Map[Identifier, Int], lh: LocalsHandler)
                         (using Context) = {
     val ConstrSig(_, _, index) = constrSig
     val local = lh.getFreshLocal()
@@ -188,7 +184,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
   // Assumes value is on top of stack (and CONSUMES it)
   // Returns the code to check the value, and a map of bindings.
   def matchAndBind(pat: Pattern)
-                  (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                  (using locals: Map[Identifier, Int], lh: LocalsHandler)
                   (using Context) : (Code, Map[Identifier, Int]) = pat match {
     case WildcardPattern() => genWildCardPattern
     case IdPattern(id) => genIdPattern(id)
@@ -205,7 +201,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
     * @param Context
     * @return
     */
-  def genWildCardPattern(using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+  def genWildCardPattern(using locals: Map[Identifier, Int], lh: LocalsHandler)
                         (using Context) =
   // HR : We return true as this pattern will be executed if encountered
     (Drop <:> mkBoolean(true), locals)
@@ -220,7 +216,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
     * @return
     */
   def genIdPattern(id:Name)
-                  (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                  (using locals: Map[Identifier, Int], lh: LocalsHandler)
                   (using Context) =
     val idLocal = lh.getFreshLocal()
     // HR : We return true as this pattern will be executed if encountered
@@ -236,7 +232,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
     * @return
     */
   def genLiteralPattern(lit: Literal[_])
-                       (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                       (using locals: Map[Identifier, Int], lh: LocalsHandler)
                        (using Context) =
     (cgExpr(lit) <:> Eq, locals)
 
@@ -251,7 +247,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
     * @return
     */
   def genCaseClassPattern(constr: QualifiedName, args: List[Pattern])
-                         (using locals: Map[Identifier, Int], lh: LocalsHandler, table: SymbolTable)
+                         (using locals: Map[Identifier, Int], lh: LocalsHandler)
                          (using Context) = {
     val idx = lh.getFreshLocal()
     val code = args.map(matchAndBind).zipWithIndex.map{
@@ -264,7 +260,7 @@ object CodeGen extends Pipeline[(Program, SymbolTable), Module] {
       SetLocal(idx) <:>
       ift({
         // HR : First check if the primary constructor is the same
-        equ(loadLocal(idx), constructor(table.getConstructor(constr).get))
+        equ(loadLocal(idx), constructor(symbols.getConstructor(constr).get))
       }, {
         // HR : Check if all the pattern applies
         // HR : if the constructor has no parameters the foldLeft returns true

@@ -5,14 +5,14 @@ import amyc.ast.SymbolicTreeModule.*
 import amyc.{ctx, reporter}
 import amyc.utils.{Context, Pipeline}
 
-object TypeAssigner extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)]{
+object TypeAssigner extends Pipeline[Program, Program]{
 
-  override def run(v: (Program, SymbolTable))(using Context) =
-    val (program, _) = v
+  override def run(program: Program)(using Context) =
     assign(program)
     // TODO HR : This is just a patch for now, we should not call assign twice
     assign(program)
-    (v._1, v._2)
+    
+    program
 
   def isBounded(tpe: Type)(using Context) : Boolean =
     def bind(tpe: Type): Option[Type] =

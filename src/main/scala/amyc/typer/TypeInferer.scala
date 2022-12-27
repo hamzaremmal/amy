@@ -1,16 +1,15 @@
 package amyc.typer
 
 import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
-import amyc.ast.{Identifier, SymbolicTreeModule}
+import amyc.ast.Identifier
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
-import amyc.ctx
+import amyc.{ctx, symbols}
 import amyc.utils.Pipeline
 
-object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)]{
+object TypeInferer extends Pipeline[Program, Program]{
 
-  override def run(v: (SymbolicTreeModule.Program, SymbolTable))(using Context) = {
-    val (program, table) = v
+  override def run(program: Program)(using Context) = {
     // We will first type check each function defined in a module
     val inferred1 = for
       mod <- program.modules
@@ -23,7 +22,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       }.toMap
       // we will need to infer the type of the result. If we assume that the type is correct
       // This will always type check.
-      solveConstraints(genConstraints(body, TypeVariable.fresh())(env, table, ctx))
+      solveConstraints(genConstraints(body, TypeVariable.fresh())(env, symbols, ctx))
 
     // Type-check expression if present. We allow the result to be of an arbitrary type by
     // passing a fresh (and therefore unconstrained) type variable as the expected type.
@@ -31,11 +30,12 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       mod <- program.modules
       expr <- mod.optExpr
     yield
-      solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), table, ctx))
+      solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), symbols, ctx))
 
     ctx.tv.addAll(inferred1.flatten.toMap)
     ctx.tv.addAll(inferred2.flatten.toMap)
-    (program, table)
+
+    program
   }
 
 

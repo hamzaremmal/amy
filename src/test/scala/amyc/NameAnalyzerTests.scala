@@ -23,10 +23,10 @@ class NameAnalyzerTests extends TestSuite {
     }
   }
 
-  private val treePrinterS: Pipeline[(Program, SymbolTable), Unit] = {
-    new Pipeline[(Program, SymbolTable), Unit] {
-      def run(v: (Program, SymbolTable))(using Context) = {
-        println((new TestUniquePrinter)(v._1)(true))
+  private val treePrinterS: Pipeline[Program, Unit] = {
+    new Pipeline[Program, Unit] {
+      def run(program: Program)(using Context) = {
+        println((new TestUniquePrinter)(program)(true))
       }
     }
   }
