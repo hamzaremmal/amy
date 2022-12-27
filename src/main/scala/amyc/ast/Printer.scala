@@ -157,6 +157,7 @@ trait Printer {
           case StringType => "String"
           case UnitType => "Unit"
           case ClassType(name) => name
+          case FunctionType(args, rte) => s"(${args.map(apply).mkString(", ")}) => ${apply(rte)}"
         }
 
     }
