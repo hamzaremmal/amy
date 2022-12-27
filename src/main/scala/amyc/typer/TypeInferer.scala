@@ -138,21 +138,25 @@ object TypeInferer extends Pipeline[Program, Program]{
       // ============================== Type Check Applications =================================
       case Call(qname, args) =>
         // WARNING BY HR : An Application can either be a call to a constructor of a function
-        val constructor = table.getConstructor(qname)
-        constructor match
+        val application = table.getConstructor(qname).orElse{
+          table.getFunction(qname)
+        }
+        application match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
-            val argsConstraint = (args zip args_tpe) flatMap { (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe) }
+            val argsConstraint = (args zip args_tpe) flatMap {
+              (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
+            }
             e.withType(constr.retType)
             topLevelConstraint(constr.retType) ::: argsConstraint
-          case None =>
-            table.getFunction(qname) match
-              case Some(FunSig(args_tpe, rte_tpe, _)) =>
-                val argsConstraint = (args zip args_tpe) flatMap { (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe) }
-                e.withType(rte_tpe)
-                topLevelConstraint(rte_tpe) ::: argsConstraint
-              case None =>
-                ctx.reporter.error(s"unknown symbol $qname")
-                Nil
+          case Some(FunSig(args_tpe, rte_tpe, _)) =>
+            val argsConstraint = (args zip args_tpe) flatMap {
+              (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
+            }
+            e.withType(rte_tpe)
+            topLevelConstraint(rte_tpe) ::: argsConstraint
+          case _ =>
+            ctx.reporter.error(s"unknown symbol $qname")
+            Nil
       // ================================ Type Check Sequences ==================================
       case Sequence(e1, e2) =>
         e.withType(expected)
