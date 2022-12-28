@@ -47,6 +47,9 @@ object Lab4 {
 
   def treePrinterS(title: String): Pipeline[(SP, SymbolTable), (SP, SymbolTable)] = {
     new Pipeline[(SP, SymbolTable), (SP, SymbolTable)] {
+
+      val name = "treePrinterS"
+
       def run(v: (SP, SymbolTable))(using Context) = {
         println(title)
         println(SymbolicPrinter(v._1)(true))
@@ -57,6 +60,9 @@ object Lab4 {
 
   def treePrinterN(title: String): Pipeline[NP, NP] = {
     new Pipeline[NP, NP] {
+
+      val name = "treePrinterN"
+
       def run(v: NP)(using Context) = {
         println(title)
         println(NominalPrinter(v))

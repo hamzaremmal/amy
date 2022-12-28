@@ -11,6 +11,7 @@ class ParserTests extends TestSuite {
 
   def treePrinterN(title: String): Pipeline[NP, Unit] = {
     new Pipeline[NP, Unit] {
+      val name = "treePrinterN"
       def run(v: NP)(using Context) = {
         println(title)
         println(NominalPrinter(v))

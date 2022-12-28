@@ -8,6 +8,8 @@ import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
 object TypeInferer extends Pipeline[Program, Program]{
+  
+  override val name = "TypeInferer"
 
   override def run(program: Program)(using Context) = {
     // We will first type check each function defined in a module

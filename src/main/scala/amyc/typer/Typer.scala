@@ -14,4 +14,6 @@ object Typer extends Pipeline[Program, Program]{
   override def run(v: Program)(using Context) =
     typerPipeline.run(v)
 
+  override val name = "Typer"
+
 }

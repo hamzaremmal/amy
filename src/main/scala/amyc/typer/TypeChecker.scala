@@ -8,6 +8,8 @@ import amyc.utils.{Context, Pipeline}
 
 object TypeChecker extends Pipeline[Program, Program]{
 
+  override val name = "TypeChecker"
+
   override def run(program: Program)(using Context) =
     checkProgram(program)
 

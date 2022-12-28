@@ -11,6 +11,8 @@ import amyc.ast.{Identifier, NominalTreeModule => N, SymbolicTreeModule => S}
 // Rejects programs that violate the Amy naming rules.
 // Also populates symbol table.
 object NameAnalyzer extends Pipeline[N.Program, S.Program] {
+
+  override val name = "NameAnalyzer"
   override def run(p: N.Program)(using Context): S.Program = {
 
     // Step 0: Initialize symbol table
@@ -127,10 +129,16 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     val (params, locals) = names
     val res = expr match {
       case N.Variable(name) =>
-        S.Variable(
-          locals.getOrElse(name, // Local variables shadow parameters!
-            params.getOrElse(name,
-              reporter.fatal(s"Variable $name not found", expr))))
+        // Local variables shadow parameters!
+        val sym = locals.get(name) orElse {
+          params.get(name)
+        } orElse {
+          symbols.getFunction(module, name)
+        }
+        sym match
+          case Some(id: Identifier) => S.Variable(id)
+          case Some((id:Identifier, _)) => S.Variable(id)
+          case _ => reporter.fatal(s"Variable $name not found", expr)
       case N.IntLiteral(value) =>
         S.IntLiteral(value)
       case N.BooleanLiteral(value) =>

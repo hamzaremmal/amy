@@ -7,6 +7,8 @@ import amyc.utils.{Context, Pipeline}
 
 object TypeAssigner extends Pipeline[Program, Program]{
 
+  override val name = "TypeAssigner"
+
   override def run(program: Program)(using Context) =
     assign(program)
     // TODO HR : This is just a patch for now, we should not call assign twice

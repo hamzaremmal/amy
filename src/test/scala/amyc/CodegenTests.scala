@@ -13,6 +13,9 @@ import java.io.ByteArrayInputStream
 class CodegenTests extends ExecutionTests {
 
   object CodePrinterExecutor extends Pipeline[Module, Unit] {
+
+    override val name = "CodePrinterExecutor"
+
     def run(m: Module)(using Context) = {
       CodePrinter.run(m)(using ctx)
       val fileName = s"${m.name}.js"

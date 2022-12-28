@@ -9,8 +9,7 @@ import silex._
 import amyc.utils.Position
 
 // The lexer for Amy.
-object Lexer extends Pipeline[List[File], Iterator[Token]]
-  with Lexers {
+object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
 
   /** Tiny Silex reference:
     * ==============================
@@ -152,6 +151,8 @@ object Lexer extends Pipeline[List[File], Iterator[Token]]
     pos => EOFToken().setPos(pos)
   }
 
+  override val name = "Lexer"
+
   override def run(files: List[File])(using amyc.utils.Context): Iterator[Token] = {
     var it = Seq[Token]().iterator
 
@@ -172,6 +173,9 @@ object Lexer extends Pipeline[List[File], Iterator[Token]]
 
 /** Extracts all tokens from input and displays them */
 object DisplayTokens extends Pipeline[Iterator[Token], Unit] {
+
+  override val name = "DisplayTokens"
+
   override def run(tokens: Iterator[Token])(using Context): Unit = {
     tokens.foreach(println(_))
   }

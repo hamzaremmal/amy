@@ -12,6 +12,7 @@ class TyperTests extends TestSuite {
   // We need a unit pipeline
   private def unit[A]: Pipeline[A, Unit] = {
     new Pipeline[A, Unit] {
+      val name = "Unit"
       def run(v: A)(using Context) = ()
     }
   }

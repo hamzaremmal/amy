@@ -408,6 +408,8 @@ object Parser extends Pipeline[Iterator[Token], Program]
     }
   }
 
+  override val name = "Parser"
+
   override def run(tokens: Iterator[Token])(using Context): Program = {
     if (!checkLL1) {
       ctx.reporter.fatal("Program grammar is not LL1!")

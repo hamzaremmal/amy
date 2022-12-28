@@ -19,5 +19,7 @@ object Frontend extends Pipeline[List[File], Program]{
   override def run(v: List[File])(using Context) =
     pipeline.run(v)
 
+  override val name = "Frontend"
+
 
 }

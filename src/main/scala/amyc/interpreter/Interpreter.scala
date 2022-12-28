@@ -30,7 +30,9 @@ object Interpreter extends Pipeline[Program, Unit] {
   case object UnitValue extends Value
   case class CaseClassValue(constructor: Identifier, args: List[Value]) extends Value
 
-  def run(program: Program)(using Context): Unit = {
+  override val name = "Interpreter"
+
+  override def run(program: Program)(using Context): Unit = {
 
     // Body of the interpreter: Go through every module in order
     // and evaluate its expression if present

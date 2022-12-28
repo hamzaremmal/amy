@@ -37,7 +37,10 @@ object Lab3 {
 
   def treePrinterN(title: String): Pipeline[NP, Unit] = {
     new Pipeline[NP, Unit] {
-      def run(v: NP)(using Context) = {
+
+      override val name = "treePrinterN"
+
+      override def run(v: NP)(using Context) = {
         println(title)
         println(NominalPrinter(v))
       }
