@@ -1,13 +1,13 @@
-package amyc.ast
+package amyc.utils.printers
 
-import scala.language.implicitConversions
-import amyc.utils._
+import amyc.ast.*
+import amyc.utils.*
 
 // A printer for Amy trees
 trait Printer {
 
   val treeModule: TreeModule
-  import treeModule._
+  import treeModule.*
 
   implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document
   implicit def printQName(name: QualifiedName)(implicit printUniqueIds: Boolean): Document
@@ -167,8 +167,8 @@ trait Printer {
 }
 
 object NominalPrinter extends Printer {
+  import amyc.ast.NominalTreeModule.*
   val treeModule: NominalTreeModule.type = NominalTreeModule
-  import NominalTreeModule._
 
   implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document = Raw(name)
 
@@ -183,9 +183,12 @@ object NominalPrinter extends Printer {
 }
 
 object SymbolicPrinter extends SymbolicPrinter
+
 trait SymbolicPrinter extends Printer {
+
+  import amyc.ast.SymbolicTreeModule.*
+
   val treeModule: SymbolicTreeModule.type = SymbolicTreeModule
-  import SymbolicTreeModule._
 
   implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document = {
     if (printUniqueIds) {

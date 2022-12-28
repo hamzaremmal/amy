@@ -1,6 +1,6 @@
 package amyc
 
-import amyc.utils.*
+import amyc.utils.{printers, *}
 import amyc.ast.*
 import amyc.typer.Typer
 import parsing.*
@@ -18,11 +18,8 @@ object Lab4 {
     val pipeline =
       Lexer andThen
       Parser andThen
-      //treePrinterN("Tree after Parser") andThen
       NameAnalyzer andThen
-      //treePrinterS("Tree after NameAnalyzer") andThen
-      Typer //andThen
-      //treePrinterS("Tree after type Checking")
+      Typer
 
     val files = ctx.files.map(new File(_))
 
@@ -41,33 +38,4 @@ object Lab4 {
     }
   }
 
-
-  import SymbolicTreeModule.{Program => SP}
-  import NominalTreeModule.{Program => NP}
-
-  def treePrinterS(title: String): Pipeline[(SP, SymbolTable), (SP, SymbolTable)] = {
-    new Pipeline[(SP, SymbolTable), (SP, SymbolTable)] {
-
-      val name = "treePrinterS"
-
-      def run(v: (SP, SymbolTable))(using core.Context) = {
-        println(title)
-        println(SymbolicPrinter(v._1)(true))
-        v
-      }
-    }
-  }
-
-  def treePrinterN(title: String): Pipeline[NP, NP] = {
-    new Pipeline[NP, NP] {
-
-      val name = "treePrinterN"
-
-      def run(v: NP)(using core.Context) = {
-        println(title)
-        println(NominalPrinter(v))
-        v
-      }
-    }
-  }
 }

@@ -1,33 +1,28 @@
 package amyc
 
-import utils.*
-import ast.*
+import amyc.utils.printers.NominalTreePrinter
+import utils.{printers, *}
+import ast.{NominalTreeModule, *}
 import parsing.*
 import org.junit.Test
 
 class ParserTests extends TestSuite {
 
-  import NominalTreeModule.{Program => NP}
+  override val pipeline =
+    Lexer andThen
+    Parser andThen
+    new NominalTreePrinter andThen
+    new UnitPipeline
 
-  def treePrinterN(title: String): Pipeline[NP, Unit] = {
-    new Pipeline[NP, Unit] {
-      val name = "treePrinterN"
-      def run(v: NP)(using core.Context) = {
-        println(title)
-        println(NominalPrinter(v))
-      }
-    }
-  }
+  override val baseDir = "amyc/parser"
 
-  val pipeline = Lexer andThen Parser andThen treePrinterN("")
+  override val outputExt = "amy"
 
-  val baseDir = "amyc/parser"
+  // ==============================================================================================
+  // ======================================== TESTS ===============================================
+  // ==============================================================================================
 
-  val outputExt = "amy"
-
-  @Test def testLL1 = {
-    assert(Parser.program.isLL1)
-  }
+  @Test def testLL1 = assert(Parser.program.isLL1)
 
   
   @Test def testEmpty = shouldOutput("Empty")

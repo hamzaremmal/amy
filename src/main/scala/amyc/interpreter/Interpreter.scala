@@ -4,7 +4,7 @@ package interpreter
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
-import amyc.analyzer.SymbolTable
+import amyc.analyzer.{ConstrSig, SymbolTable}
 import amyc.core.Context
 import amyc.interpreter.BuiltIns.*
 import amyc.interpreter.*
@@ -25,12 +25,10 @@ object Interpreter extends Pipeline[Program, Unit] {
       interpret(e, program)(env, ctx)
   }
 
-  // Utility functions to interface with the symbol table.
-  def isConstructor(name: Identifier)(using Context) =
-    symbols.getConstructor(name).isDefined
-
   def findFunctionOwner(functionName: Identifier)(using Context) =
-    symbols.getFunction(functionName).get.owner.name
+    symbols.getFunction(functionName).getOrElse{
+      reporter.fatal(s"Function $functionName not found")
+    }.owner.name
 
   def findFunction(program: Program, owner: String, name: String) = {
     program.modules.find(_.name.name == owner).get.defs.collectFirst {
@@ -65,30 +63,30 @@ object Interpreter extends Pipeline[Program, Unit] {
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
       case Call(qname, args) =>
-        if isConstructor(qname) then
-          CaseClassValue(qname, args.map(interpret(_, program)))
-        else
-          val fn = locals.get(qname) orElse {
-            val owner = findFunctionOwner(qname)
-            builtIns.get((owner, qname.name))
-            } orElse {
-            val owner = findFunctionOwner(qname)
-            findFunction(program, owner, qname.name)
-          }
-          fn match
-            case Some(f: BuiltIns.BuiltInFunction) =>
-              val arg_values = args.map(interpret(_, program))
-              f(arg_values)
-            case Some(FunctionValue(n_args, body)) =>
-              val vargs = (n_args zip args.map(interpret(_,program))).toMap
-              interpret(body, program)(locals ++ vargs, ctx)
-            case Some(f: FunDef) =>
-              // Build new arguments
-              val arg_val = (f.params.map(_.name) zip args.map(interpret(_, program))).toMap
-              val lookup = locals ++ arg_val
-              interpret(f.body, program)(using lookup, ctx)
-            case _ =>
-              reporter.fatal(s"Function  not defined $qname")
+        val fn = symbols.getConstructor(qname) orElse {
+          locals.get(qname)
+        }orElse {
+          val owner = findFunctionOwner(qname)
+          builtIns.get((owner, qname.name))
+        } orElse {
+          val owner = findFunctionOwner(qname)
+          findFunction(program, owner, qname.name)
+        }
+        fn match
+          case Some(ConstrSig(_, _, _)) =>
+            CaseClassValue(qname, args.map(interpret(_, program)))
+          case Some(f: BuiltIns.BuiltInFunction) =>
+            f(args.map(interpret(_, program)))
+          case Some(FunctionValue(n_args, body)) =>
+            val vargs = (n_args zip args.map(interpret(_,program))).toMap
+            interpret(body, program)(locals ++ vargs, ctx)
+          case Some(f: FunDef) =>
+            // Build new arguments
+            val arg_val = (f.params.map(_.name) zip args.map(interpret(_, program))).toMap
+            val lookup = locals ++ arg_val
+            interpret(f.body, program)(using lookup, ctx)
+          case _ =>
+            reporter.fatal(s"Function  not defined $qname")
       // Hint: Check if it is a call to a constructor first,
       //       then if it is a built-in function (otherwise it is a normal function).
       //       Use the helper methods provided above to retrieve information from the symbol table.
