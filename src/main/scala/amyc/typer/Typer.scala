@@ -1,8 +1,9 @@
 package amyc.typer
 
 import amyc.analyzer.SymbolTable
-import amyc.utils.{Context, Pipeline}
+import amyc.utils.Pipeline
 import amyc.ast.SymbolicTreeModule.*
+import amyc.core.Context
 
 object Typer extends Pipeline[Program, Program]{
 

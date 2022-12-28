@@ -4,14 +4,14 @@ import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
-import amyc.{ctx, reporter, symbols}
+import amyc.{core, ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
 object TypeInferer extends Pipeline[Program, Program]{
 
   override val name = "TypeInferer"
 
-  override def run(program: Program)(using Context) = {
+  override def run(program: Program)(using core.Context) = {
     // We will first type check each function defined in a module
     val inferred1 = for
       mod <- program.modules
@@ -64,7 +64,7 @@ object TypeInferer extends Pipeline[Program, Program]{
   //  extend these, e.g., to account for local variables).
   // Returns a list of constraints among types. These will later be solved via unification.
   private def genConstraints(e: Expr, expected: Type)
-                            (implicit env: Map[Identifier, Type], ctx: Context): List[Constraint] = {
+                            (implicit env: Map[Identifier, Type], ctx: core.Context): List[Constraint] = {
 
     // This helper returns a list of a single constraint recording the type
     //  that we found (or generated) for the current expression `e`
@@ -257,7 +257,7 @@ object TypeInferer extends Pipeline[Program, Program]{
   // We consider a set of constraints to be satisfiable exactly if they unify.
 
 
-    private def solveConstraints(constraints: List[Constraint])(using Context): List[(Type, Type)] = {
+    private def solveConstraints(constraints: List[Constraint])(using core.Context): List[(Type, Type)] = {
       constraints match {
         case Nil => Nil
         case Constraint(found, expected, pos) :: more =>

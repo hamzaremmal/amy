@@ -1,17 +1,17 @@
 package amyc
 
-import amyc.utils._
+import amyc.utils.*
 import interpreter.Interpreter
 
 import java.io.File
 
 object Lab1 {
-  private def parseArgs(args: Array[String]): Context = {
-    Context(new Reporter, args.toList)
+  private def parseArgs(args: Array[String]): core.Context = {
+    core.Context(new Reporter, args.toList)
   }
 
   def main(args: Array[String]): Unit = {
-    given ctx : Context = parseArgs(args)
+    given ctx : core.Context = parseArgs(args)
     val pipeline = Frontend andThen Interpreter
 
     val files = ctx.files.map(new File(_))

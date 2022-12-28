@@ -1,11 +1,11 @@
 package amyc
 
-import parsing._
+import parsing.*
 import amyc.ast.{Identifier, SymbolicPrinter}
 import amyc.ast.SymbolicTreeModule.Program
 import analyzer.NameAnalyzer
 import typer.Typer
-import amyc.utils._
+import amyc.utils.*
 import org.junit.Test
 
 class TyperTests extends TestSuite {
@@ -13,7 +13,7 @@ class TyperTests extends TestSuite {
   private def unit[A]: Pipeline[A, Unit] = {
     new Pipeline[A, Unit] {
       val name = "Unit"
-      def run(v: A)(using Context) = ()
+      def run(v: A)(using core.Context) = ()
     }
   }
 

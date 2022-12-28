@@ -5,6 +5,7 @@ import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
 import amyc.analyzer.SymbolTable
+import amyc.core
 import amyc.interpreter.BuiltIns.builtIns
 
 // An interpreter for Amy programs, implemented in Scala
@@ -12,8 +13,7 @@ object Interpreter extends Pipeline[Program, Unit] {
 
   override val name = "Interpreter"
 
-  override def run(program: Program)(using Context): Unit = {
-
+  override def run(program: Program)(using core.Context): Unit = {
     // Body of the interpreter: Go through every module in order
     // and evaluate its expression if present
     for {
@@ -23,10 +23,10 @@ object Interpreter extends Pipeline[Program, Unit] {
   }
 
   // Utility functions to interface with the symbol table.
-  def isConstructor(name: Identifier)(using Context) =
+  def isConstructor(name: Identifier)(using core.Context) =
     symbols.getConstructor(name).isDefined
 
-  def findFunctionOwner(functionName: Identifier)(using Context) =
+  def findFunctionOwner(functionName: Identifier)(using core.Context) =
     symbols.getFunction(functionName).get.owner.name
 
   def findFunction(program: Program, owner: String, name: String) = {
@@ -37,7 +37,7 @@ object Interpreter extends Pipeline[Program, Unit] {
 
   // Interprets a function, using evaluations for local variables contained in 'locals'
   // TODO HR: We will have to remove `program` as a parameter of this function
-  def interpret(expr: Expr, program: Program)(implicit locals: Map[Identifier, Value], ctx: Context): Value = {
+  def interpret(expr: Expr, program: Program)(implicit locals: Map[Identifier, Value], ctx: core.Context): Value = {
     expr match {
       case Variable(name) =>
         // TODO HR : is Name <: Identifier ?

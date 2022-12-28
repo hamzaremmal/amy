@@ -1,7 +1,7 @@
 package amyc.interpreter
 
+import amyc.core.Context
 import amyc.ctx
-import amyc.utils.Context
 
 object BuiltIns {
 

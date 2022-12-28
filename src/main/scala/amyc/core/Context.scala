@@ -1,11 +1,11 @@
-package amyc.utils
+package amyc.core
 
 import amyc.analyzer.{NameAnalyzer, SymbolTable}
-
-import scala.collection.mutable.HashMap
 import amyc.ast.SymbolicTreeModule.*
+import amyc.utils.{Pipeline, Reporter}
 
 import scala.collection.mutable
+import scala.collection.mutable.HashMap
 
 // Contains a reporter and configuration for the compiler
 case class Context(reporter: Reporter, files: List[String]){

@@ -4,10 +4,11 @@ package codegen
 import analyzer.*
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.{And as AmyAnd, Call as AmyCall, Div as AmyDiv, Or as AmyOr, *}
-import amyc.utils.{Context, Pipeline}
+import amyc.utils.Pipeline
 import wasm.*
 import Instructions.*
 import Utils.*
+import amyc.core.Context
 
 import scala.annotation.tailrec
 

@@ -1,11 +1,12 @@
 package amyc
 
-import parsing._
+import parsing.*
 import amyc.ast.{Identifier, SymbolicPrinter}
 import amyc.ast.SymbolicTreeModule.Program
 import analyzer.{NameAnalyzer, SymbolTable}
-import amyc.utils._
+import amyc.utils.*
 import org.junit.Test
+
 import scala.language.implicitConversions
 
 class NameAnalyzerTests extends TestSuite {
@@ -26,7 +27,7 @@ class NameAnalyzerTests extends TestSuite {
   private val treePrinterS: Pipeline[Program, Unit] = {
     new Pipeline[Program, Unit] {
       val name = "treePrinterS"
-      def run(program: Program)(using Context) = {
+      def run(program: Program)(using core.Context) = {
         println((new TestUniquePrinter)(program)(true))
       }
     }

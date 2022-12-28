@@ -1,9 +1,9 @@
 package amyc
 package analyzer
 
-import amyc.*
+import amyc.{core, *}
 import amyc.utils.*
-import amyc.ast.{Identifier, NominalTreeModule => N, SymbolicTreeModule => S}
+import amyc.ast.{Identifier, NominalTreeModule as N, SymbolicTreeModule as S}
 
 // Name analyzer for Amy
 // Takes a nominal program (names are plain string, qualified names are string pairs)
@@ -13,7 +13,7 @@ import amyc.ast.{Identifier, NominalTreeModule => N, SymbolicTreeModule => S}
 object NameAnalyzer extends Pipeline[N.Program, S.Program] {
 
   override val name = "NameAnalyzer"
-  override def run(p: N.Program)(using Context): S.Program = {
+  override def run(p: N.Program)(using core.Context): S.Program = {
 
     // Step 0: Initialize symbol table
     ctx.withSymTable(new SymbolTable)
@@ -57,7 +57,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
 
   }
 
-  def registerModules(prog: N.Program)(using Context) =
+  def registerModules(prog: N.Program)(using core.Context) =
     val modNames = prog.modules.groupBy(_.name)
     for (name, modules) <- modNames do
       if (modules.size > 1) {
@@ -66,11 +66,11 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     for mod <- modNames.keys.toList do
       symbols.addModule(mod)
 
-  def registerTypes(mod: N.ModuleDef)(using Context) =
+  def registerTypes(mod: N.ModuleDef)(using core.Context) =
      for N.AbstractClassDef(name) <- mod.defs do
        symbols.addType(mod.name, name)
 
-  def checkModuleConsistency(mod: N.ModuleDef)(using Context) =
+  def checkModuleConsistency(mod: N.ModuleDef)(using core.Context) =
      val names = mod.defs.groupBy(_.name)
      for (name, defs) <- names do
       if (defs.size > 1) {
@@ -81,7 +81,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
   // =================================== TRANSFORM METHODS ========================================
   // ==============================================================================================
 
-  def transformFunDef(fd: N.FunDef, module: String)(using Context): S.FunDef = {
+  def transformFunDef(fd: N.FunDef, module: String)(using core.Context): S.FunDef = {
     val N.FunDef(name, params, retType, body) = fd
     val Some((sym, sig)) = symbols.getFunction(module, name)
 
@@ -108,7 +108,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     ).setPos(fd)
   }
 
-  def transformDef(df: N.ClassOrFunDef, module: String)(using Context): S.ClassOrFunDef = {
+  def transformDef(df: N.ClassOrFunDef, module: String)(using core.Context): S.ClassOrFunDef = {
     df match {
       case N.AbstractClassDef(name) =>
         S.AbstractClassDef(symbols.getType(module, name).get)
@@ -125,7 +125,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
   }.setPos(df)
 
   def transformExpr(expr: N.Expr)
-                   (implicit module: String, names: (Map[String, Identifier], Map[String, Identifier]), context: Context): S.Expr = {
+                   (implicit module: String, names: (Map[String, Identifier], Map[String, Identifier]), context: core.Context): S.Expr = {
     val (params, locals) = names
     val res = expr match {
       case N.Variable(name) =>
@@ -271,7 +271,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     res.setPos(expr)
   }
 
-  def transformType(tt: N.TypeTree, inModule: String)(using Context): S.Type = {
+  def transformType(tt: N.TypeTree, inModule: String)(using core.Context): S.Type = {
     tt.tpe match {
       case N.NoType =>
         reporter.fatal(s"Type tree $tt has a type of NoType")
@@ -292,12 +292,12 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     }
   }
 
-  def transformProgram(p: N.Program)(using Context): S.Program =
+  def transformProgram(p: N.Program)(using core.Context): S.Program =
     val symMods = for mod <- p.modules yield
       transformModule(mod).setPos(mod)
     S.Program(symMods).setPos(p)
 
-  def transformModule(mod: N.ModuleDef)(using Context) =
+  def transformModule(mod: N.ModuleDef)(using core.Context) =
     val N.ModuleDef(name, defs, optExpr) = mod
     val symName = symbols.getModule(name).getOrElse{
       reporter.fatal(s"Cannot find symbol for module $name")

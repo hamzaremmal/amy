@@ -1,6 +1,7 @@
 package amyc.ast
 
-import amyc.utils.{Context, Positioned, UniqueCounter}
+import amyc.core.Context
+import amyc.utils.{Positioned, UniqueCounter}
 
 /* A polymorphic module containing definitions of Amy trees.
  *

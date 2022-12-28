@@ -1,13 +1,14 @@
 package amyc
 
-import parsing._
+import parsing.*
 import analyzer.NameAnalyzer
 import typer.Typer
-import codegen._
+import codegen.*
 import wasm.Module
-import amyc.utils._
-import scala.sys.process._
-import scala.collection.JavaConverters._
+import amyc.utils.*
+
+import scala.sys.process.*
+import scala.collection.JavaConverters.*
 import java.io.ByteArrayInputStream
 
 class CodegenTests extends ExecutionTests {
@@ -16,7 +17,7 @@ class CodegenTests extends ExecutionTests {
 
     override val name = "CodePrinterExecutor"
 
-    def run(m: Module)(using Context) = {
+    def run(m: Module)(using core.Context) = {
       CodePrinter.run(m)(using ctx)
       val fileName = s"${m.name}.js"
 

@@ -1,4 +1,4 @@
-import amyc.utils.Context
+import amyc.core.Context
 
 package object amyc {
 

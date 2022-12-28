@@ -1,8 +1,9 @@
 package amyc
 package codegen
 
+import amyc.core.Context
 import wasm.Module
-import amyc.utils.{Context, Pipeline, Env}
+import amyc.utils.{Pipeline, Env}
 import scala.sys.process._
 import java.io._
 

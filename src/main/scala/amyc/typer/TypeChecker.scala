@@ -3,8 +3,9 @@ package amyc.typer
 import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
+import amyc.core.Context
 import amyc.{reporter, symbols}
-import amyc.utils.{Context, Pipeline}
+import amyc.utils.Pipeline
 
 object TypeChecker extends Pipeline[Program, Program]{
 

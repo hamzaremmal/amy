@@ -1,11 +1,11 @@
 package amyc
 package parsing
 
-import amyc.utils._
+import amyc.core
+import amyc.utils.*
+
 import java.io.File
-
-import silex._
-
+import silex.*
 import amyc.utils.Position
 
 // The lexer for Amy.
@@ -153,7 +153,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
 
   override val name = "Lexer"
 
-  override def run(files: List[File])(using amyc.utils.Context): Iterator[Token] = {
+  override def run(files: List[File])(using core.Context): Iterator[Token] = {
     var it = Seq[Token]().iterator
 
     for (file <- files) {
@@ -176,7 +176,7 @@ object DisplayTokens extends Pipeline[Iterator[Token], Unit] {
 
   override val name = "DisplayTokens"
 
-  override def run(tokens: Iterator[Token])(using Context): Unit = {
+  override def run(tokens: Iterator[Token])(using core.Context): Unit = {
     tokens.foreach(println(_))
   }
 }

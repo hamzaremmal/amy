@@ -7,7 +7,7 @@ import amyc.utils.*
 import Tokens.*
 import TokenKinds.*
 import amyc.ast.NominalTreeModule
-import amyc.parsing
+import amyc.{core, parsing}
 import amyc.parsing.Parser.literal
 import scallion.{~, *}
 
@@ -410,7 +410,7 @@ object Parser extends Pipeline[Iterator[Token], Program]
 
   override val name = "Parser"
 
-  override def run(tokens: Iterator[Token])(using Context): Program = {
+  override def run(tokens: Iterator[Token])(using core.Context): Program = {
     if (!checkLL1) {
       ctx.reporter.fatal("Program grammar is not LL1!")
     }

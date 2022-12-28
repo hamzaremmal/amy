@@ -5,6 +5,7 @@ import amyc.ast.SymbolicTreeModule
 import amyc.parsing.{Lexer, Parser}
 import amyc.typer.Typer
 import amyc.ast.SymbolicTreeModule.Program
+import amyc.core.Context
 
 import java.io.File
 
