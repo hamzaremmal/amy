@@ -13,6 +13,7 @@ case class Context(reporter: Reporter, files: List[String]){
   val tv : HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
 
   private var _symtable: Option[SymbolTable] = None
+  private var _pipeline : String = compiletime.uninitialized
 
 
   // ==============================================================================================
@@ -28,5 +29,14 @@ case class Context(reporter: Reporter, files: List[String]){
       case None => _symtable = Some(table)
       case Some(_) => reporter.fatal(s"Cannot change the symbol table in a compiler Run")
 
+  // ==============================================================================================
+  // ===================================== PHASE MANAGEMENT =======================================
+  // ==============================================================================================
+
+  def atPhase(pipeline: Pipeline[_, _]) =
+    _pipeline = pipeline.name
+
+  def phase : String =
+    _pipeline
 
 }

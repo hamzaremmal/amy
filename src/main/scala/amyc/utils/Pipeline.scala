@@ -1,6 +1,6 @@
 package amyc.utils
 
-import amyc.ctx
+import amyc.{ctx, reporter}
 
 // A sequence of operations to be run by the compiler,
 // with interruption at every stage if there is an error
@@ -11,12 +11,14 @@ abstract class Pipeline[-F, +T] {
 
     private var c = true
 
-    def name = if(c) this.name else thenn.name
+    override def name = if(c) self.name else thenn.name
 
     def run(v : F)(using Context) : G = {
+      ctx.atPhase(self)
       val first = self.run(v)
-      ctx.reporter.terminateIfErrors()
+      reporter.terminateIfErrors()
       c = false
+      ctx.atPhase(thenn)
       thenn.run(first)
     }
   }
@@ -28,7 +30,7 @@ abstract class Pipeline[-F, +T] {
 }
 
 case class Noop[T]() extends Pipeline[T, T] {
-  def run(v: T)(using Context): T = v
+  override def run(v: T)(using Context): T = v
 
   override val name = "Noop"
 
