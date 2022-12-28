@@ -6,7 +6,10 @@ import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
 import amyc.analyzer.SymbolTable
 import amyc.core.Context
-import amyc.interpreter.BuiltIns.builtIns
+import amyc.interpreter.BuiltIns.*
+import amyc.interpreter.*
+
+import scala.language.implicitConversions
 
 // An interpreter for Amy programs, implemented in Scala
 object Interpreter extends Pipeline[Program, Unit] {
@@ -42,7 +45,6 @@ object Interpreter extends Pipeline[Program, Unit] {
   def interpret(expr: Expr, program: Program)(implicit locals: Map[Identifier, Value], ctx: Context): Value = {
     expr match {
       case Variable(name) =>
-        // TODO HR : is Name <: Identifier ?
         locals.get(name) match
           case Some(value) => value
           case None =>
@@ -51,61 +53,19 @@ object Interpreter extends Pipeline[Program, Unit] {
       case BooleanLiteral(b) => BooleanValue(b)
       case StringLiteral(s) => StringValue(s)
       case UnitLiteral() => UnitValue
-      case Plus(lhs, rhs) =>
-        // HR : No special case to handle here
-        IntValue(interpret(lhs, program).asInt + interpret(rhs, program).asInt)
-      case Minus(lhs, rhs) =>
-        // HR : No special case to handle here
-        IntValue(interpret(lhs, program).asInt - interpret(rhs, program).asInt)
-      case Times(lhs, rhs) =>
-        // HR : No special case to handle here
-        IntValue(interpret(lhs, program).asInt * interpret(rhs, program).asInt)
-      case Div(lhs, rhs) =>
-        // HR : Interpreter should handle the case of the division by 0
-        val v_lhs = interpret(lhs, program).asInt
-        val v_rhs = interpret(rhs, program).asInt
-        if v_rhs != 0 then
-          IntValue(v_lhs / v_rhs)
-        else
-          ctx.reporter.fatal("Cannot divide by 0") // TODO HR : Fix message here
-      case Mod(lhs, rhs) =>
-        // HR : Interpreter should handle the case of the modulo by 0
-        // TODO
-        IntValue(interpret(lhs, program).asInt % interpret(rhs, program).asInt)
-      case LessThan(lhs, rhs) =>
-        // HR : No special case to handle here
-        BooleanValue(interpret(lhs, program).asInt < interpret(rhs, program).asInt)
-      case LessEquals(lhs, rhs) =>
-        // HR : No special case to handle here
-        BooleanValue(interpret(lhs, program).asInt <= interpret(rhs, program).asInt)
-      case And(lhs, rhs) =>
-        // TODO HR : Is there any bitwise operations in Amy ?
-        BooleanValue(interpret(lhs, program).asBoolean && interpret(rhs, program).asBoolean)
-      case Or(lhs, rhs) =>
-        // TODO HR : Is there any bitwise operations in Amy ?
-        BooleanValue(interpret(lhs, program).asBoolean || interpret(rhs, program).asBoolean)
-      case Equals(lhs, rhs) =>
-        // Hint: Take care to implement Amy equality semantics
-        // TODO
-        val v_lhs = interpret(lhs, program)
-        val v_rhs = interpret(rhs, program)
-        (v_lhs, v_rhs) match
-          // TODO HR : Handle if the effective type is not the same in lhs and rhs
-          // TODO HR : by doing (_, ...) and (..., _) in some of the match cases
-          case (StringValue(_), StringValue(_)) => BooleanValue(v_lhs eq v_rhs)
-          case (CaseClassValue(_, _), CaseClassValue(_, _)) => BooleanValue(v_lhs eq v_rhs)
-          case (IntValue(a), IntValue(b)) => BooleanValue(a == b)
-          case (BooleanValue(a), BooleanValue(b)) => BooleanValue(a == b)
-          case (_, _) => BooleanValue(v_lhs eq v_rhs)
-      case Concat(lhs, rhs) =>
-        // HR : No special case to handle here
-        StringValue(interpret(lhs, program).toString ++ interpret(rhs, program).toString)
-      case Not(e) =>
-        // HR : No special case to handle here
-        BooleanValue(!interpret(e, program).asBoolean)
-      case Neg(e) =>
-        // HR : No special case to handle here
-        IntValue(-interpret(e, program).asInt)
+      case Plus(lhs, rhs) => interpret(lhs, program) + interpret(rhs, program)
+      case Minus(lhs, rhs) => interpret(lhs, program) - interpret(rhs, program)
+      case Times(lhs, rhs) => interpret(lhs, program) * interpret(rhs, program)
+      case Div(lhs, rhs) => interpret(lhs, program) / interpret(rhs, program)
+      case Mod(lhs, rhs) => interpret(lhs, program) % interpret(rhs, program)
+      case LessThan(lhs, rhs) => interpret(lhs, program) < interpret(rhs, program)
+      case LessEquals(lhs, rhs) => interpret(lhs, program) <= interpret(rhs, program)
+      case And(lhs, rhs) => interpret(lhs, program) && interpret(rhs, program)
+      case Or(lhs, rhs) => interpret(lhs, program) || interpret(rhs, program)
+      case Equals(lhs, rhs) => interpret(lhs, program) == interpret(rhs, program)
+      case Concat(lhs, rhs) => interpret(lhs, program) ++ interpret(rhs, program)
+      case Not(e) => ! interpret(e, program)
+      case Neg(e) => - interpret(e, program)
       case Call(qname, args) =>
         if isConstructor(qname) then
           val arg_values = args.map(interpret(_, program))
