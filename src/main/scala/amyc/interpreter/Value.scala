@@ -1,6 +1,7 @@
 package amyc.interpreter
 
 import amyc.ast.Identifier
+import amyc.ast.SymbolicTreeModule.Expr
 
 // A class that represents a value computed by interpreting an expression
 abstract class Value {
@@ -29,3 +30,5 @@ case class StringValue(s: String) extends Value
 case object UnitValue extends Value
 
 case class CaseClassValue(constructor: Identifier, args: List[Value]) extends Value
+
+case class FunctionValue(args: List[Identifier], body: Expr) extends Value

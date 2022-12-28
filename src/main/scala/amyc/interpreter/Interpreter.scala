@@ -5,7 +5,7 @@ import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
 import amyc.analyzer.SymbolTable
-import amyc.core
+import amyc.core.Context
 import amyc.interpreter.BuiltIns.builtIns
 
 // An interpreter for Amy programs, implemented in Scala
@@ -13,31 +13,33 @@ object Interpreter extends Pipeline[Program, Unit] {
 
   override val name = "Interpreter"
 
-  override def run(program: Program)(using core.Context): Unit = {
+  override def run(program: Program)(using Context): Unit = {
     // Body of the interpreter: Go through every module in order
     // and evaluate its expression if present
     for {
       m <- program.modules
       e <- m.optExpr
-    } do interpret(e, program)(Map(), ctx)
+    } do
+      val env = loadFunctions(m)
+      interpret(e, program)(env, ctx)
   }
 
   // Utility functions to interface with the symbol table.
-  def isConstructor(name: Identifier)(using core.Context) =
+  def isConstructor(name: Identifier)(using Context) =
     symbols.getConstructor(name).isDefined
 
-  def findFunctionOwner(functionName: Identifier)(using core.Context) =
+  def findFunctionOwner(functionName: Identifier)(using Context) =
     symbols.getFunction(functionName).get.owner.name
 
   def findFunction(program: Program, owner: String, name: String) = {
     program.modules.find(_.name.name == owner).get.defs.collectFirst {
       case fd@FunDef(fn, _, _, _) if fn.name == name => fd
-    }.get
+    }
   }
 
   // Interprets a function, using evaluations for local variables contained in 'locals'
   // TODO HR: We will have to remove `program` as a parameter of this function
-  def interpret(expr: Expr, program: Program)(implicit locals: Map[Identifier, Value], ctx: core.Context): Value = {
+  def interpret(expr: Expr, program: Program)(implicit locals: Map[Identifier, Value], ctx: Context): Value = {
     expr match {
       case Variable(name) =>
         // TODO HR : is Name <: Identifier ?
@@ -109,18 +111,27 @@ object Interpreter extends Pipeline[Program, Unit] {
           val arg_values = args.map(interpret(_, program))
           CaseClassValue(qname, arg_values)
         else
-          val owner = findFunctionOwner(qname)
-          builtIns.get((owner, qname.name)) match
-            case Some(f) =>
+          val fn = locals.get(qname) orElse {
+            val owner = findFunctionOwner(qname)
+            builtIns.get((owner, qname.name))
+            } orElse {
+            val owner = findFunctionOwner(qname)
+            findFunction(program, owner, qname.name)
+          }
+          fn match
+            case Some(f: BuiltIns.BuiltInFunction) =>
               val arg_values = args.map(interpret(_, program))
               f(arg_values)
-            case None =>
-              // Find function to execute
-              val f = findFunction(program, owner, qname.name);
+            case Some(FunctionValue(n_args, body)) =>
+              val vargs = (n_args zip args.map(interpret(_,program))).toMap
+              interpret(body, program)(locals ++ vargs, ctx)
+            case Some(f: FunDef) =>
               // Build new arguments
               val arg_val = (f.params.map(_.name) zip args.map(interpret(_, program))).toMap
               val lookup = locals ++ arg_val
               interpret(f.body, program)(using lookup, ctx)
+            case _ =>
+              reporter.fatal(s"Function  not defined $qname")
       // Hint: Check if it is a call to a constructor first,
       //       then if it is a built-in function (otherwise it is a normal function).
       //       Use the helper methods provided above to retrieve information from the symbol table.
@@ -219,5 +230,10 @@ object Interpreter extends Pipeline[Program, Unit] {
         ctx.reporter.fatal(interpret(msg, program).asString)
     }
   }
+
+  def loadFunctions(mod: ModuleDef) =
+    val fn = for FunDef(name, param, _, body) <- mod.defs yield
+        (name, FunctionValue(param.map(_.name), body))
+    fn.toMap
 
 }
