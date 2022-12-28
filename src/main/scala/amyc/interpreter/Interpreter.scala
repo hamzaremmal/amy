@@ -9,8 +9,6 @@ import amyc.core.Context
 import amyc.interpreter.BuiltIns.*
 import amyc.interpreter.*
 
-import scala.language.implicitConversions
-
 // An interpreter for Amy programs, implemented in Scala
 object Interpreter extends Pipeline[Program, Unit] {
 
