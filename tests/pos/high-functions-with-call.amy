@@ -1,0 +1,14 @@
+object F
+
+    fn appendHello(s: String) : String = {
+        "Hello" ++ " " ++ s
+    }
+
+    fn test(s: String, f : (String) => String): String = {
+        f(s)
+    }
+
+    val t : String = test("World", appendHello);
+    Std.printString(t)
+
+end F
