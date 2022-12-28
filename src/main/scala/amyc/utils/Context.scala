@@ -1,6 +1,6 @@
 package amyc.utils
 
-import amyc.analyzer.SymbolTable
+import amyc.analyzer.{NameAnalyzer, SymbolTable}
 
 import scala.collection.mutable.HashMap
 import amyc.ast.SymbolicTreeModule.*
@@ -26,8 +26,8 @@ case class Context(reporter: Reporter, files: List[String]){
 
   def withSymTable(table: SymbolTable) =
     _symtable match
-      case None => _symtable = Some(table)
-      case Some(_) => reporter.fatal(s"Cannot change the symbol table in a compiler Run")
+      case None if phase == NameAnalyzer.name => _symtable = Some(table)
+      case _ => reporter.fatal(s"Cannot change the symbol table in a compiler Run")
 
   // ==============================================================================================
   // ===================================== PHASE MANAGEMENT =======================================
