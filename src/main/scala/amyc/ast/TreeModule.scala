@@ -1,7 +1,7 @@
 package amyc.ast
 
-import amyc.analyzer.NameAnalyzer.reporter
-import amyc.utils.{Context, Positioned, UniqueCounter}
+import amyc.core.Context
+import amyc.utils.{Positioned, UniqueCounter}
 
 /* A polymorphic module containing definitions of Amy trees.
  *
@@ -157,6 +157,8 @@ trait TreeModule { self =>
   case class ClassType(qname: QualifiedName) extends Type {
     override def toString: String = printer.printQName(qname)(false).print
   }
+
+  case class FunctionType(args: List[TypeTree], rte: TypeTree) extends Type
 
   case class OrType(lhs : Type, rhs: Type) extends Type
 

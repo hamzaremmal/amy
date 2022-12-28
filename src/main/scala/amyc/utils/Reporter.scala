@@ -1,5 +1,8 @@
 package amyc.utils
 
+import amyc.core.Context
+import amyc.ctx
+
 import java.io.File
 import scala.io.Source
 
@@ -40,9 +43,9 @@ class Reporter {
 
 
   /** Terminates the compiler if any errors have been detected. */
-  def terminateIfErrors() = {
+  def terminateIfErrors()(using Context) = {
     if (hasErrors) {
-      fatal("There were errors.")
+      fatal(s"There were errors at phase ${ctx.phase}.")
     }
   }
 

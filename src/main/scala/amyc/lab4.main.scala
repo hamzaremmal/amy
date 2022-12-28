@@ -9,12 +9,12 @@ import analyzer.*
 import java.io.File
 
 object Lab4 {
-  private def parseArgs(args: Array[String]): Context = {
-    Context(new Reporter, args.toList)
+  private def parseArgs(args: Array[String]): core.Context = {
+    core.Context(new Reporter, args.toList)
   }
 
   def main(args: Array[String]): Unit = {
-    given ctx : Context = parseArgs(args)
+    given ctx : core.Context = parseArgs(args)
     val pipeline =
       Lexer andThen
       Parser andThen
@@ -47,7 +47,10 @@ object Lab4 {
 
   def treePrinterS(title: String): Pipeline[(SP, SymbolTable), (SP, SymbolTable)] = {
     new Pipeline[(SP, SymbolTable), (SP, SymbolTable)] {
-      def run(v: (SP, SymbolTable))(using Context) = {
+
+      val name = "treePrinterS"
+
+      def run(v: (SP, SymbolTable))(using core.Context) = {
         println(title)
         println(SymbolicPrinter(v._1)(true))
         v
@@ -57,7 +60,10 @@ object Lab4 {
 
   def treePrinterN(title: String): Pipeline[NP, NP] = {
     new Pipeline[NP, NP] {
-      def run(v: NP)(using Context) = {
+
+      val name = "treePrinterN"
+
+      def run(v: NP)(using core.Context) = {
         println(title)
         println(NominalPrinter(v))
         v

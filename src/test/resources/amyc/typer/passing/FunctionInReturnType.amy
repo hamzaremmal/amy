@@ -1,0 +1,7 @@
+object highOrderFunction
+
+    fn test(): () => String = {
+        error("")
+    }
+
+end highOrderFunction

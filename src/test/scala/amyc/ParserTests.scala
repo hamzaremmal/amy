@@ -1,8 +1,8 @@
 package amyc
 
-import utils._
-import ast._
-import parsing._
+import utils.*
+import ast.*
+import parsing.*
 import org.junit.Test
 
 class ParserTests extends TestSuite {
@@ -11,7 +11,8 @@ class ParserTests extends TestSuite {
 
   def treePrinterN(title: String): Pipeline[NP, Unit] = {
     new Pipeline[NP, Unit] {
-      def run(v: NP)(using Context) = {
+      val name = "treePrinterN"
+      def run(v: NP)(using core.Context) = {
         println(title)
         println(NominalPrinter(v))
       }

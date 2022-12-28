@@ -1,15 +1,17 @@
 package amyc.typer
 
 import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
-import amyc.ast.{Identifier, SymbolicTreeModule}
+import amyc.ast.Identifier
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
+import amyc.{core, ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
-object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTable)]{
+object TypeInferer extends Pipeline[Program, Program]{
 
-  override def run(v: (SymbolicTreeModule.Program, SymbolTable))(using Context) = {
-    val (program, table) = v
+  override val name = "TypeInferer"
+
+  override def run(program: Program)(using core.Context) = {
     // We will first type check each function defined in a module
     val inferred1 = for
       mod <- program.modules
@@ -22,7 +24,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       }.toMap
       // we will need to infer the type of the result. If we assume that the type is correct
       // This will always type check.
-      solveConstraints(genConstraints(body, TypeVariable.fresh())(env, table, ctx))
+      solveConstraints(genConstraints(body, TypeVariable.fresh())(env, ctx))
 
     // Type-check expression if present. We allow the result to be of an arbitrary type by
     // passing a fresh (and therefore unconstrained) type variable as the expected type.
@@ -30,11 +32,12 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       mod <- program.modules
       expr <- mod.optExpr
     yield
-      solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), table, ctx))
+      solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), ctx))
 
     ctx.tv.addAll(inferred1.flatten.toMap)
     ctx.tv.addAll(inferred2.flatten.toMap)
-    (program, table)
+
+    program
   }
 
 
@@ -61,7 +64,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
   //  extend these, e.g., to account for local variables).
   // Returns a list of constraints among types. These will later be solved via unification.
   private def genConstraints(e: Expr, expected: Type)
-                            (implicit env: Map[Identifier, Type], table: SymbolTable, ctx: Context): List[Constraint] = {
+                            (implicit env: Map[Identifier, Type], ctx: core.Context): List[Constraint] = {
 
     // This helper returns a list of a single constraint recording the type
     //  that we found (or generated) for the current expression `e`
@@ -71,14 +74,22 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
     e match {
       // ===================== Type Check Variables =============================
       case Variable(name) =>
-        env.get(name) match
-          case Some(tpe) =>
+        val symbol = env.get(name) orElse {
+          symbols.getFunction(name)
+        }
+        symbol match {
+          case Some(tpe: Type) =>
             e.withType(tpe)
             topLevelConstraint(tpe)
-          case None =>
+          case Some(FunSig(argTypes, retType,_)) =>
+            e.withType(FunctionType(argTypes.map(TypeTree), TypeTree(retType)))
+            topLevelConstraint(retType)
+            // TODO HR: Need to test the implementation of the code here
+          case _ =>
             e.withType(ErrorType)
             ctx.reporter.error(s"Cannot find symbol $name")
             Nil
+        }
       // ===================== Type Check Literals ==============================
       case IntLiteral(_) =>
         e.withType(IntType)
@@ -137,21 +148,36 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
       // ============================== Type Check Applications =================================
       case Call(qname, args) =>
         // WARNING BY HR : An Application can either be a call to a constructor of a function
-        val constructor = table.getConstructor(qname)
-        constructor match
+        val application =
+          env.get(qname) orElse {
+            symbols.getConstructor(qname)
+          } orElse {
+            symbols.getFunction(qname)
+        }
+        application match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
-            val argsConstraint = (args zip args_tpe) flatMap { (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe) }
+            val argsConstraint = (args zip args_tpe) flatMap {
+              (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
+            }
             e.withType(constr.retType)
             topLevelConstraint(constr.retType) ::: argsConstraint
+          case Some(FunSig(args_tpe, rte_tpe, _)) =>
+            val argsConstraint = (args zip args_tpe) flatMap {
+              (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
+            }
+            e.withType(rte_tpe)
+            topLevelConstraint(rte_tpe) ::: argsConstraint
+          case Some(FunctionType(args_tpe, rte_tpe)) =>
+            val argsConstraint = (args zip args_tpe) flatMap {
+              (expr, tpe) => expr.withType(tpe.tpe); genConstraints(expr, tpe.tpe)
+            }
+            e.withType(rte_tpe.tpe)
+            topLevelConstraint(rte_tpe.tpe) ::: argsConstraint
           case None =>
-            table.getFunction(qname) match
-              case Some(FunSig(args_tpe, rte_tpe, _)) =>
-                val argsConstraint = (args zip args_tpe) flatMap { (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe) }
-                e.withType(rte_tpe)
-                topLevelConstraint(rte_tpe) ::: argsConstraint
-              case None =>
-                ctx.reporter.error(s"unknown symbol $qname")
-                Nil
+            ctx.reporter.error(s"unknown symbol $qname")
+            Nil
+          case _ =>
+            reporter.fatal(s"Match case is missing in TypeInferer ($application)")
       // ================================ Type Check Sequences ==================================
       case Sequence(e1, e2) =>
         e.withType(expected)
@@ -161,7 +187,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         val tv = TypeVariable.fresh()
         e.withType(expected)
         df.withType(df.tt.tpe)
-        genConstraints(value, tv) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), table, ctx)
+        genConstraints(value, tv) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), ctx)
       // =========================== Type Check Conditions ======================================
       case Ite(cond, thenn, elze) =>
         val generic = TypeVariable.fresh()
@@ -186,7 +212,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
               (genConstraints(lit, tv), Map.empty)
             case CaseClassPattern(constr, args) =>
               pat.withType(ClassType(constr))
-              val constructor = table.getConstructor(constr) match
+              val constructor = symbols.getConstructor(constr) match
                 case Some(c) => c
                 case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
               val pat_tpe = args zip constructor.argTypes
@@ -202,7 +228,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
         def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {
           cse.withType(rt)
           val (patConstraints, moreEnv) = handlePattern(cse.pat, scrutExpected)
-          patConstraints ::: genConstraints(cse.expr, rt)(env ++ moreEnv, table, ctx)
+          patConstraints ::: genConstraints(cse.expr, rt)(env ++ moreEnv, ctx)
         }
 
         val st = TypeVariable.fresh()
@@ -231,7 +257,7 @@ object TypeInferer extends Pipeline[(Program, SymbolTable), (Program, SymbolTabl
   // We consider a set of constraints to be satisfiable exactly if they unify.
 
 
-    private def solveConstraints(constraints: List[Constraint])(using Context): List[(Type, Type)] = {
+    private def solveConstraints(constraints: List[Constraint])(using core.Context): List[(Type, Type)] = {
       constraints match {
         case Nil => Nil
         case Constraint(found, expected, pos) :: more =>

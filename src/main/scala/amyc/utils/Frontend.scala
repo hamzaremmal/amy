@@ -5,10 +5,11 @@ import amyc.ast.SymbolicTreeModule
 import amyc.parsing.{Lexer, Parser}
 import amyc.typer.Typer
 import amyc.ast.SymbolicTreeModule.Program
+import amyc.core.Context
 
 import java.io.File
 
-object Frontend extends Pipeline[List[File], (Program, SymbolTable)]{
+object Frontend extends Pipeline[List[File], Program]{
 
   private lazy val pipeline =
     Lexer andThen
@@ -18,6 +19,8 @@ object Frontend extends Pipeline[List[File], (Program, SymbolTable)]{
 
   override def run(v: List[File])(using Context) =
     pipeline.run(v)
+
+  override val name = "Frontend"
 
 
 }

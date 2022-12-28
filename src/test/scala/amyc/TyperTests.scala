@@ -1,18 +1,19 @@
 package amyc
 
-import parsing._
+import parsing.*
 import amyc.ast.{Identifier, SymbolicPrinter}
 import amyc.ast.SymbolicTreeModule.Program
 import analyzer.NameAnalyzer
 import typer.Typer
-import amyc.utils._
+import amyc.utils.*
 import org.junit.Test
 
 class TyperTests extends TestSuite {
   // We need a unit pipeline
   private def unit[A]: Pipeline[A, Unit] = {
     new Pipeline[A, Unit] {
-      def run(v: A)(using Context) = ()
+      val name = "Unit"
+      def run(v: A)(using core.Context) = ()
     }
   }
 
@@ -77,5 +78,9 @@ class TyperTests extends TestSuite {
   def testSeqWithError = shouldPass("SeqWithError")
   def testLetWithError = shouldPass("LetWithError")
   @Test def testError = shouldPass("Error")
+
+  @Test def highOrderFunctionParam = shouldPass("FunctionInParameter")
+
+  @Test def highOrderFunctionRte = shouldPass("FunctionInReturnType")
 
 }

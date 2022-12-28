@@ -5,7 +5,7 @@ scalaVersion := "3.1.3"
 version := "1.7"
 organization := "ch.epfl.lara"
 
-scalacOptions ++= Seq("-feature")
+scalacOptions ++= Seq("-feature", "-language:implicitConversions")
 
 Test / parallelExecution := false
 libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"

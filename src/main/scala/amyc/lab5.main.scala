@@ -11,12 +11,12 @@ import java.io.File
 import scala.compiletime.testing.ErrorKind.Typer
 
 object Lab5 {
-  private def parseArgs(args: Array[String]): Context = {
-    Context(new Reporter, args.toList)
+  private def parseArgs(args: Array[String]): core.Context = {
+    core.Context(new Reporter, args.toList)
   }
 
   def main(args: Array[String]): Unit = {
-    val ctx = parseArgs(args)
+    given ctx : core.Context = parseArgs(args)
     val pipeline =
       Lexer andThen
       Parser andThen
@@ -34,7 +34,7 @@ object Lab5 {
       files.find(!_.exists()).foreach { f =>
         ctx.reporter.fatal(s"File not found: ${f.getName}")
       }
-      pipeline.run(files)(using ctx)
+      pipeline.run(files)
       ctx.reporter.terminateIfErrors()
     } catch {
       case AmycFatalError(_) =>
@@ -48,7 +48,10 @@ object Lab5 {
 
   def treePrinterS(title: String): Pipeline[(SP, SymbolTable), Unit] = {
     new Pipeline[(SP, SymbolTable), Unit] {
-      def run(v: (SP, SymbolTable))(using Context) = {
+
+      val name = "treePrinterS"
+
+      def run(v: (SP, SymbolTable))(using core.Context) = {
         println(title)
         println(SymbolicPrinter(v._1)(true))
       }
@@ -57,7 +60,10 @@ object Lab5 {
 
   def treePrinterN(title: String): Pipeline[NP, Unit] = {
     new Pipeline[NP, Unit] {
-      def run(v: NP)(using Context) = {
+
+      override val name: String = "treePrinterN"
+
+      def run(v: NP)(using core.Context) = {
         println(title)
         println(NominalPrinter(v))
       }
