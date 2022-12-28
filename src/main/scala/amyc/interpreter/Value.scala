@@ -5,19 +5,20 @@ import amyc.ast.SymbolicTreeModule.Expr
 import amyc.*
 import amyc.core.Context
 import amyc.interpreter.BooleanValue.*
+import amyc.interpreter.Value.{val2Boolean, val2Int, val2String}
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
 
 // A class that represents a value computed by interpreting an expression
 abstract class Value {
-  def asInt: Int = this.asInstanceOf[IntValue].i
+  final def asInt(using Context): Int = val2Int(this).i
 
-  def asBoolean: Boolean = this.asInstanceOf[BooleanValue].b
+  final def asBoolean(using Context): Boolean = val2Boolean(this).b
 
-  def asString: String = this.asInstanceOf[StringValue].s
+  final def asString(using Context): String = val2String(this).s
 
-  infix def ==(value: Value): BooleanValue =
+  final infix def ==(value: Value): BooleanValue =
     // TODO HR : Handle if the effective type is not the same in lhs and rhs
     // TODO HR : by doing (_, ...) and (..., _) in some of the match cases
     (this, value) match
@@ -39,11 +40,20 @@ abstract class Value {
 
 object Value {
 
-  implicit def asInt(v: Value): IntValue = v.asInstanceOf[IntValue]
+  implicit def val2Int(v: Value)(using Context): IntValue =
+    v match
+      case a: IntValue => a
+      case _ => reporter.fatal(s"")  // TODO HR : Fix error message
 
-  implicit def asBoolean(v: Value): BooleanValue = v.asInstanceOf[BooleanValue]
+  implicit def val2Boolean(v: Value)(using Context): BooleanValue =
+    v match
+      case a: BooleanValue => a
+      case _ => reporter.fatal(s"") // TODO HR : Fix error message
 
-  implicit def asString(v: Value): StringValue = v.asInstanceOf[StringValue]
+  implicit def val2String(v: Value)(using Context): StringValue =
+    v match
+      case a: StringValue => a
+      case _ => reporter.fatal(s"") // TODO HR : Fix error message
 
 }
 

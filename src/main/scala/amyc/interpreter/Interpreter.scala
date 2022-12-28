@@ -68,8 +68,7 @@ object Interpreter extends Pipeline[Program, Unit] {
       case Neg(e) => - interpret(e, program)
       case Call(qname, args) =>
         if isConstructor(qname) then
-          val arg_values = args.map(interpret(_, program))
-          CaseClassValue(qname, arg_values)
+          CaseClassValue(qname, args.map(interpret(_, program)))
         else
           val fn = locals.get(qname) orElse {
             val owner = findFunctionOwner(qname)
