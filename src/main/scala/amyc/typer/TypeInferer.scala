@@ -8,7 +8,7 @@ import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
 object TypeInferer extends Pipeline[Program, Program]{
-  
+
   override val name = "TypeInferer"
 
   override def run(program: Program)(using Context) = {
@@ -74,14 +74,22 @@ object TypeInferer extends Pipeline[Program, Program]{
     e match {
       // ===================== Type Check Variables =============================
       case Variable(name) =>
-        env.get(name) match
-          case Some(tpe) =>
+        val symbol = env.get(name) orElse {
+          symbols.getFunction(name)
+        }
+        symbol match {
+          case Some(tpe: Type) =>
             e.withType(tpe)
             topLevelConstraint(tpe)
-          case None =>
+          case Some(FunSig(argTypes, retType,_)) =>
+            e.withType(FunctionType(argTypes.map(TypeTree), TypeTree(retType)))
+            topLevelConstraint(retType)
+            // TODO HR: Need to test the implementation of the code here
+          case _ =>
             e.withType(ErrorType)
             ctx.reporter.error(s"Cannot find symbol $name")
             Nil
+        }
       // ===================== Type Check Literals ==============================
       case IntLiteral(_) =>
         e.withType(IntType)
