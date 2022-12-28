@@ -1,7 +1,10 @@
 package amyc.interpreter
 
 import amyc.core.Context
+import amyc.utils.Preconditions.*
 import amyc.ctx
+
+import scala.language.implicitConversions
 
 object BuiltIns {
 
@@ -19,21 +22,36 @@ object BuiltIns {
   )
 
   // ==============================================================================================
+  // ================================= IMPLICIT CONVERSIONS =======================================
+  // ==============================================================================================
+
+  implicit def function0(f: () => Value)(using Context): List[Value] => Value =
+    l => require(l.isEmpty) {
+      f()
+    }
+
+  implicit def function1(f: Value => Value)(using Context): List[Value] => Value =
+    l => require(l.length == 1){
+      f(l.head)
+    }
+
+  // ==============================================================================================
   // ===================================== BUILTIN FUNCTION =======================================
   // ==============================================================================================
 
-  def Std_printInt(args: List[Value])(using Context) : Value =
-    println(args.head.asInt)
+  def Std_printInt(arg: Value)(using Context) : Value =
+    println(arg.asInt)
     UnitValue
 
-  def Std_printString(args: List[Value])(using Context): Value =
-    println(args.head.asString)
+
+  def Std_printString(arg: Value)(using Context): Value =
+    println(arg.asString)
     UnitValue
 
-  def Std_readString(args: List[Value])(using Context): Value =
+  def Std_readString()(using Context): Value =
     StringValue(scala.io.StdIn.readLine())
 
-  def Std_readInt(args: List[Value])(using Context): Value =
+  def Std_readInt()(using Context): Value =
     val input = scala.io.StdIn.readLine()
     try {
       IntValue(input.toInt)
@@ -42,10 +60,10 @@ object BuiltIns {
         ctx.reporter.fatal(s"""Could not parse "$input" to Int""")
     }
 
-  def Std_intToString(args: List[Value])(using Context): Value =
-    StringValue(args.head.asInt.toString)
+  def Std_intToString(arg: Value)(using Context): Value =
+    StringValue(arg.asInt.toString)
 
-  def Std_digitToString(args: List[Value])(using Context): Value =
-    StringValue(args.head.asInt.toString)
+  def Std_digitToString(arg: Value)(using Context): Value =
+    StringValue(arg.asInt.toString)
 
 }
