@@ -1,10 +1,11 @@
 package amyc
 package interpreter
 
-import amyc.utils._
-import amyc.ast.SymbolicTreeModule._
+import amyc.utils.*
+import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
 import amyc.analyzer.SymbolTable
+import amyc.interpreter.BuiltIns.builtIns
 
 // An interpreter for Amy programs, implemented in Scala
 object Interpreter extends Pipeline[Program, Unit] {
@@ -20,25 +21,6 @@ object Interpreter extends Pipeline[Program, Unit] {
       e <- m.optExpr
     } do interpret(e, program)(Map(), ctx)
   }
-
-  // These built-in functions do not have an Amy implementation in the program,
-  // instead their implementation is encoded in this map
-  lazy val builtIns: Context ?=> Map[(String, String), List[Value] => Value] = ctx ?=> Map(
-    ("Std", "printInt") -> { args => println(args.head.asInt); UnitValue },
-    ("Std", "printString") -> { args => println(args.head.asString); UnitValue },
-    ("Std", "readString") -> { args => StringValue(scala.io.StdIn.readLine()) },
-    ("Std", "readInt") -> { args =>
-      val input = scala.io.StdIn.readLine()
-      try {
-        IntValue(input.toInt)
-      } catch {
-        case ne: NumberFormatException =>
-          ctx.reporter.fatal(s"""Could not parse "$input" to Int""")
-      }
-    },
-    ("Std", "intToString") -> { args => StringValue(args.head.asInt.toString) },
-    ("Std", "digitToString") -> { args => StringValue(args.head.asInt.toString) }
-  )
 
   // Utility functions to interface with the symbol table.
   def isConstructor(name: Identifier)(using Context) =
