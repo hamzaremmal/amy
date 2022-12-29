@@ -1,7 +1,8 @@
 package amyc
 
-import amyc.utils.*
+import amyc.utils.{printers, *}
 import amyc.ast.*
+import amyc.utils.printers.NominalTreePrinter
 import parsing.*
 
 import java.io.File
@@ -13,7 +14,10 @@ object Lab3 {
 
   def main(args: Array[String]): Unit = {
     given ctx : core.Context = parseArgs(args)
-    val pipeline = Lexer andThen Parser andThen treePrinterN("Trees after parsing")
+    val pipeline =
+      Lexer andThen
+      Parser andThen
+      new NominalTreePrinter
 
     val files = ctx.files.map(new File(_))
 
@@ -32,19 +36,5 @@ object Lab3 {
     }
   }
 
-  
-  import NominalTreeModule.{Program => NP}
-
-  def treePrinterN(title: String): Pipeline[NP, Unit] = {
-    new Pipeline[NP, Unit] {
-
-      override val name = "treePrinterN"
-
-      override def run(v: NP)(using core.Context) = {
-        println(title)
-        println(NominalPrinter(v))
-      }
-    }
-  }
 }
 

@@ -1,43 +1,31 @@
 package amyc
 
 import parsing.*
-import amyc.ast.{Identifier, SymbolicPrinter}
+import amyc.ast.{Identifier, SymbolicTreeModule}
 import amyc.ast.SymbolicTreeModule.Program
 import analyzer.{NameAnalyzer, SymbolTable}
 import amyc.utils.*
+import amyc.utils.printers.{SymbolicPrinter, SymbolicTreePrinter}
 import org.junit.Test
 
 import scala.language.implicitConversions
 
 class NameAnalyzerTests extends TestSuite {
-  // A little hackery to overcome that Identifier names do not refresh over pipeline runs...
-  private class TestUniquePrinter extends SymbolicPrinter {
-    private val counter = new UniqueCounter[String]
-    private val map = scala.collection.mutable.Map[Identifier, Int]()
-    override implicit def printName(name: Identifier)(implicit printUniqueIds: Boolean): Document = {
-      if (printUniqueIds) {
-        val id = map.getOrElseUpdate(name, counter.next(name.name))
-        s"${name.name}_$id"
-      } else {
-        name.name
-      }
-    }
-  }
 
-  private val treePrinterS: Pipeline[Program, Unit] = {
-    new Pipeline[Program, Unit] {
-      val name = "treePrinterS"
-      def run(program: Program)(using core.Context) = {
-        println((new TestUniquePrinter)(program)(true))
-      }
-    }
-  }
+  override val pipeline =
+    Lexer andThen
+    Parser andThen
+    NameAnalyzer andThen
+    new SymbolicTreePrinter andThen
+    new UnitPipeline
 
-  val pipeline = Lexer andThen Parser andThen NameAnalyzer andThen treePrinterS
+  override val baseDir = "amyc/nameAnalyzer"
 
-  val baseDir = "amyc/nameAnalyzer"
+  override val outputExt = "scala"
 
-  val outputExt = "scala"
+  // ==============================================================================================
+  // ====================================== TESTS =================================================
+  // ==============================================================================================
 
   @Test def testClasses = shouldOutput("Classes")
   @Test def testConstructorVsIdPattern = shouldOutput("ConstructorVsIdPattern")

@@ -4,9 +4,13 @@ import org.junit.Test
 
 abstract class ExecutionTests extends TestSuite {
 
-  val baseDir = "amyc/execution"
+  override val baseDir = "amyc/execution"
 
-  val outputExt = "txt"
+  override val outputExt = "txt"
+
+  // ==============================================================================================
+  // ======================================== TESTS ===============================================
+  // ==============================================================================================
 
   @Test def testEmptyObject = shouldOutput("EmptyObject")
 

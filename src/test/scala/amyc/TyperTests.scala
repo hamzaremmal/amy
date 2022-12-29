@@ -1,27 +1,31 @@
 package amyc
 
 import parsing.*
-import amyc.ast.{Identifier, SymbolicPrinter}
+import amyc.ast.Identifier
+import amyc.utils.UnitPipeline
 import amyc.ast.SymbolicTreeModule.Program
 import analyzer.NameAnalyzer
 import typer.Typer
 import amyc.utils.*
+import amyc.utils.printers.SymbolicPrinter
 import org.junit.Test
 
 class TyperTests extends TestSuite {
-  // We need a unit pipeline
-  private def unit[A]: Pipeline[A, Unit] = {
-    new Pipeline[A, Unit] {
-      val name = "Unit"
-      def run(v: A)(using core.Context) = ()
-    }
-  }
 
-  val pipeline = Lexer andThen Parser andThen NameAnalyzer andThen Typer andThen unit
+  override val pipeline =
+    Lexer andThen
+    Parser andThen
+    NameAnalyzer andThen
+    Typer andThen
+    new UnitPipeline
 
-  val baseDir = "amyc/typer"
+  override val baseDir = "amyc/typer"
 
-  val outputExt = "" // No output files for typechecking
+  override val outputExt = "" // No output files for typechecking
+
+  // ==============================================================================================
+  // ======================================= TESTS ================================================
+  // ==============================================================================================
 
   @Test def testArithError1 = shouldFail("ArithError1")
   @Test def testOperatorError1 = shouldFail("OperatorError1")

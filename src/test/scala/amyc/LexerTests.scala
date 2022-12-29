@@ -1,14 +1,22 @@
 package amyc
 
 import parsing._
+import amyc.utils.printers.DisplayTokens
 import org.junit.Test
 
 class LexerTests extends TestSuite {
-  val pipeline = Lexer andThen DisplayTokens
 
-  val baseDir = "amyc/lexer"
+  override val pipeline =
+    Lexer andThen
+    DisplayTokens
 
-  val outputExt = "txt"
+  override val baseDir = "amyc/lexer"
+
+  override val outputExt = "txt"
+
+  // ==============================================================================================
+  // ======================================= TESTS ================================================
+  // ==============================================================================================
 
   @Test def testKeywords = shouldOutput("Keywords")
 

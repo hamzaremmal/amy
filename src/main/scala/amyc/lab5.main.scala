@@ -1,6 +1,6 @@
 package amyc
 
-import amyc.utils.*
+import amyc.utils.{printers, *}
 import amyc.ast.*
 import parsing.*
 import analyzer.*
@@ -42,31 +42,4 @@ object Lab5 {
     }
   }
 
-  
-  import SymbolicTreeModule.{Program => SP}
-  import NominalTreeModule.{Program => NP}
-
-  def treePrinterS(title: String): Pipeline[(SP, SymbolTable), Unit] = {
-    new Pipeline[(SP, SymbolTable), Unit] {
-
-      val name = "treePrinterS"
-
-      def run(v: (SP, SymbolTable))(using core.Context) = {
-        println(title)
-        println(SymbolicPrinter(v._1)(true))
-      }
-    }
-  }
-
-  def treePrinterN(title: String): Pipeline[NP, Unit] = {
-    new Pipeline[NP, Unit] {
-
-      override val name: String = "treePrinterN"
-
-      def run(v: NP)(using core.Context) = {
-        println(title)
-        println(NominalPrinter(v))
-      }
-    }
-  }
 }

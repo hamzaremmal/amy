@@ -4,7 +4,7 @@ package interpreter
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
-import amyc.analyzer.SymbolTable
+import amyc.analyzer.{ConstrSig, SymbolTable}
 import amyc.core.Context
 import amyc.interpreter.BuiltIns.*
 import amyc.interpreter.*
@@ -25,12 +25,10 @@ object Interpreter extends Pipeline[Program, Unit] {
       interpret(e, program)(env, ctx)
   }
 
-  // Utility functions to interface with the symbol table.
-  def isConstructor(name: Identifier)(using Context) =
-    symbols.getConstructor(name).isDefined
-
   def findFunctionOwner(functionName: Identifier)(using Context) =
-    symbols.getFunction(functionName).get.owner.name
+    symbols.getFunction(functionName).getOrElse{
+      reporter.fatal(s"Function $functionName not found")
+    }.owner.name
 
   def findFunction(program: Program, owner: String, name: String) = {
     program.modules.find(_.name.name == owner).get.defs.collectFirst {
@@ -65,34 +63,29 @@ object Interpreter extends Pipeline[Program, Unit] {
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
       case Call(qname, args) =>
-        if isConstructor(qname) then
-          CaseClassValue(qname, args.map(interpret(_, program)))
-        else
-          val fn = locals.get(qname) orElse {
-            val owner = findFunctionOwner(qname)
-            builtIns.get((owner, qname.name))
-            } orElse {
-            val owner = findFunctionOwner(qname)
-            findFunction(program, owner, qname.name)
-          }
-          fn match
-            case Some(f: BuiltIns.BuiltInFunction) =>
-              val arg_values = args.map(interpret(_, program))
-              f(arg_values)
-            case Some(FunctionValue(n_args, body)) =>
-              val vargs = (n_args zip args.map(interpret(_,program))).toMap
-              interpret(body, program)(locals ++ vargs, ctx)
-            case Some(f: FunDef) =>
-              // Build new arguments
-              val arg_val = (f.params.map(_.name) zip args.map(interpret(_, program))).toMap
-              val lookup = locals ++ arg_val
-              interpret(f.body, program)(using lookup, ctx)
-            case _ =>
-              reporter.fatal(s"Function  not defined $qname")
-      // Hint: Check if it is a call to a constructor first,
-      //       then if it is a built-in function (otherwise it is a normal function).
-      //       Use the helper methods provided above to retrieve information from the symbol table.
-      //       Think how locals should be modified.
+        val fn = symbols.getConstructor(qname) orElse {
+          locals.get(qname)
+        } orElse {
+          val owner = findFunctionOwner(qname)
+          builtIns.get((owner, qname.name))
+        } orElse {
+          val owner = findFunctionOwner(qname)
+          findFunction(program, owner, qname.name)
+        }
+        fn match
+          case Some(ConstrSig(_, _, _)) =>
+            CaseClassValue(qname, args.map(interpret(_, program)))
+          case Some(f: BuiltIns.BuiltInFunction) =>
+            f(args.map(interpret(_, program)))
+          case Some(FunctionValue(n_args, body)) =>
+            val vargs = (n_args zip args.map(interpret(_,program))).toMap
+            interpret(body, program)(locals ++ vargs, ctx)
+          case Some(f: FunDef) =>
+            val arg_val = (f.params.map(_.name) zip args.map(interpret(_, program))).toMap
+            val lookup = locals ++ arg_val
+            interpret(f.body, program)(using lookup, ctx)
+          case _ =>
+            reporter.fatal(s"Function  not defined $qname")
       case Sequence(e1, e2) =>
         interpret(e1, program)
         interpret(e2, program)
@@ -106,62 +99,26 @@ object Interpreter extends Pipeline[Program, Unit] {
         else
           interpret(elze, program)
       case Match(scrut, cases) =>
-        // Hint: We give you a skeleton to implement pattern matching
-        //       and the main body of the implementation
         val evS = interpret(scrut, program)
-        // Returns a list of pairs id -> value,
-        // where id has been bound to value within the pattern.
-        // Returns None when the pattern fails to match.
-        // Note: Only works on well typed patterns (which have been ensured by the type checker).
         def matchesPattern(v: Value, pat: Pattern): Option[List[(Identifier, Value)]] = {
           ((v, pat): @unchecked) match {
             case (_, WildcardPattern()) =>
-              // HR : No need to add a new local since the pattern is _
-              // HR : If you return None, the pattern matching won't work and rhs will not be executed
               Some(Nil)
             case (_, IdPattern(name)) =>
-              // HR : You only need to create a new local since
-              // HR : If you return None, the pattern matching won't work and rhs will not be executed
               Some((name -> v) :: Nil)
             case (IntValue(i1), LiteralPattern(IntLiteral(i2))) =>
-              // HR : Check if the value is correct
-              // HR : If the value is correct, you return Some otherwise None
-              // HR : If you return None, the pattern matching won't work and rhs will not be executed
-              // HR : This means that both integers are not the same
               if i1 != i2 then None else Some(Nil)
             case (BooleanValue(b1), LiteralPattern(BooleanLiteral(b2))) =>
-              // HR : Check if the value is correct
-              // HR : If the value is correct, you return Some otherwise None
-              // HR : If you return None, the pattern matching won't work and rhs will not be executed
-              // HR : This means that both booleans are not the same
               if b1 != b2 then None else Some(Nil)
-            //case (StringValue(_), LiteralPattern(StringLiteral(_))) => Commented by HR TODO : Ask TA about it
-            case (StringValue(s1), LiteralPattern(StringLiteral(s2))) =>
-              // HR : Check if the value is correct
-              // HR : If the value is correct, you return Some otherwise None
-              // HR : If you return None, the pattern matching won't work and rhs will not be executed
-              // HR : This means that both Strings are not the same
-              // if s1 == s2 then Some(Nil) else None TODO : Ask TA about it, Amy Specification page 12
+            case (StringValue(_), LiteralPattern(StringLiteral(_))) =>
               None
             case (UnitValue, LiteralPattern(UnitLiteral())) =>
-              // HR : Check if the value is correct
-              // HR : If the value is correct, you return Some otherwise None
-              // HR : If you return None, the pattern matching won't work and rhs will not be executed
-              // HR : This means that both value are not the Unit object
               Some(Nil)
             case (CaseClassValue(con1, realArgs), CaseClassPattern(con2, formalArgs)) =>
-              // HR : First you need to check if the class are the same
-              // HR : If it's the case, you proceed, otherwise return None so that rhs will not be executed
               if con1 != con2 then
                 None
               else
-                // HR : Now that we've established that the classes are the same
-                // HR : We need to check the parameters and check with the pattern
                 val zipped_parameters = realArgs zip formalArgs
-                // HR : We will check each parameter with its pattern in a loop
-                // HR : If a match returns None, we'll stop and return None
-                // HR : This means that the value doesn't have the pattern. Therefore rhs will not be evaluated
-                // HR : We will also need to store the new locals in a list
                 var locals: List[(Identifier, Value)] = Nil
                 for match_case <- zipped_parameters do
                   matchesPattern(match_case._1, match_case._2) match

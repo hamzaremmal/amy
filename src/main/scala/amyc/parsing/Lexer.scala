@@ -170,13 +170,3 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
     it
   }
 }
-
-/** Extracts all tokens from input and displays them */
-object DisplayTokens extends Pipeline[Iterator[Token], Unit] {
-
-  override val name = "DisplayTokens"
-
-  override def run(tokens: Iterator[Token])(using core.Context): Unit = {
-    tokens.foreach(println(_))
-  }
-}

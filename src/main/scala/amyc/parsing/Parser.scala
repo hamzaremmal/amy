@@ -14,8 +14,7 @@ import scallion.{~, *}
 import scala.annotation.targetName
 
 // The parser for Amy
-object Parser extends Pipeline[Iterator[Token], Program]
-                 with Parsers {
+object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
 
   type Token = amyc.parsing.Token
   type Kind = amyc.parsing.TokenKind

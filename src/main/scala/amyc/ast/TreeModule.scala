@@ -1,6 +1,7 @@
 package amyc.ast
 
 import amyc.core.Context
+import amyc.utils.printers.{NominalPrinter, Printer, SymbolicPrinter}
 import amyc.utils.{Positioned, UniqueCounter}
 
 /* A polymorphic module containing definitions of Amy trees.
@@ -21,10 +22,6 @@ trait TreeModule { self =>
   // Represents a name within an module
   type QualifiedName
 
-  // A printer that knows how to print trees in this module.
-  // The modules will instantiate it as appropriate
-  val printer: Printer { val treeModule: self.type }
-
   // Common ancestor for all trees
   trait Tree extends Positioned {
 
@@ -35,7 +32,6 @@ trait TreeModule { self =>
     final def withType(tpe: Type) =
       tpe_ = tpe
       this
-    override def toString: String = printer(this)
   }
 
   // Expressions
@@ -45,11 +41,11 @@ trait TreeModule { self =>
   case class Variable(name: Name) extends Expr
 
   // Literals
-  trait Literal[+T] extends Expr { val value: T }
-  case class IntLiteral(value: Int) extends Literal[Int]
-  case class BooleanLiteral(value: Boolean) extends Literal[Boolean]
-  case class StringLiteral(value: String) extends Literal[String]
-  case class UnitLiteral() extends Literal[Unit] { val value: Unit = () }
+  trait Literal[+T](value: T) extends Expr
+  case class IntLiteral(value: Int) extends Literal(value)
+  case class BooleanLiteral(value: Boolean) extends Literal(value)
+  case class StringLiteral(value: String) extends Literal(value)
+  case class UnitLiteral() extends Literal(())
 
   // Binary operators
   case class Plus(lhs: Expr, rhs: Expr) extends Expr
@@ -154,9 +150,7 @@ trait TreeModule { self =>
   case object UnitType extends Type {
     override def toString: String = "Unit"
   }
-  case class ClassType(qname: QualifiedName) extends Type {
-    override def toString: String = printer.printQName(qname)(false).print
-  }
+  case class ClassType(qname: QualifiedName) extends Type
 
   case class FunctionType(args: List[TypeTree], rte: TypeTree) extends Type
 
@@ -170,10 +164,7 @@ trait TreeModule { self =>
  */
 object NominalTreeModule extends TreeModule {
   type Name = String
-  case class QualifiedName(module: Option[String], name: String) {
-    override def toString: String = printer.printQName(this)(false).print
-  }
-  val printer = NominalPrinter
+  case class QualifiedName(module: Option[String], name: String)
 }
 
 /* A module containing trees where the names have been resolved to unique identifiers.
@@ -182,7 +173,6 @@ object NominalTreeModule extends TreeModule {
 object SymbolicTreeModule extends TreeModule {
   type Name = Identifier
   type QualifiedName = Identifier
-  val printer = SymbolicPrinter
 
   // Represents a type variable.
   // It extends Type, but it is meant only for internal type checker use,
