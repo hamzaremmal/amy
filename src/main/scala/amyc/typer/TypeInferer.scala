@@ -4,6 +4,7 @@ import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
+import amyc.core.StdNames.*
 import amyc.{core, ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
@@ -104,38 +105,20 @@ object TypeInferer extends Pipeline[Program, Program]{
         e.withType(UnitType)
         topLevelConstraint(UnitType)
       // ========================== Type Check Binary Operators =========================
-      case Plus(lhs, rhs) =>
+      case InfixCall(lhs, + | - | * | / | %, rhs) =>
         e.withType(IntType)
         topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case Minus(lhs, rhs) =>
-        e.withType(IntType)
-        topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case Times(lhs, rhs) =>
-        e.withType(IntType)
-        topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case Div(lhs, rhs) =>
-        e.withType(IntType)
-        topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case Mod(lhs, rhs) =>
-        e.withType(IntType)
-        topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case LessThan(lhs, rhs) =>
+      case InfixCall(lhs, < | <=, rhs) =>
         e.withType(BooleanType)
         topLevelConstraint(BooleanType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case LessEquals(lhs, rhs) =>
-        e.withType(BooleanType)
-        topLevelConstraint(BooleanType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case And(lhs, rhs) =>
+      case InfixCall(lhs, && | ||, rhs) =>
         e.withType(BooleanType)
         topLevelConstraint(BooleanType) ::: genConstraints(lhs, BooleanType) ::: genConstraints(rhs, BooleanType)
-      case Or(lhs, rhs) =>
-        e.withType(BooleanType)
-        topLevelConstraint(BooleanType) ::: genConstraints(lhs, BooleanType) ::: genConstraints(rhs, BooleanType)
-      case Equals(lhs, rhs) =>
+      case InfixCall(lhs, eq_==, rhs) =>
         val generic = TypeVariable.fresh()
         e.withType(BooleanType)
         topLevelConstraint(BooleanType) ::: genConstraints(lhs, generic) ::: genConstraints(rhs, generic)
-      case Concat(lhs, rhs) =>
+      case InfixCall(lhs, ++, rhs) =>
         e.withType(StringType)
         topLevelConstraint(StringType) ::: genConstraints(lhs, StringType) ::: genConstraints(rhs, StringType)
       // ============================== Type Check Unary Operators ==============================

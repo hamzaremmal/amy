@@ -4,6 +4,7 @@ import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Context
+import amyc.core.StdNames.*
 import amyc.{reporter, symbols}
 import amyc.utils.Pipeline
 
@@ -21,17 +22,16 @@ object TypeChecker extends Pipeline[Program, Program]{
       case b : BooleanLiteral => checkBooleanLiteral(b)
       case s : StringLiteral => checkStringLiteral(s)
       case u : UnitLiteral => checkUnitLiteral(u)
-      case op : Plus => checkPlusOp(op)
-      case op : Minus => checkMinusOp(op)
-      case op : Times => checkTimesOp(op)
-      case op : Div => checkDivOp(op)
-      case op : Mod => checkModOp(op)
-      case op : LessThan => checkLessThan(op)
-      case op : LessEquals => checkLessEquals(op)
-      case op : And => checkAnd(op)
-      case op : Or => checkOr(op)
-      case op : Equals => checkEquals(op)
-      case op : Concat => checkConcat(op)
+      case op@InfixCall(_, + | - | * | / | %, _) =>
+        checkBinOp(op)(IntType, IntType, IntType)
+      case op@InfixCall(_, < | <=, _) =>
+        checkBinOp(op)(IntType, IntType, BooleanType)
+      case op@InfixCall(_, && | ||, _) =>
+        checkBinOp(op)(BooleanType, BooleanType, BooleanType)
+      case op@InfixCall(_, eq_==, _) =>
+        checkEquals(op)
+      case op@InfixCall(_, ++, _) =>
+        checkBinOp(op)(StringType, StringType, StringType)
       case op : Not => checkNot(op)
       case op : Neg => checkNeg(op)
       case op : Call => checkCall(op)
@@ -94,71 +94,19 @@ object TypeChecker extends Pipeline[Program, Program]{
     =:=(u, UnitType)
     u
 
-  def checkPlusOp(expr: Plus)(using Context) =
-    =:=(check(expr.lhs), IntType) // LHS =:= Int
-    =:=(check(expr.rhs), IntType) // RHS =:= Int
-    =:=(expr, IntType) // (LHS + RHS) =:= Int
-    expr
-  def checkMinusOp(expr: Minus)(using Context) =
-    =:=(check(expr.lhs), IntType) // LHS =:= Int
-    =:=(check(expr.rhs), IntType) // RHS =:= Int
-    =:=(expr, IntType) // (LHS + RHS) =:= Int
+  def checkBinOp(expr: InfixCall)(tlhs: Type, trhs: Type, rte: Type)(using Context) =
+    val InfixCall(lhs, _, rhs) = expr
+    =:=(check(lhs), tlhs)
+    =:=(check(rhs), trhs)
+    =:=(expr, rte)
     expr
 
-  def checkTimesOp(expr: Times)(using Context) =
-    =:=(check(expr.lhs), IntType) // LHS =:= Int
-    =:=(check(expr.rhs), IntType) // RHS =:= Int
-    =:=(expr, IntType) // (LHS + RHS) =:= Int
-    expr
 
-  def checkDivOp(expr: Div)(using Context)=
-    =:=(check(expr.lhs), IntType) // LHS =:= Int
-    =:=(check(expr.rhs), IntType) // RHS =:= Int
-    =:=(expr, IntType) // (LHS + RHS) =:= Int
-    expr
-
-  def checkModOp(expr: Mod)(using Context) =
-    =:=(check(expr.lhs), IntType) // LHS =:= Int
-    =:=(check(expr.rhs), IntType) // RHS =:= Int
-    =:=(expr, IntType) // (LHS + RHS) =:= Int
-    expr
-
-  def checkLessThan(expr: LessThan)(using Context) =
-    =:=(check(expr.lhs), IntType) // LHS =:= Int
-    =:=(check(expr.rhs), IntType) // RHS =:= Int
-    =:=(expr, BooleanType) // (LHS + RHS) =:= Boolean
-    expr
-
-  def checkLessEquals(expr: LessEquals)(using Context) =
-    =:=(check(expr.lhs), IntType) // LHS =:= Int
-    =:=(check(expr.rhs), IntType) // RHS =:= Int
-    =:=(expr, BooleanType) // (LHS + RHS) =:= Boolean
-    expr
-
-  def checkAnd(expr: And)(using Context) =
-    =:=(check(expr.lhs), BooleanType) // LHS =:= Boolean
-    =:=(check(expr.rhs), BooleanType) // RHS =:= Boolean
-    =:=(expr, BooleanType) // (LHS + RHS) =:= Boolean
-    expr
-
-  def checkOr(expr: Or)(using Context) =
-    =:=(check(expr.lhs), BooleanType) // LHS =:= Boolean
-    =:=(check(expr.rhs), BooleanType) // RHS =:= Boolean
-    =:=(expr, BooleanType) // (LHS + RHS) =:= Boolean
-    expr
-
-  def checkEquals(expr: Equals)(using Context) =
-    val lhs = check(expr.lhs)
+  def checkEquals(expr: InfixCall)(using Context) =
+    check(expr.lhs)
     val rhs = check(expr.rhs)
-    =:=(lhs, rhs.tpe) // LHS =:= RHS
-    =:=(expr, BooleanType) // (LHS == RHS) =:= Boolean
-    expr
+    checkBinOp(expr)(rhs.tpe, rhs.tpe, BooleanType)
 
-  def checkConcat(expr: Concat)(using Context)=
-    =:=(check(expr.lhs), StringType) // LHS =:= String
-    =:=(check(expr.rhs), StringType) // RHS =:= String
-    =:=(expr, StringType) // (LHS + RHS) =:= String
-    expr
 
   def checkNot(expr: Not)(using Context) =
     val Not(e) = expr

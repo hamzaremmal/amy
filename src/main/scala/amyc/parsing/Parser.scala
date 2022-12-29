@@ -321,19 +321,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
       equals is LeftAssociative,
       and is LeftAssociative,
       or is LeftAssociative) {
-        case (lhs, "+", rhs) => Plus(lhs, rhs)
-        case (lhs, "-", rhs) => Minus(lhs, rhs)
-        case (lhs, "*", rhs) => Times(lhs, rhs)
-        case (lhs, "/", rhs) => Div(lhs, rhs)
-        case (lhs, "%", rhs) => Mod(lhs, rhs)
-        case (lhs, "<", rhs) => LessThan(lhs, rhs)
-        case (lhs, "<=", rhs) => LessEquals(lhs, rhs)
-        case (lhs, "&&", rhs) => And(lhs, rhs)
-        case (lhs, "||", rhs) => Or(lhs, rhs)
-        case (lhs, "==", rhs) => Equals(lhs, rhs)
-        case (lhs, "++", rhs) => Concat(lhs, rhs)
-        case ( _ , op , _ ) =>
-          throw AmycFatalError(s"Binary operator '$op' is not defined !")
+        case (lhs, op, rhs) => InfixCall(lhs, op, rhs)
       }
 
   // ------------------------- Third Level expressions ------------------------------

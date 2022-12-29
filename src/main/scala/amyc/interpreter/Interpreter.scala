@@ -5,7 +5,8 @@ import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
 import amyc.analyzer.{ConstrSig, SymbolTable}
-import amyc.core.Context
+import amyc.core.{Context, StdNames}
+import amyc.core.StdNames.*
 import amyc.interpreter.BuiltIns.*
 import amyc.interpreter.*
 
@@ -49,17 +50,28 @@ object Interpreter extends Pipeline[Program, Unit] {
       case BooleanLiteral(b) => BooleanValue(b)
       case StringLiteral(s) => StringValue(s)
       case UnitLiteral() => UnitValue
-      case Plus(lhs, rhs) => interpret(lhs, program) + interpret(rhs, program)
-      case Minus(lhs, rhs) => interpret(lhs, program) - interpret(rhs, program)
-      case Times(lhs, rhs) => interpret(lhs, program) * interpret(rhs, program)
-      case Div(lhs, rhs) => interpret(lhs, program) / interpret(rhs, program)
-      case Mod(lhs, rhs) => interpret(lhs, program) % interpret(rhs, program)
-      case LessThan(lhs, rhs) => interpret(lhs, program) < interpret(rhs, program)
-      case LessEquals(lhs, rhs) => interpret(lhs, program) <= interpret(rhs, program)
-      case And(lhs, rhs) => interpret(lhs, program) && interpret(rhs, program)
-      case Or(lhs, rhs) => interpret(lhs, program) || interpret(rhs, program)
-      case Equals(lhs, rhs) => interpret(lhs, program) == interpret(rhs, program)
-      case Concat(lhs, rhs) => interpret(lhs, program) ++ interpret(rhs, program)
+      case InfixCall(lhs, +, rhs) =>
+        interpret(lhs, program) + interpret(rhs, program)
+      case InfixCall(lhs, -, rhs) =>
+        interpret(lhs, program) - interpret(rhs, program)
+      case InfixCall(lhs, *, rhs) =>
+        interpret(lhs, program) * interpret(rhs, program)
+      case InfixCall(lhs, /, rhs) =>
+        interpret(lhs, program) / interpret(rhs, program)
+      case InfixCall(lhs, %, rhs) =>
+        interpret(lhs, program) % interpret(rhs, program)
+      case InfixCall(lhs, <, rhs) =>
+        interpret(lhs, program) < interpret(rhs, program)
+      case InfixCall(lhs, <=, rhs) =>
+        interpret(lhs, program) <= interpret(rhs, program)
+      case InfixCall(lhs, &&, rhs) =>
+        interpret(lhs, program) && interpret(rhs, program)
+      case InfixCall(lhs, ||, rhs) =>
+        interpret(lhs, program) || interpret(rhs, program)
+      case InfixCall(lhs, eq_==, rhs) =>
+        interpret(lhs, program) == interpret(rhs, program)
+      case InfixCall(lhs, ++ ,rhs) =>
+        interpret(lhs, program) ++ interpret(rhs, program)
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
       case Call(qname, args) =>

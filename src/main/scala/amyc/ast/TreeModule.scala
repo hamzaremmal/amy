@@ -48,17 +48,7 @@ trait TreeModule { self =>
   case class UnitLiteral() extends Literal(())
 
   // Binary operators
-  case class Plus(lhs: Expr, rhs: Expr) extends Expr
-  case class Minus(lhs: Expr, rhs: Expr) extends Expr
-  case class Times(lhs: Expr, rhs: Expr) extends Expr
-  case class Div(lhs: Expr, rhs: Expr) extends Expr
-  case class Mod(lhs: Expr, rhs: Expr) extends Expr
-  case class LessThan(lhs: Expr, rhs: Expr) extends Expr
-  case class LessEquals(lhs: Expr, rhs: Expr) extends Expr
-  case class And(lhs: Expr, rhs: Expr) extends Expr
-  case class Or(lhs: Expr, rhs: Expr) extends Expr
-  case class Equals(lhs: Expr, rhs: Expr) extends Expr
-  case class Concat(lhs: Expr, rhs: Expr) extends Expr
+  case class InfixCall(lhs: Expr, op: Name, rhs: Expr) extends Expr
 
   // Unary operators
   case class Not(e: Expr) extends Expr

@@ -3,7 +3,8 @@ package codegen
 
 import analyzer.*
 import amyc.ast.Identifier
-import amyc.ast.SymbolicTreeModule.{And as AmyAnd, Call as AmyCall, Div as AmyDiv, Or as AmyOr, *}
+import amyc.core.StdNames.*
+import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.utils.Pipeline
 import wasm.*
 import Instructions.*
@@ -76,27 +77,27 @@ object CodeGen extends Pipeline[Program, Module] {
       //}
       case StringLiteral(s) => mkString(s)
       case UnitLiteral() => mkUnit
-      case Plus(lhs, rhs) =>
+      case InfixCall(lhs, +, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Add)
-      case Minus(lhs, rhs) =>
+      case InfixCall(lhs, -, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Sub)
-      case Times(lhs, rhs) =>
+      case InfixCall(lhs, *, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Mul)
-      case AmyDiv(lhs, rhs) =>
+      case InfixCall(lhs, /, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Div)
-      case Mod(lhs, rhs) =>
+      case InfixCall(lhs, %, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Rem)
-      case LessThan(lhs, rhs) =>
+      case InfixCall(lhs, <, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Lt_s)
-      case LessEquals(lhs, rhs) =>
+      case InfixCall(lhs, <=, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Le_s)
-      case AmyAnd(lhs, rhs) =>
+      case InfixCall(lhs, &&, rhs) =>
         and(cgExpr(lhs), cgExpr(rhs))
-      case AmyOr(lhs, rhs) =>
+      case InfixCall(lhs, ||, rhs) =>
         or(cgExpr(lhs), cgExpr(rhs))
-      case Equals(lhs, rhs) =>
+      case InfixCall(lhs, eq_==, rhs) =>
         equ(cgExpr(lhs), cgExpr(rhs))
-      case Concat(lhs, rhs) =>
+      case InfixCall(lhs, ++, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(concatImpl.name))
       case Not(e) =>
         cgExpr(e) <:> Eqz
