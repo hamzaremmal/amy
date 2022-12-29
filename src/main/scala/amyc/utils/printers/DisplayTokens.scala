@@ -10,7 +10,6 @@ object DisplayTokens extends Pipeline[Iterator[Token], Unit] {
 
   override val name = "DisplayTokens"
 
-  override def run(tokens: Iterator[Token])(using Context): Unit = {
-    tokens.foreach(println(_))
-  }
+  override def run(tokens: Iterator[Token])(using Context): Unit =
+    for token <- tokens do println(token)
 }
