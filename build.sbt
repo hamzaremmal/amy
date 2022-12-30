@@ -18,12 +18,12 @@ lazy val `amy-language` = (project in file(".")).settings(
   scalaVersion := "3.1.3",
   amy := Def.inputTaskDyn {
     val args = spaceDelimited("<arg>").parsed.toList
-    val main = "amyc.Lab1";
+    val main = "amyc.compiler";
     (`amy-compiler` / Compile / runMain).toTask((main :: args).mkString(" ", " ", " "))
   }.evaluated,
   amyc := Def.inputTaskDyn {
     val args = spaceDelimited("<arg>").parsed.toList
-    val main = "amyc.Lab5";
+    val main = "amyc.compiler";
     (`amy-compiler` / Compile / runMain).toTask((main :: args).mkString(" ", " ", " "))
   }.evaluated
 )
