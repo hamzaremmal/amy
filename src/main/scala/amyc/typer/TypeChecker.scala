@@ -32,6 +32,8 @@ object TypeChecker extends Pipeline[Program, Program]{
         checkEquals(op)
       case op@InfixCall(_, StdNames.++, _) =>
         checkBinOp(op)(StringType, StringType, StringType)
+      case InfixCall(_, op, _) =>
+        reporter.fatal(s"Cannot type check operator $op")
       case op : Not => checkNot(op)
       case op : Neg => checkNeg(op)
       case op : Call => checkCall(op)

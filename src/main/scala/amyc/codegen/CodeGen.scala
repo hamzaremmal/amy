@@ -99,6 +99,8 @@ object CodeGen extends Pipeline[Program, Module] {
         equ(cgExpr(lhs), cgExpr(rhs))
       case InfixCall(lhs, StdNames.++, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(concatImpl.name))
+      case InfixCall(_, op, _) =>
+        reporter.fatal(s"Cannot generate wasm code for operator $op")
       case Not(e) =>
         cgExpr(e) <:> Eqz
       case Neg(e) =>

@@ -121,6 +121,9 @@ object TypeInferer extends Pipeline[Program, Program]{
       case InfixCall(lhs, StdNames.++, rhs) =>
         e.withType(StringType)
         topLevelConstraint(StringType) ::: genConstraints(lhs, StringType) ::: genConstraints(rhs, StringType)
+      case InfixCall(_, op, _) =>
+        reporter.error(s"Cannot infer type of operator $op")
+        Nil
       // ============================== Type Check Unary Operators ==============================
       case Not(expr) =>
         e.withType(BooleanType)

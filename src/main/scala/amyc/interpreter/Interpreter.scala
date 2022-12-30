@@ -72,6 +72,8 @@ object Interpreter extends Pipeline[Program, Unit] {
         interpret(lhs, program) == interpret(rhs, program)
       case InfixCall(lhs, StdNames.++ ,rhs) =>
         interpret(lhs, program) ++ interpret(rhs, program)
+      case InfixCall(_, op, _) =>
+        reporter.fatal(s"Cannot interpret operator $op")
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
       case Call(qname, args) =>
