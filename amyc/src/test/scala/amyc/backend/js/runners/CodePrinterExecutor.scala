@@ -1,9 +1,9 @@
 package amyc.backend.js.runners
 
-import amyc.codegen.CodePrinter
+import amyc.backend.codegen.CodePrinter
+import amyc.backend.wasm.Module
 import amyc.core.Context
 import amyc.utils.Pipeline
-import amyc.wasm.Module
 import amyc.utils.AmycFatalError
 
 import scala.sys.process.*

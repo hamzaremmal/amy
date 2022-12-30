@@ -1,5 +1,4 @@
-package amyc
-package wasm
+package amyc.backend.wasm
 
 import scala.language.implicitConversions
 import amyc.utils._
