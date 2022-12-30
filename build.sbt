@@ -2,10 +2,6 @@ import sbt.Def.spaceDelimited
 
 organization := "ch.epfl.lara"
 
-Test / parallelExecution := false
-libraryDependencies += "com.novocode" % "junit-interface" % "0.11" % "test"
-testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
-
 // ================================================================================================
 // ============================================ KEYS ==============================================
 // ================================================================================================
