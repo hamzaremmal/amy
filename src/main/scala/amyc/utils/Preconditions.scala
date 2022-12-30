@@ -5,7 +5,7 @@ import amyc.core.Context
 
 object Preconditions {
 
-  inline def require[A](cc: Boolean)(body: => A)(using Context) =
+  inline def require[A](cc: Boolean)(body: => A)(using Context): A =
     if(cc)
       body
     else

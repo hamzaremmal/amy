@@ -61,17 +61,7 @@ object TypeAssigner extends Pipeline[Program, Program]{
       case b: BooleanLiteral => assignBooleanLiteral(b)
       case s: StringLiteral => assignStringLiteral(s)
       case u: UnitLiteral => assignUnitLiteral(u)
-      case op: Plus => assignPlusOp(op)
-      case op: Minus => assignMinusOp(op)
-      case op: Times => assignTimesOp(op)
-      case op: Div => assignDivOp(op)
-      case op: Mod => assignModOp(op)
-      case op: LessThan => assignLessThan(op)
-      case op: LessEquals => assignLessEquals(op)
-      case op: And => assignAnd(op)
-      case op: Or => assignOr(op)
-      case op: Equals => assignEquals(op)
-      case op: Concat => assignConcat(op)
+      case op: InfixCall => assignInfixCall(op)
       case op: Not => assignNot(op)
       case op: Neg => assignNeg(op)
       case op: Call => assignCall(op)
@@ -110,68 +100,8 @@ object TypeAssigner extends Pipeline[Program, Program]{
   def assignUnitLiteral(u: UnitLiteral)(using Context) =
     infer(u)
 
-  def assignPlusOp(expr: Plus)(using Context) =
-    val Plus(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignMinusOp(expr: Minus)(using Context) =
-    val Minus(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignTimesOp(expr: Times)(using Context) =
-    val Times(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignDivOp(expr: Div)(using Context) =
-    val Div(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignModOp(expr: Mod)(using Context) =
-    val Mod(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignLessThan(expr: LessThan)(using Context) =
-    val LessThan(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignLessEquals(expr: LessEquals)(using Context) =
-    val LessEquals(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignAnd(expr: And)(using Context) =
-    val And(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignOr(expr: Or)(using Context) =
-    val Or(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignEquals(expr: Equals)(using Context) =
-    val Equals(lhs, rhs) = expr
-    assign(lhs)
-    assign(rhs)
-    infer(expr)
-
-  def assignConcat(expr: Concat)(using Context) =
-    val Concat(lhs, rhs) = expr
+  def assignInfixCall(expr: InfixCall)(using Context) =
+    val InfixCall(lhs, _, rhs) = expr
     assign(lhs)
     assign(rhs)
     infer(expr)

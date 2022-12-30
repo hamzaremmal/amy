@@ -4,6 +4,7 @@ package analyzer
 import amyc.{core, *}
 import amyc.utils.*
 import amyc.ast.{Identifier, NominalTreeModule as N, SymbolicTreeModule as S}
+import amyc.core.StdNames.binOp
 
 // Name analyzer for Amy
 // Takes a nominal program (names are plain string, qualified names are string pairs)
@@ -147,28 +148,8 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
         S.StringLiteral(value)
       case N.UnitLiteral() =>
         S.UnitLiteral()
-      case N.Plus(lhs, rhs) =>
-        S.Plus(transformExpr(lhs), transformExpr(rhs))
-      case N.Minus(lhs, rhs) =>
-        S.Minus(transformExpr(lhs), transformExpr(rhs))
-      case N.Times(lhs, rhs) =>
-        S.Times(transformExpr(lhs), transformExpr(rhs))
-      case N.Div(lhs, rhs) =>
-        S.Div(transformExpr(lhs), transformExpr(rhs))
-      case N.Mod(lhs, rhs) =>
-        S.Mod(transformExpr(lhs), transformExpr(rhs))
-      case N.LessThan(lhs, rhs) =>
-        S.LessThan(transformExpr(lhs), transformExpr(rhs))
-      case N.LessEquals(lhs, rhs) =>
-        S.LessEquals(transformExpr(lhs), transformExpr(rhs))
-      case N.And(lhs, rhs) =>
-        S.And(transformExpr(lhs), transformExpr(rhs))
-      case N.Or(lhs, rhs) =>
-        S.Or(transformExpr(lhs), transformExpr(rhs))
-      case N.Equals(lhs, rhs) =>
-        S.Equals(transformExpr(lhs), transformExpr(rhs))
-      case N.Concat(lhs, rhs) =>
-        S.Concat(transformExpr(lhs), transformExpr(rhs))
+      case N.InfixCall(lhs, op, rhs) =>
+        S.InfixCall(transformExpr(lhs), binOp(op), transformExpr(rhs))
       case N.Not(e) =>
         S.Not(transformExpr(e))
       case N.Neg(e) =>

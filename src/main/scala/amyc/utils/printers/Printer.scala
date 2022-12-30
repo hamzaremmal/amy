@@ -60,28 +60,8 @@ trait Printer {
         "\"" + value + '"'
       case UnitLiteral() =>
         "()"
-      case Plus(lhs, rhs) =>
-        binOp(lhs, "+", rhs)
-      case Minus(lhs, rhs) =>
-        binOp(lhs, "-", rhs)
-      case Times(lhs, rhs) =>
-        binOp(lhs, "*", rhs)
-      case Div(lhs, rhs) =>
-        binOp(lhs, "/", rhs)
-      case Mod(lhs, rhs) =>
-        binOp(lhs, "%", rhs)
-      case LessThan(lhs, rhs) =>
-        binOp(lhs, "<", rhs)
-      case LessEquals(lhs, rhs) =>
-        binOp(lhs, "<=", rhs)
-      case And(lhs, rhs) =>
-        binOp(lhs, "&&", rhs)
-      case Or(lhs, rhs) =>
-        binOp(lhs, "||", rhs)
-      case Equals(lhs, rhs) =>
-        binOp(lhs, "==", rhs)
-      case Concat(lhs, rhs) =>
-        binOp(lhs, "++", rhs)
+      case InfixCall(lhs, op, rhs) =>
+        binOp(lhs, op.toString, rhs)
       case Not(e) =>
         "!(" <:> rec(e) <:> ")"
       case Neg(e) =>
