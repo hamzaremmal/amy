@@ -1,7 +1,7 @@
 package amyc
 
-import amyc.core.Context.inFreshConext
-import amyc.utils.{printers, *}
+import amyc.core.Context.inFreshContext
+import amyc.utils.*
 import amyc.ast.*
 import amyc.typer.Typer
 import parsing.*
@@ -19,7 +19,7 @@ object Lab4:
     Typer
 
   def main(args: Array[String]): Unit =
-    inFreshConext {
+    inFreshContext {
       try
         pipeline.run(args.toList)
       catch

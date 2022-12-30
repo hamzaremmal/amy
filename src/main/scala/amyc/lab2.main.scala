@@ -1,6 +1,6 @@
 package amyc
 
-import amyc.core.Context.inFreshConext
+import amyc.core.Context.inFreshContext
 import amyc.utils.*
 import amyc.utils.printers.DisplayTokens
 import parsing.*
@@ -15,7 +15,7 @@ object Lab2:
     DisplayTokens
 
   def main(args: Array[String]): Unit =
-    inFreshConext {
+    inFreshContext {
       try
         pipeline.run(args.toList)
       catch

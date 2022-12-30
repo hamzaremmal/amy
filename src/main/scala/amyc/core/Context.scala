@@ -43,7 +43,7 @@ case class Context private (reporter: Reporter){
 
 object Context {
 
-  def inFreshConext[A](body: Context ?=> A) =
+  def inFreshContext[A](body: Context ?=> A) =
     given ctx : Context = new Context(new Reporter)
     body
 }
