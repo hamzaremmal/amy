@@ -1,9 +1,9 @@
 package amyc
 
+import amyc.backend.codegen.CodeGen
 import parsing.*
 import analyzer.NameAnalyzer
 import typer.Typer
-import codegen.*
 import amyc.backend.js.runners.CodePrinterExecutor
 import amyc.utils.Pipeline
 

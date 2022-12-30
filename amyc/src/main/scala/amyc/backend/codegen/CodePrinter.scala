@@ -1,8 +1,8 @@
-package amyc
-package codegen
+package amyc.backend.codegen
 
+import amyc.backend.wasm.Module
+import amyc.*
 import amyc.core.Context
-import wasm.Module
 import amyc.utils.{Pipeline, Env}
 import scala.sys.process._
 import java.io._
@@ -45,12 +45,12 @@ object CodePrinter extends Pipeline[Module, Unit]{
       }
     } catch {
       case _: IOException =>
-        ctx.reporter.fatal(
+        reporter.fatal(
           "wat2wasm utility was not found under ./bin or in system path, " +
           "or did not have permission to execute. Make sure it is either in the system path, or in <root of the project>/bin"
         )
       case _: RuntimeException =>
-        ctx.reporter.fatal(s"wat2wasm failed to translate WebAssembly text file ${pathWithExt("wat")} to binary")
+        reporter.fatal(s"wat2wasm failed to translate WebAssembly text file ${pathWithExt("wat")} to binary")
     }
 
     m.writeHtmlWrapper(pathWithExt("html"), nameWithExt("wasm")) // Web version needs path relative to .html

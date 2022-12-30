@@ -1,26 +1,27 @@
-package amyc
-package codegen
+package amyc.backend.codegen
 
-import analyzer.*
+import amyc.*
 import amyc.ast.Identifier
 import amyc.core.StdNames.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.utils.Pipeline
-import wasm.*
-import Instructions.*
 import Utils.*
+import amyc.analyzer.ConstrSig
+import amyc.backend.wasm
+import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.LocalsHandler
 import amyc.core.{Context, StdNames}
 
 import scala.annotation.tailrec
 
 // Generates WebAssembly code for an Amy program
-object CodeGen extends Pipeline[Program, Module] {
+object CodeGen extends Pipeline[Program, wasm.Module] {
 
   override val name = "CodeGen"
 
-  override def run(program: Program)(using Context): Module = {
+  override def run(program: Program)(using Context): wasm.Module = {
 
-    Module(
+    wasm.Module(
       program.modules.last.name.name,
       defaultImports,
       globalsNo,
@@ -30,7 +31,7 @@ object CodeGen extends Pipeline[Program, Module] {
   }
 
   // Generate code for an Amy module
-  private def cgModule(moduleDef: ModuleDef)(using Context): List[Function] = {
+  private def cgModule(moduleDef: ModuleDef)(using Context): List[wasm.Function] = {
     val ModuleDef(name, defs, optExpr) = moduleDef
     // Generate code for all functions
     defs.collect {
@@ -45,11 +46,11 @@ object CodeGen extends Pipeline[Program, Module] {
   }
 
   // Generate code for a function in module 'owner'
-  private def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): Function = {
+  private def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): wasm.Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
     val name = fullName(owner, fd.name)
-    Function(name, fd.params.size, isMain) { lh =>
+    wasm.Function(name, fd.params.size, isMain) { lh =>
       val locals = fd.paramNames.zipWithIndex.toMap
       val body = cgExpr(fd.body)(using locals, lh)
       val comment = Comment(fd.toString)

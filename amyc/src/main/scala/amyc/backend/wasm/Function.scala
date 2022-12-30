@@ -1,5 +1,5 @@
-package amyc
-package wasm
+package amyc.backend.wasm
+
 import Instructions.Code
 
 // If isMain = false, represents a function which returns an i32 and will not be exported to js
