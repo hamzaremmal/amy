@@ -1,6 +1,8 @@
 package amyc.utils
 
 import amyc.{core, ctx, reporter}
+import amyc.core.Context
+import amyc.utils.Pipeline.execute
 
 // A sequence of operations to be run by the compiler,
 // with interruption at every stage if there is an error
@@ -13,20 +15,41 @@ abstract class Pipeline[-F, +T] {
 
     override def name = if(c) self.name else thenn.name
 
-    def run(v : F)(using core.Context) : G = {
-      ctx.atPhase(self)
-      val first = self.run(v)
-      reporter.terminateIfErrors()
+    def run(v : F)(using Context) : G =
+      val first = execute(self){
+        v
+      }
       c = false
-      ctx.atPhase(thenn)
-      thenn.run(first)
-    }
+      execute(thenn){
+        first
+      }
   }
 
-  def run(v: F)(using core.Context): T
+  def run(v: F)(using Context): T
 
   def name: String
 
+}
+
+object Pipeline {
+
+  /**
+    * This method should be called when running a pipeline
+    * @param pipeline
+    * @param body
+    * @param Context
+    * @tparam A
+    * @tparam B
+    * @return
+    */
+  def execute[A, B](pipeline: Pipeline[A, B])(body: => A)(using Context) : B =
+    try
+      ctx.atPhase(pipeline)
+      pipeline.run(body)
+    catch
+      case AmycFatalError(_) =>
+        sys.exit(1)
+  
 }
 
 case class Noop[T]() extends Pipeline[T, T] {
