@@ -1,31 +1,29 @@
 package amyc
 
 import amyc.utils.*
-
 import amyc.core.Context.inFreshContext
+import amyc.utils.Pipeline.execute
+
 import java.io.File
 import org.junit.Assert.fail
 
 abstract class CompilerTest extends TestUtils {
-  private def runPipeline(pipeline: Pipeline[List[File], Unit], fileNames: List[String]) = {
+  private def runPipeline(pipeline: Pipeline[List[File], Unit], fileNames: List[String]) =
     inFreshContext{
-      val files = fileNames.map(new File(_))
-      for (f <- files) do
-        assert(f != null && f.exists, s"Could not read test file ${f.getPath()}")
-      pipeline.run(files)
-      ctx.reporter.terminateIfErrors()
+      execute(pipeline){
+        val files = fileNames.map(new File(_))
+        for (f <- files) do
+          assert(f != null && f.exists, s"Could not read test file ${f.getPath}")
+        files
+      }
     }
-  }
 
-  private def runPipelineRedirected(
-    pipeline: Pipeline[List[File], Unit],
-    compiledFiles: List[String],
-    input: String
-  ): String = {
+  private def runPipelineRedirected(pipeline: Pipeline[List[File], Unit], 
+                                    compiledFiles: List[String], 
+                                    input: String): String =
     testWithRedirectedIO(runPipeline(pipeline, compiledFiles), input)
-  }
 
-  private def assertEqual(output: String, expected: String) = {
+  private def assertEqual(output: String, expected: String) =
     val rejectLine = (s: String) =>
       s.isEmpty ||
         s.startsWith("[ Info  ]") ||
@@ -45,7 +43,6 @@ abstract class CompilerTest extends TestUtils {
       sb.append("\n")
       fail(sb.toString)
     }
-  }
 
   protected def compareOutputs(
     pipeline: Pipeline[List[File], Unit],
@@ -81,7 +78,7 @@ abstract class CompilerTest extends TestUtils {
     pipeline: Pipeline[List[File], Unit],
     compiledFiles: List[String],
     input: String = ""
-  ) = {
+  ) =
     try {
       runPipelineRedirected(pipeline, compiledFiles, input)
       fail("Test should fail but it passed!")
@@ -90,7 +87,6 @@ abstract class CompilerTest extends TestUtils {
       // Ok, this is what we wanted. Other exceptions should propagate though
     }
 
-  }
 
 
 }

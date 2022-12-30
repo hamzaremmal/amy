@@ -5,9 +5,12 @@ import analyzer.NameAnalyzer
 import typer.Typer
 import codegen.*
 import amyc.backend.js.runners.CodePrinterExecutor
+import amyc.utils.Pipeline
+
+import java.io.File
 
 
-class CodegenTests extends ExecutionTests {
+class CodegenTests extends ExecutionTests:
 
   override val pipeline =
     Lexer andThen
@@ -16,5 +19,3 @@ class CodegenTests extends ExecutionTests {
     Typer andThen
     CodeGen andThen
     CodePrinterExecutor
-}
-

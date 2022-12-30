@@ -43,12 +43,10 @@ object Pipeline {
     * @return
     */
   def execute[A, B](pipeline: Pipeline[A, B])(body: => A)(using Context) : B =
-    try
       ctx.atPhase(pipeline)
-      pipeline.run(body)
-    catch
-      case AmycFatalError(_) =>
-        sys.exit(1)
+      val v = pipeline.run(body)
+      reporter.terminateIfErrors()
+      v
   
 }
 

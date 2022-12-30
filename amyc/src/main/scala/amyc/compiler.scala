@@ -1,7 +1,7 @@
 package amyc
 
 import amyc.codegen.{CodeGen, CodePrinter}
-import amyc.utils.{FetchFiles, Frontend, Pipeline}
+import amyc.utils.{AmycFatalError, FetchFiles, Frontend, Pipeline}
 import amyc.core.Context.inFreshContext
 import amyc.utils.Pipeline.execute
 
@@ -15,9 +15,13 @@ object compiler {
 
   def main(args: Array[String]): Unit =
     inFreshContext {
-      execute(pipeline){
-        args.toList
-      }
+      try
+        execute(pipeline){
+          args.toList
+        }
+      catch
+        case AmycFatalError(_) =>
+          sys.exit(1)
     }
 
 }
