@@ -2,17 +2,19 @@ package amyc
 
 import amyc.utils.*
 
+import amyc.core.Context.inFreshContext
 import java.io.File
 import org.junit.Assert.fail
 
 abstract class CompilerTest extends TestUtils {
   private def runPipeline(pipeline: Pipeline[List[File], Unit], fileNames: List[String]) = {
-    given ctx : core.Context = core.Context(new Reporter, fileNames)
-    val files = ctx.files.map(new File(_))
-    for (f <- files) do
-      assert(f != null && f.exists, s"Could not read test file ${f.getPath()}")
-    pipeline.run(files)
-    ctx.reporter.terminateIfErrors()
+    inFreshContext{
+      val files = fileNames.map(new File(_))
+      for (f <- files) do
+        assert(f != null && f.exists, s"Could not read test file ${f.getPath()}")
+      pipeline.run(files)
+      ctx.reporter.terminateIfErrors()
+    }
   }
 
   private def runPipelineRedirected(
