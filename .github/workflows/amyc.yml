@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Scala CI
+name: Amy Compiler Tests
 
 on: [push, pull_request]
 
@@ -30,4 +30,4 @@ jobs:
     - name: Install wat2wasm
       run: sudo apt install wabt
     - name: Run tests
-      run: sbt test
+      run: sbt amy-compiler/test
