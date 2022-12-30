@@ -8,7 +8,7 @@ import scala.collection.mutable
 import scala.collection.mutable.HashMap
 
 // Contains a reporter and configuration for the compiler
-case class Context(reporter: Reporter, files: List[String]){
+case class Context private (reporter: Reporter){
 
   val tv : HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
 
@@ -39,4 +39,11 @@ case class Context(reporter: Reporter, files: List[String]){
   def phase : String =
     _pipeline
 
+}
+
+object Context {
+
+  def inFreshConext[A](body: Context ?=> A) =
+    given ctx : Context = new Context(new Reporter)
+    body
 }
