@@ -50,27 +50,27 @@ object Interpreter extends Pipeline[Program, Unit] {
       case BooleanLiteral(b) => BooleanValue(b)
       case StringLiteral(s) => StringValue(s)
       case UnitLiteral() => UnitValue
-      case InfixCall(lhs, +, rhs) =>
+      case InfixCall(lhs, StdNames.+, rhs) =>
         interpret(lhs, program) + interpret(rhs, program)
-      case InfixCall(lhs, -, rhs) =>
+      case InfixCall(lhs, StdNames.-, rhs) =>
         interpret(lhs, program) - interpret(rhs, program)
-      case InfixCall(lhs, *, rhs) =>
+      case InfixCall(lhs, StdNames.*, rhs) =>
         interpret(lhs, program) * interpret(rhs, program)
-      case InfixCall(lhs, /, rhs) =>
+      case InfixCall(lhs, StdNames./, rhs) =>
         interpret(lhs, program) / interpret(rhs, program)
-      case InfixCall(lhs, %, rhs) =>
+      case InfixCall(lhs, StdNames.%, rhs) =>
         interpret(lhs, program) % interpret(rhs, program)
-      case InfixCall(lhs, <, rhs) =>
+      case InfixCall(lhs, StdNames.<, rhs) =>
         interpret(lhs, program) < interpret(rhs, program)
-      case InfixCall(lhs, <=, rhs) =>
+      case InfixCall(lhs, StdNames.<=, rhs) =>
         interpret(lhs, program) <= interpret(rhs, program)
-      case InfixCall(lhs, &&, rhs) =>
+      case InfixCall(lhs, StdNames.&&, rhs) =>
         interpret(lhs, program) && interpret(rhs, program)
-      case InfixCall(lhs, ||, rhs) =>
+      case InfixCall(lhs, StdNames.||, rhs) =>
         interpret(lhs, program) || interpret(rhs, program)
-      case InfixCall(lhs, eq_==, rhs) =>
+      case InfixCall(lhs, StdNames.eq_==, rhs) =>
         interpret(lhs, program) == interpret(rhs, program)
-      case InfixCall(lhs, ++ ,rhs) =>
+      case InfixCall(lhs, StdNames.++ ,rhs) =>
         interpret(lhs, program) ++ interpret(rhs, program)
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)

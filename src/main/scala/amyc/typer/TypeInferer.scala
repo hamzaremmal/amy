@@ -4,7 +4,7 @@ import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
-import amyc.core.StdNames.*
+import amyc.core.StdNames
 import amyc.{core, ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
@@ -105,20 +105,20 @@ object TypeInferer extends Pipeline[Program, Program]{
         e.withType(UnitType)
         topLevelConstraint(UnitType)
       // ========================== Type Check Binary Operators =========================
-      case InfixCall(lhs, + | - | * | / | %, rhs) =>
+      case InfixCall(lhs, StdNames.+ | StdNames.- | StdNames.* | StdNames./ | StdNames.%, rhs) =>
         e.withType(IntType)
         topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case InfixCall(lhs, < | <=, rhs) =>
+      case InfixCall(lhs, StdNames.< | StdNames.<=, rhs) =>
         e.withType(BooleanType)
         topLevelConstraint(BooleanType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
-      case InfixCall(lhs, && | ||, rhs) =>
+      case InfixCall(lhs, StdNames.&& | StdNames.||, rhs) =>
         e.withType(BooleanType)
         topLevelConstraint(BooleanType) ::: genConstraints(lhs, BooleanType) ::: genConstraints(rhs, BooleanType)
-      case InfixCall(lhs, eq_==, rhs) =>
+      case InfixCall(lhs, StdNames.eq_==, rhs) =>
         val generic = TypeVariable.fresh()
         e.withType(BooleanType)
         topLevelConstraint(BooleanType) ::: genConstraints(lhs, generic) ::: genConstraints(rhs, generic)
-      case InfixCall(lhs, ++, rhs) =>
+      case InfixCall(lhs, StdNames.++, rhs) =>
         e.withType(StringType)
         topLevelConstraint(StringType) ::: genConstraints(lhs, StringType) ::: genConstraints(rhs, StringType)
       // ============================== Type Check Unary Operators ==============================

@@ -9,7 +9,7 @@ import amyc.utils.Pipeline
 import wasm.*
 import Instructions.*
 import Utils.*
-import amyc.core.Context
+import amyc.core.{Context, StdNames}
 
 import scala.annotation.tailrec
 
@@ -77,27 +77,27 @@ object CodeGen extends Pipeline[Program, Module] {
       //}
       case StringLiteral(s) => mkString(s)
       case UnitLiteral() => mkUnit
-      case InfixCall(lhs, +, rhs) =>
+      case InfixCall(lhs, StdNames.+, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Add)
-      case InfixCall(lhs, -, rhs) =>
+      case InfixCall(lhs, StdNames.-, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Sub)
-      case InfixCall(lhs, *, rhs) =>
+      case InfixCall(lhs, StdNames.*, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Mul)
-      case InfixCall(lhs, /, rhs) =>
+      case InfixCall(lhs, StdNames./, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Div)
-      case InfixCall(lhs, %, rhs) =>
+      case InfixCall(lhs, StdNames.%, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Rem)
-      case InfixCall(lhs, <, rhs) =>
+      case InfixCall(lhs, StdNames.<, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Lt_s)
-      case InfixCall(lhs, <=, rhs) =>
+      case InfixCall(lhs, StdNames.<=, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Le_s)
-      case InfixCall(lhs, &&, rhs) =>
+      case InfixCall(lhs, StdNames.&&, rhs) =>
         and(cgExpr(lhs), cgExpr(rhs))
-      case InfixCall(lhs, ||, rhs) =>
+      case InfixCall(lhs, StdNames.||, rhs) =>
         or(cgExpr(lhs), cgExpr(rhs))
-      case InfixCall(lhs, eq_==, rhs) =>
+      case InfixCall(lhs, StdNames.eq_==, rhs) =>
         equ(cgExpr(lhs), cgExpr(rhs))
-      case InfixCall(lhs, ++, rhs) =>
+      case InfixCall(lhs, StdNames.++, rhs) =>
         mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(concatImpl.name))
       case Not(e) =>
         cgExpr(e) <:> Eqz

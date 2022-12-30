@@ -3,7 +3,7 @@ package amyc.typer
 import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
-import amyc.core.Context
+import amyc.core.{Context, StdNames}
 import amyc.core.StdNames.*
 import amyc.{reporter, symbols}
 import amyc.utils.Pipeline
@@ -22,15 +22,15 @@ object TypeChecker extends Pipeline[Program, Program]{
       case b : BooleanLiteral => checkBooleanLiteral(b)
       case s : StringLiteral => checkStringLiteral(s)
       case u : UnitLiteral => checkUnitLiteral(u)
-      case op@InfixCall(_, + | - | * | / | %, _) =>
+      case op@InfixCall(_, StdNames.+ | StdNames.- | StdNames.* | StdNames./ | StdNames.%, _) =>
         checkBinOp(op)(IntType, IntType, IntType)
-      case op@InfixCall(_, < | <=, _) =>
+      case op@InfixCall(_, StdNames.< | StdNames.<=, _) =>
         checkBinOp(op)(IntType, IntType, BooleanType)
-      case op@InfixCall(_, && | ||, _) =>
+      case op@InfixCall(_, StdNames.&& | StdNames.||, _) =>
         checkBinOp(op)(BooleanType, BooleanType, BooleanType)
-      case op@InfixCall(_, eq_==, _) =>
+      case op@InfixCall(_, StdNames.eq_==, _) =>
         checkEquals(op)
-      case op@InfixCall(_, ++, _) =>
+      case op@InfixCall(_, StdNames.++, _) =>
         checkBinOp(op)(StringType, StringType, StringType)
       case op : Not => checkNot(op)
       case op : Neg => checkNeg(op)
