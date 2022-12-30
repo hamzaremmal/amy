@@ -16,4 +16,6 @@ logs/
 *.csv
 *.dat
 .bsp
+node_modules/
 wasmout/
+*.json
