@@ -381,7 +381,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     }.up[Literal[Boolean | Int | String | Unit]] | lambdaLiteral.up[Literal[Boolean | Int | String | Unit]]
 
   lazy val lambdaLiteral : Syntax[LambdaLiteral] =
-    kw("lambda") ~>~ parameters ~<~ ":" ~ typeTree ~<~ "=>" ~ inBrace(expr) map {
+    kw("lambda") ~>~ inParenthesis(parameters) ~<~ ":" ~ typeTree ~<~ "=>" ~ inBrace(expr) map {
       case params ~ rte ~ expr =>
         LambdaLiteral(params, rte, expr)
     }
