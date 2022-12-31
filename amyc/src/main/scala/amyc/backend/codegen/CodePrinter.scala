@@ -1,23 +1,27 @@
 package amyc.backend.codegen
 
-import amyc.backend.wasm.Module
+import amyc.backend.wasm.{Module, wrapper}
+import amyc.utils.FileWriter
 import amyc.*
+import amyc.backend.wasm.wrapper.{HTMLWrapper, NodeJSWrapper, WATFile}
 import amyc.core.Context
-import amyc.utils.{Pipeline, Env}
-import scala.sys.process._
-import java.io._
+import amyc.utils.{Env, Pipeline}
+
+import scala.sys.process.*
+import java.io.*
 
 // Prints all 4 different files from a wasm Module
 object CodePrinter extends Pipeline[Module, Unit]{
 
+  val outDirName = "wasmout"
+
+  def pathWithExt(module: Module, ext: String) = s"$outDirName/${nameWithExt(module, ext)}"
+
+  def nameWithExt(module: Module, ext: String) = s"${module.name}.$ext"
+
   override val name = "CodePrinter"
 
-  override def run(m: Module)(using Context) = {
-    val outDirName = "wasmout"
-
-    def pathWithExt(ext: String) = s"$outDirName/${nameWithExt(ext)}"
-    def nameWithExt(ext: String) = s"${m.name}.$ext"
-
+  override def run(m: Module)(using Context): Unit = {
     val (local, inPath) = {
       import Env._
       os match {
@@ -27,14 +31,16 @@ object CodePrinter extends Pipeline[Module, Unit]{
       }
     }
 
-    val w2wOptions = s"${pathWithExt("wat")} -o ${pathWithExt("wasm")}"
+    val w2wOptions = s"${pathWithExt(m, "wat")} -o ${pathWithExt(m, "wasm")}"
 
     val outDir = new File(outDirName)
     if (!outDir.exists()) {
       outDir.mkdir()
     }
 
-    m.writeWasmText(pathWithExt("wat"))
+    FileWriter(pathWithExt(m, "wat")){
+      WATFile(m)
+    }
 
     try {
       try {
@@ -50,11 +56,18 @@ object CodePrinter extends Pipeline[Module, Unit]{
           "or did not have permission to execute. Make sure it is either in the system path, or in <root of the project>/bin"
         )
       case _: RuntimeException =>
-        reporter.fatal(s"wat2wasm failed to translate WebAssembly text file ${pathWithExt("wat")} to binary")
+        reporter.fatal(s"wat2wasm failed to translate WebAssembly text file ${pathWithExt(m, "wat")} to binary")
     }
 
-    m.writeHtmlWrapper(pathWithExt("html"), nameWithExt("wasm")) // Web version needs path relative to .html
-    m.writeNodejsWrapper(pathWithExt("js"), pathWithExt("wasm")) // Node version needs path relative to project root
+    // Web version needs path relative to .html
+    FileWriter(pathWithExt(m, "html")){
+      HTMLWrapper(nameWithExt(m, "wasm"), m)
+    }
+
+    // Node version needs path relative to project root
+    FileWriter(pathWithExt(m, "js")){
+      wrapper.NodeJSWrapper(pathWithExt(m, "wasm"), m)
+    }
 
   }
 }
