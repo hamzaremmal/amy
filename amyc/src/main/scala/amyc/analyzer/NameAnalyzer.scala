@@ -31,32 +31,36 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       registerTypes(mod)
 
     // Step 4: Discover type constructors
-    for {
-      m <- p.modules
-      cc@N.CaseClassDef(name, fields, parent) <- m.defs
-    } {
-      val argTypes = fields map (tt => transformType(tt, m.name))
-      val retType = symbols.getType(m.name, parent).getOrElse{
-        reporter.fatal(s"Parent class $parent not found", cc)
-      }
-      symbols.addConstructor(m.name, name, argTypes, retType)
-    }
+    for m <- p.modules do
+      registerConstructors(m)
 
     // Step 5: Discover functions signatures.
-    for {
-      m <- p.modules
-      N.FunDef(name, params, retType1, _) <- m.defs
-    } {
-      val argTypes = params map (p => transformType(p.tt, m.name))
-      val retType2 = transformType(retType1, m.name)
-      symbols.addFunction(m.name, name, argTypes, retType2)
-    }
+    for m <- p.modules do
+      registerFunctions(m)
 
     // Step 6: We now know all definitions in the program.
     //         Reconstruct modules and analyse function bodies/ expressions
     transformProgram(p)
 
   }
+
+  // ==============================================================================================
+  // ===================================== REGISTER FUCTIONS ======================================
+  // ==============================================================================================
+
+  def registerFunctions(mod: N.ModuleDef)(using core.Context) =
+    for N.FunDef(name, params, retType1, _) <- mod.defs do
+      val argTypes = params map (p => transformType(p.tt, mod.name))
+      val retType2 = transformType(retType1, mod.name)
+      symbols.addFunction(mod.name, name, argTypes, retType2)
+
+  def registerConstructors(mod: N.ModuleDef)(using core.Context) =
+    for cc@N.CaseClassDef(name, fields, parent) <- mod.defs do
+      val argTypes = fields map (tt => transformType(tt, mod.name))
+      val retType = symbols.getType(mod.name, parent).getOrElse {
+        reporter.fatal(s"Parent class $parent not found", cc)
+      }
+      symbols.addConstructor(mod.name, name, argTypes, retType)
 
   def registerModules(prog: N.Program)(using core.Context) =
     val modNames = prog.modules.groupBy(_.name)
@@ -248,6 +252,13 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
 
       case N.Error(msg) =>
         S.Error(transformExpr(msg))
+      case N.LambdaLiteral(params, rte, body) =>
+        val newParams = params map { case pd@N.ParamDef(name, tt) =>
+          val s = Identifier.fresh(name)
+          val tpe = transformType(tt, module)
+          S.ParamDef(s, S.TypeTree(tpe).setPos(tt)).setPos(pd)
+        }
+        S.LambdaLiteral(newParams, S.TypeTree(transformType(rte, module)), transformExpr(body))
     }
     res.setPos(expr)
   }
@@ -286,6 +297,5 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     val symDefs = for d <- defs yield transformDef(d, name)
     val symExpr = optExpr.map(transformExpr(_)(name, (Map(), Map()), ctx))
     S.ModuleDef(symName, symDefs, symExpr)
-
 
 }
