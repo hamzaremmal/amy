@@ -1,11 +1,13 @@
 package amyc.backend.wasm
 
+import amyc.core.Context
+
 // A WebAssembly module
 case class Module(name: String, imports: List[String], globals: Int, functions: List[Function]) {
 
   import java.io.{File, FileWriter}
 
-  def writeWasmText(fileName: String) = {
+  def writeWasmText(fileName: String)(using Context) = {
     val fw = new FileWriter(new File(fileName))
     fw.write(ModulePrinter(this))
     fw.flush()

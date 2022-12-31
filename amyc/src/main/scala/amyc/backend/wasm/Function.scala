@@ -1,11 +1,12 @@
 package amyc.backend.wasm
 
 import Instructions.Code
+import amyc.core.Context
 
 // If isMain = false, represents a function which returns an i32 and will not be exported to js
 // If isMain = true , represents a function which does not return a value, and will be exported to js
 class Function private (val name: String, val args: Int, val isMain: Boolean, val locals: Int, val code: Code) {
-  override def toString: String = ModulePrinter(this)
+  def show(using Context): String = ModulePrinter(this)
 }
 
 class LocalsHandler(args: Int) {

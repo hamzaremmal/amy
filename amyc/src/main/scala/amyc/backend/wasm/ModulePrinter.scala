@@ -1,17 +1,21 @@
 package amyc.backend.wasm
 
-import scala.language.implicitConversions
+import amyc.core.Context
 import amyc.utils._
 import Instructions._
+import amyc.backend.codegen.Utils
 
 // Printer for Wasm modules
 object ModulePrinter {
   private implicit def s2d(s: String): Raw = Raw(s)
 
-  private def mkMod(mod: Module): Document = Stacked(
+  private def mkMod(mod: Module)(using Context): Document = Stacked(
     "(module ",
     Indented(Stacked(mod.imports map mkImport)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
+    // TODO HR : Change the size of the table, it should depend on how many lamdba's are defined
+    Indented("(table 2 funcref)"),
+    Indented(Stacked(Utils.defaultFunTypes.map(Raw(_)))),
     Indented(Stacked(mod.functions map mkFun)),
     ")"
   )
@@ -110,8 +114,8 @@ object ModulePrinter {
     }
   }
 
-  def apply(mod: Module) = mkMod(mod).print
-  def apply(fh: Function) = mkFun(fh).print
-  def apply(instr: Instruction) = mkInstr(instr).print
+  def apply(mod: Module)(using Context) = mkMod(mod).print
+  def apply(fh: Function)(using Context) = mkFun(fh).print
+  def apply(instr: Instruction)(using Context) = mkInstr(instr).print
 
 }
