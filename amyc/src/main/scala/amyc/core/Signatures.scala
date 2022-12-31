@@ -7,12 +7,14 @@ import scala.collection.immutable.List
 
 object Signatures{
 
-  trait Signature[RT <: Type] {
+  trait Signature[RT <: Type]() {
     val argTypes: List[Type]
     val retType: RT
   }
 
-  trait ApplicationSig[RT <: Type](val owner: Identifier) extends Signature[RT]
+  trait ApplicationSig[RT <: Type] extends Signature[RT]{
+    val owner : Identifier
+  }
 
   /**
     * The signature of a function in the symbol table
@@ -21,7 +23,7 @@ object Signatures{
     * @param retType  Return type of the function
     * @param owner    Name of the module in which the function is defined
     */
-  case class FunSig(argTypes: List[Type], retType: Type, override val owner: Identifier) extends ApplicationSig[Type](owner)
+  case class FunSig(argTypes: List[Type], retType: Type, owner: Identifier) extends ApplicationSig[Type]
 
   /**
     * The signature of a constructor in the symbol table
@@ -43,6 +45,6 @@ object Signatures{
     * @param retType
     * @param index - index in the webassembly table
     */
-  case class LambdaSig(argTypes: List[Type], retType: Type, index: Int, override val owner: Identifier) extends ApplicationSig[Type](owner)
+  case class LambdaSig(argTypes: List[Type], retType: Type, index: Int, owner: Identifier) extends ApplicationSig[Type]
 
 }
