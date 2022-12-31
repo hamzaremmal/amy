@@ -66,6 +66,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
     word("fn") | word("else") | word("extends") |
     word("if") | word("match") | word("object") |
     word("val") | word("error") | word("_") | word("end")
+    word("lambda")
     |> { (cs, range) =>
       withPosition(range._1) {
         KeywordToken(cs.mkString)
