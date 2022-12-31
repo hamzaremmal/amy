@@ -1,10 +1,10 @@
 package amyc
 
-import amyc.backend.codegen.CodeGen
 import parsing.*
 import analyzer.NameAnalyzer
 import typer.Typer
 import amyc.backend.js.runners.CodePrinterExecutor
+import amyc.backend.wasm.codegen.CodeGen
 import amyc.utils.Pipeline
 
 import java.io.File

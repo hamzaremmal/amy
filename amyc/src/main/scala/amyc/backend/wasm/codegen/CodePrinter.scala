@@ -1,4 +1,4 @@
-package amyc.backend.codegen
+package amyc.backend.wasm.codegen
 
 import amyc.backend.wasm.{Module, wrapper}
 import amyc.utils.FileWriter

@@ -1,6 +1,6 @@
 package amyc
 
-import amyc.backend.codegen.{CodeGen, CodePrinter}
+import amyc.backend.wasm.codegen.{CodeGen, CodePrinter}
 import amyc.utils.{AmycFatalError, FetchFiles, Frontend, Pipeline}
 import amyc.core.Context.inFreshContext
 import amyc.utils.Pipeline.execute

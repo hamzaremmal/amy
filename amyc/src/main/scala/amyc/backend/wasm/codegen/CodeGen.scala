@@ -1,4 +1,4 @@
-package amyc.backend.codegen
+package amyc.backend.wasm.codegen
 
 import amyc.*
 import amyc.core.Signatures.*
