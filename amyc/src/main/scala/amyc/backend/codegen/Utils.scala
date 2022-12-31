@@ -1,10 +1,9 @@
 package amyc.backend.codegen
 
-import amyc.analyzer.ConstrSig
 import amyc.ast.Identifier
 import amyc.backend.wasm
 import amyc.backend.wasm.Instructions.*
-
+import amyc.core.Signatures.*
 import amyc.core.Context
 import amyc.reporter
 

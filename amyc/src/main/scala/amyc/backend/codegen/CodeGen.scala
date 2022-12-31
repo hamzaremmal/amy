@@ -1,12 +1,12 @@
 package amyc.backend.codegen
 
 import amyc.*
+import amyc.core.Signatures.*
 import amyc.ast.Identifier
 import amyc.core.StdNames.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.utils.Pipeline
 import Utils.*
-import amyc.analyzer.ConstrSig
 import amyc.backend.wasm
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.LocalsHandler

@@ -1,9 +1,10 @@
 package amyc.typer
 
-import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
+import amyc.analyzer.SymbolTable
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.{Context, StdNames}
+import amyc.core.Signatures.*
 import amyc.core.StdNames.*
 import amyc.{reporter, symbols}
 import amyc.utils.Pipeline

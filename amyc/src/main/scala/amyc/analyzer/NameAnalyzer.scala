@@ -3,6 +3,7 @@ package analyzer
 
 import amyc.{core, *}
 import amyc.utils.*
+import amyc.core.Signatures.*
 import amyc.ast.{Identifier, NominalTreeModule as N, SymbolicTreeModule as S}
 import amyc.core.StdNames.binOp
 

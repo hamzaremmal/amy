@@ -14,7 +14,8 @@ object ModulePrinter {
     Indented(Stacked(mod.imports map mkImport)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
     // TODO HR : Change the size of the table, it should depend on how many lamdba's are defined
-    Indented("(table 2 funcref)"),
+    Indented(s"(table ${mod.functions.length} funcref)"),
+    Indented(Raw(s"${mod.functions.map(x => s"$$${x.name}").mkString("(elem (i32.const 0) ", " ", ")")}")),
     Indented(Stacked(Utils.defaultFunTypes.map(Raw(_)))),
     Indented(Stacked(mod.functions map mkFun)),
     ")"

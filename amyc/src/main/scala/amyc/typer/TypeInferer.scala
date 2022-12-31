@@ -1,6 +1,7 @@
 package amyc.typer
 
-import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
+import amyc.analyzer.SymbolTable
+import amyc.core.Signatures.*
 import amyc.ast.Identifier
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
