@@ -20,6 +20,9 @@ object Position {
   def fromFile(f: File, i: Int) = {
     SourcePosition(f, lineOf(i), columnOf(i))
   }
+
+  def withPosition[A <: Positioned](position: Position)(body : => A) : A =
+    body.setPos(position)
 }
 
 abstract class Position {
