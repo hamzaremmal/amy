@@ -1,5 +1,6 @@
 package amyc.backend.wasm
 
+import amyc.*
 import amyc.core.Context
 import amyc.utils._
 import Instructions._
@@ -13,13 +14,17 @@ object ModulePrinter {
     "(module ",
     Indented(Stacked(mod.imports map mkImport)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
-    // TODO HR : Change the size of the table, it should depend on how many lamdba's are defined
     Indented(s"(table ${mod.functions.length} funcref)"),
-    Indented(Raw(s"${mod.functions.map(x => s"$$${x.name}").mkString("(elem (i32.const 0) ", " ", ")")}")),
-    Indented(Stacked(Utils.defaultFunTypes.map(Raw(_)))),
+    Indented(registerFunction(mod.functions.filterNot(_.isMain))),
+    Indented(Stacked(Utils.defaultFunTypes.map(Raw))),
     Indented(Stacked(mod.functions map mkFun)),
     ")"
   )
+
+  private def registerFunction(fn: List[Function])(using Context): Document =
+    val names = for f <- fn.sorted(_.idx - _.idx) yield s"$$${f.name}"
+    reporter.info(s"${fn.map(_.idx)}")
+    Raw(s"(elem (i32.const 0) ${names.mkString(" ")})")
 
   private def mkImport(s: String): Document =
     Lined(List("(import ", s, ")"))
@@ -93,6 +98,7 @@ object ModulePrinter {
       case Return => "ret"
       case End => "end"
       case Call(name) => s"call $$$name"
+      case CallIndirect(tpe) => s"call_indirect (type $tpe)"
       case Unreachable => "unreachable"
       case GetLocal(index) => s"local.get $index"
       case SetLocal(index) => s"local.set $index"

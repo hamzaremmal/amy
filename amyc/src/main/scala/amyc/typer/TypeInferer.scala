@@ -83,7 +83,7 @@ object TypeInferer extends Pipeline[Program, Program]{
           case Some(tpe: Type) =>
             e.withType(tpe)
             topLevelConstraint(tpe)
-          case Some(FunSig(argTypes, retType,_)) =>
+          case Some(FunSig(argTypes, retType,_, _)) =>
             e.withType(FunctionType(argTypes.map(TypeTree), TypeTree(retType)))
             topLevelConstraint(retType)
             // TODO HR: Need to test the implementation of the code here
@@ -148,7 +148,7 @@ object TypeInferer extends Pipeline[Program, Program]{
             }
             e.withType(constr.retType)
             topLevelConstraint(constr.retType) ::: argsConstraint
-          case Some(FunSig(args_tpe, rte_tpe, _)) =>
+          case Some(FunSig(args_tpe, rte_tpe, _, _)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
               (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
             }

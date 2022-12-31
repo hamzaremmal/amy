@@ -14,6 +14,7 @@ object Signatures{
 
   trait ApplicationSig[RT <: Type] extends Signature[RT]{
     val owner : Identifier
+    val idx : Int // Index in the table of a module
   }
 
   /**
@@ -23,7 +24,7 @@ object Signatures{
     * @param retType  Return type of the function
     * @param owner    Name of the module in which the function is defined
     */
-  case class FunSig(argTypes: List[Type], retType: Type, owner: Identifier) extends ApplicationSig[Type]
+  case class FunSig(argTypes: List[Type], retType: Type, owner: Identifier, idx: Int) extends ApplicationSig[Type]
 
   /**
     * The signature of a constructor in the symbol table
@@ -34,7 +35,7 @@ object Signatures{
     *                 This is useful for code generation, where we need a runtime representation of which
     *                 instance of the parent type a value represents.
     */
-  case class ConstrSig(argTypes: List[Type], parent: Identifier, index: Int) extends Signature[ClassType] {
+  case class ConstrSig(argTypes: List[Type], parent: Identifier, idx: Int) extends Signature[ClassType] {
     val retType = ClassType(parent)
   }
 
@@ -45,6 +46,6 @@ object Signatures{
     * @param retType
     * @param index - index in the webassembly table
     */
-  case class LambdaSig(argTypes: List[Type], retType: Type, index: Int, owner: Identifier) extends ApplicationSig[Type]
+  case class LambdaSig(argTypes: List[Type], retType: Type, idx: Int, owner: Identifier) extends ApplicationSig[Type]
 
 }

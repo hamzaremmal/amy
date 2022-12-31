@@ -62,8 +62,9 @@ class SymbolTable {
 
   def addFunction(owner: String, name: String, argTypes: List[Type], retType: Type) = {
     val s = Identifier.fresh(name)
+    val idx = lambdaIndexes.incrementAndGet()
     defsByName += (owner, name) -> s
-    functions += s -> FunSig(argTypes, retType, getModule(owner).getOrElse(sys.error(s"Module $owner not found!")))
+    functions += s -> FunSig(argTypes, retType, getModule(owner).getOrElse(sys.error(s"Module $owner not found!")), idx)
     s
   }
   def getFunction(owner: String, name: String): Option[(Identifier, ApplicationSig[Type])] = {

@@ -35,6 +35,8 @@ object Instructions {
   case class Block(label: String) extends Instruction // A block of instructions with a label at the end
   case class Br(label: String)    extends Instruction // Jump to "label", which MUST be the label of an enclosing structure
   case class Call(name: String)   extends Instruction
+
+  case class CallIndirect(tpe: String) extends Instruction
   case object Return              extends Instruction
   case object Unreachable         extends Instruction // Always fails the program
 
