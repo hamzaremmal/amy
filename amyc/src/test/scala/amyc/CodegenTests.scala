@@ -4,7 +4,7 @@ import parsing.*
 import analyzer.NameAnalyzer
 import typer.Typer
 import amyc.backend.js.runners.CodePrinterExecutor
-import amyc.backend.wasm.codegen.CodeGen
+import amyc.backend.wasm.WASMCodeGenerator
 import amyc.utils.Pipeline
 
 import java.io.File
@@ -17,5 +17,5 @@ class CodegenTests extends ExecutionTests:
     Parser andThen
     NameAnalyzer andThen
     Typer andThen
-    CodeGen andThen
+    WASMCodeGenerator andThen
     CodePrinterExecutor

@@ -1,11 +1,10 @@
-package amyc.backend.wasm.codegen
+package amyc.backend.wasm
 
-import amyc.backend.wasm.{Module, wrapper}
-import amyc.utils.FileWriter
 import amyc.*
 import amyc.backend.wasm.wrapper.{HTMLWrapper, NodeJSWrapper, WASMFileGenerator, WATFile}
+import amyc.backend.wasm.{Module, wrapper}
 import amyc.core.Context
-import amyc.utils.{Env, Pipeline}
+import amyc.utils.{Env, FileWriter, Pipeline}
 
 import java.io.File
 

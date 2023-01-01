@@ -4,7 +4,7 @@ import amyc.*
 import amyc.core.Context
 import amyc.backend.wasm.Module
 import amyc.utils.Env
-import amyc.backend.wasm.codegen.CodePrinter.*
+import amyc.backend.wasm.CodePrinter.*
 
 import scala.sys.process.*
 import java.io.*

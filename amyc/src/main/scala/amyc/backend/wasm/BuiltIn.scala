@@ -4,7 +4,7 @@ import amyc.*
 import amyc.core.Context
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.codegen.Utils.*
+import Utils.*
 
 object BuiltIn {
 

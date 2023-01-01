@@ -1,10 +1,10 @@
-package amyc.backend.wasm.codegen
+package amyc.backend.wasm
 
 import amyc.ast.Identifier
 import amyc.backend.wasm
 import amyc.backend.wasm.Instructions.*
-import amyc.core.Signatures.*
 import amyc.core.Context
+import amyc.core.Signatures.*
 import amyc.reporter
 
 // Utilities for CodeGen

@@ -4,7 +4,6 @@ import amyc.*
 import amyc.core.Context
 import amyc.utils._
 import Instructions._
-import amyc.backend.wasm.codegen.Utils
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
 
