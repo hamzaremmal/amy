@@ -8,6 +8,8 @@ import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.LocalsHandler
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import Utils.*
+import amyc.ast.Identifier
+import amyc.core.Signatures.FunSig
 
 object BuiltIn {
 
@@ -15,10 +17,27 @@ object BuiltIn {
 
   lazy val wasmFunctions: Context ?=> List[Function] =
     null_fn ::
-    concatImpl ::
-    digitToStringImpl ::
-    readStringImpl ::
-    Nil
+      concatImpl ::
+      digitToStringImpl ::
+      readStringImpl ::
+      Nil
+
+  // ==============================================================================================
+  // ================================ CREATE CODE FOR BUILTIN =====================================
+  // ==============================================================================================
+
+  def builtInForSym(owner: String, name: String)(code: LocalsHandler => Code)(using Context) =
+    val (id, sym) = symbols.getFunction(owner, name).getOrElse{
+      reporter.fatal(s"BuiltIn function ${owner}_$name is not defined - symbol is missing")
+    }
+    Function(fullName(sym.owner, id), sym.argTypes.length, false, sym.idx){
+      code
+    }
+
+  // ==============================================================================================
+  // ======================================= BUILTINs =============================================
+  // ==============================================================================================
+
 
   // Pointer to a null function
   lazy val null_fn : F =
@@ -88,9 +107,8 @@ object BuiltIn {
     }
   }
 
-  lazy val digitToStringImpl: F = {
-    val sym = symbols.getFunction("Std", "digitToString").get._2
-    Function("Std_digitToString", 1, false, sym.idx) { lh =>
+  lazy val digitToStringImpl: F =
+    builtInForSym("Std", "digitToString") { _ =>
       // We know we have to create a string of total size 4 (digit code + padding), so we do it all together
       // We do not need to shift the digit due to little endian structure!
       GetGlobal(memoryBoundary) <:> GetLocal(0) <:> Const('0'.toInt) <:> Add <:> Store <:>
@@ -98,19 +116,16 @@ object BuiltIn {
         GetGlobal(memoryBoundary) <:>
         GetGlobal(memoryBoundary) <:> Const(4) <:> Add <:> SetGlobal(memoryBoundary)
     }
-  }
 
-  lazy val readStringImpl: F = {
-    val sym = symbols.getFunction("Std", "readString").get._2
-    Function("Std_readString", 0, false, sym.idx) { _ =>
+  lazy val readStringImpl: F =
+    builtInForSym("Std", "readString"){ _ =>
       // We need to use the weird interface of javascript read string:
       // we pass the old memory boundary and get the new one.
       // In the end we have to return the old, where the fresh string lies.
       GetGlobal(memoryBoundary) <:>
-      GetGlobal(memoryBoundary) <:>
-      Call("js_readString0") <:>
-      SetGlobal(memoryBoundary)
+        GetGlobal(memoryBoundary) <:>
+        Call("js_readString0") <:>
+        SetGlobal(memoryBoundary)
     }
-  }
 
 }

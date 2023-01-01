@@ -31,7 +31,8 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     if fn.isEmpty then
       None
     else
-      Some(Table(fn.size, resolveOrder(fn.filterNot(_.isMain), null_fn)))
+      val f = resolveOrder(fn.filterNot(_.isMain), null_fn)
+      Some(Table(f.size, f))
 
   // Generate code for an Amy module
   private def cgModule(moduleDef: ModuleDef)(using Context): List[wasm.Function] = {
