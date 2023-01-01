@@ -21,7 +21,7 @@ object WASMFileGenerator {
       }
     }
 
-    val w2wOptions = s"${pathWithExt(m, "wat")} -o ${pathWithExt(m, "wasm")}"
+    val w2wOptions = s"${pathWithExt(m, wat_ext)} -o ${pathWithExt(m, wasm_ext)}"
 
     try {
       try {
@@ -37,7 +37,7 @@ object WASMFileGenerator {
             "or did not have permission to execute. Make sure it is either in the system path, or in <root of the project>/bin"
         )
       case _: RuntimeException =>
-        reporter.fatal(s"wat2wasm failed to translate WebAssembly text file ${pathWithExt(m, "wat")} to binary")
+        reporter.fatal(s"wat2wasm failed to translate WebAssembly text file ${pathWithExt(m, wat_ext)} to binary")
     }
 
   }
