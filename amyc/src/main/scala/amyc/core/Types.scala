@@ -1,4 +1,4 @@
-package amyc.typer
+package amyc.core
 
 object Types {
 
