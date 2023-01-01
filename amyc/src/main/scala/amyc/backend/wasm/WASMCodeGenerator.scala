@@ -10,6 +10,7 @@ import amyc.backend.wasm.Utils.*
 import amyc.core.Signatures.*
 import amyc.core.*
 import amyc.*
+import amyc.backend.wasm.utils.LocalsHandler
 
 // TODO HR: Generate all wasm related files here
 object WASMCodeGenerator extends Pipeline[Program, Module]{
