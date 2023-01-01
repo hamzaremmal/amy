@@ -6,7 +6,6 @@ import amyc.parsing.{Lexer, Parser}
 import amyc.typer.Typer
 import amyc.ast.SymbolicTreeModule.Program
 import amyc.core.Context
-import amyc.transform.LambdaLifter
 
 import java.io.File
 
@@ -16,7 +15,6 @@ object Frontend extends Pipeline[List[File], Program]{
     Lexer andThen
     Parser andThen
     NameAnalyzer andThen
-    LambdaLifter andThen
     Typer
 
   override def run(v: List[File])(using Context) =
