@@ -4,7 +4,25 @@ import scala.language.implicitConversions
 
 // A subset of instructions defined by the WASM standard
 object Instructions {
-  abstract class Instruction
+  sealed abstract class Instruction
+
+  // Represents a sequence of instructions
+  case class Code(instructions: List[Instruction]) {
+    def <:>(i: Instruction) = Code(instructions :+ i)
+
+    def <:>(other: Code) = Code(this.instructions ++ other.instructions)
+  }
+
+  // Useful implicit conversions to construct Code objects
+  implicit def i2c(i: Instruction): Code = Code(List(i))
+
+  implicit def is2c(is: List[Instruction]): Code = Code(is)
+
+  implicit def cs2c(cs: List[Code]): Code = Code(cs flatMap (_.instructions))
+
+  // ==============================================================================================
+  // ============================= ??? ============================================================
+  // ==============================================================================================
 
   // Load an int32 constant to the stack
   case class Const(value: Int) extends Instruction
@@ -62,14 +80,4 @@ object Instructions {
     // Comment
   case class Comment(msg: String) extends Instruction
 
-  // Represents a sequence of instructions
-  case class Code(instructions: List[Instruction]) {
-    def <:>(i: Instruction) = Code(instructions :+ i)
-    def <:>(other: Code) = Code(this.instructions ++ other.instructions)
-  }
-
-  // Useful implicit conversions to construct Code objects
-  implicit def i2c(i: Instruction): Code = Code(List(i))
-  implicit def is2c(is: List[Instruction]): Code = Code(is)
-  implicit def cs2c(cs: List[Code]): Code = Code(cs flatMap (_.instructions))
 }
