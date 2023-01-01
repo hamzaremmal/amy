@@ -1,6 +1,7 @@
 package amyc.backend.wasm
 
 import amyc.*
+import amyc.backend.wasm.utils.fs.*
 import amyc.backend.wasm.wrapper.{HTMLWrapper, NodeJSWrapper, WASMFileGenerator, WATFile}
 import amyc.backend.wasm.{Module, wrapper}
 import amyc.core.Context
@@ -10,25 +11,6 @@ import java.io.File
 
 // Prints all 4 different files from a wasm Module
 object CodePrinter extends Pipeline[Module, Unit]{
-
-  opaque type Extension = String
-
-  val outDirName = "wasmout"
-
-  val wat_ext  : Extension = "wat"
-  val wasm_ext : Extension = "wasm"
-  val html_ext : Extension = "html"
-  val js_ext   : Extension = "js"
-
-  def pathWithExt(module: Module, ext: Extension) = s"$outDirName/${nameWithExt(module, ext)}"
-
-  def nameWithExt(module: Module, ext: Extension) = s"${module.name}.$ext"
-
-  def mkOutputDirectory(using Context) =
-    val outDir = new File(outDirName)
-    if (!outDir.exists()) {
-      outDir.mkdir()
-    }
 
   override val name = "CodePrinter"
 
