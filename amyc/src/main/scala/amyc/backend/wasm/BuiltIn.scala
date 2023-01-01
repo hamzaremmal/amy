@@ -2,8 +2,11 @@ package amyc.backend.wasm
 
 import amyc.*
 import amyc.core.Context
+import amyc.ast.SymbolicTreeModule.StringLiteral
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.utils.LocalsHandler
+import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import Utils.*
 
 object BuiltIn {
@@ -11,18 +14,25 @@ object BuiltIn {
   private type F = Context ?=> Function
 
   lazy val wasmFunctions: Context ?=> List[Function] =
+    null_fn ::
     concatImpl ::
     digitToStringImpl ::
     readStringImpl ::
     Nil
+
+  // Pointer to a null function
+  lazy val null_fn : F =
+    Function("null", 0, false, -1) { lh =>
+      error(cgExpr(StringLiteral("Null function"))(using Map.empty, lh))
+    }
 
   // Built-in implementation of concatenation
   lazy val concatImpl: F = {
     // TODO HR : Add a symbol for this function
     //val sym = symbols.getFunction("S", "concat").get._2
     Function("String_concat", 2, false, 0) { lh =>
-      val ptrS = lh.getFreshLocal()
-      val ptrD = lh.getFreshLocal()
+      val ptrS = lh.getFreshLocal
+      val ptrD = lh.getFreshLocal
       val label = getFreshLabel()
 
       def mkLoop: Code = {

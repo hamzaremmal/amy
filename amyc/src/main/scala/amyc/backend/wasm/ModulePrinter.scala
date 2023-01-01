@@ -15,12 +15,21 @@ object ModulePrinter {
     "(module ",
     Indented(Stacked(mod.imports map mkImport)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
-    Indented(s"(table ${mod.functions.length} funcref)"),
-    Indented(registerFunction(mod.functions.filterNot(_.isMain))),
+    Indented(mkTable(mod.table.get)),
     Indented(Stacked(Utils.defaultFunTypes.map(Raw))),
     Indented(Stacked(mod.functions map mkFun)),
     ")"
   )
+
+  def mkTable(table: Table): Document =
+    val elem: List[Document] = (for f <- table.elems yield Indented(s"$$${f.name} ")) ::: Raw(")") :: Nil
+    val header = Stacked(
+      s"(table ${table.size} funcref)",
+      "(elem (i32.const 0)")
+    Stacked{
+      header :: elem
+    }
+
 
   private def registerFunction(fn: List[Function])(using Context): Document =
     val names = for f <- fn.sorted(_.idx - _.idx) yield s"$$${f.name}"

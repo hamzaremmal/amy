@@ -18,12 +18,24 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   override val name: String = "WASMCodeGenerator"
 
   override def run(program: Program)(using Context): Module =
+    val fn = wasmFunctions ++ (program.modules flatMap cgModule)
     wasm.Module(
       program.modules.last.name.name,
-      defaultImports,
       globalsNo,
-      wasmFunctions ++ (program.modules flatMap cgModule)
+      defaultImports,
+      cgTable(fn),
+      fn
     )
+
+  def cgTable(fn: List[Function])(using Context): Option[Table]=
+    if fn.isEmpty then
+      None
+    else
+      val total = fn.map(_.idx).max
+      val zipped = (0 to total zip List.fill(total)(null_fn)).toMap
+      val idx_f = fn.sorted(_.idx - _.idx).map(f =>(f.idx, f)).toMap
+      val f = (idx_f ++ zipped).values.toList
+      Some(Table(total, fn))
 
   // Generate code for an Amy module
   private def cgModule(moduleDef: ModuleDef)(using Context): List[wasm.Function] = {
@@ -41,7 +53,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   }
 
   // Generate code for a function in module 'owner'
-  private def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): wasm.Function = {
+  def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): wasm.Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
     val name = fullName(owner, fd.name)
@@ -63,7 +75,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   // Additional arguments are a mapping from identifiers (parameters and variables) to
   // their index in the wasm local variables, and a LocalsHandler which will generate
   // fresh local slots as required.
-  private def cgExpr(expr: Expr)(using locals: Map[Identifier, Int], lh: LocalsHandler)(using Context): Code = {
+  def cgExpr(expr: Expr)(using locals: Map[Identifier, Int], lh: LocalsHandler)(using Context): Code = {
     expr match {
       case Variable(name) =>
         val v = locals.get(name) orElse {
@@ -73,7 +85,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         }
         v match
           case i: Int => GetLocal(i)
-          case i: ApplicationSig[_] => Const(i.idx)
+          case i: ApplicationSig[_] => Const(7)
       case IntLiteral(i) => Const(i)
       case BooleanLiteral(b) => //withComment(expr.toString){
         mkBoolean(b)
@@ -120,7 +132,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
             cgExpr(e2)
           }
       case Let(paramDf, value, body) =>
-        val idx = lh.getFreshLocal()
+        val idx = lh.getFreshLocal
         withComment(expr.toString) {
           setLocal(cgExpr(value), idx) <:>
             cgExpr(body)(using locals + (paramDf.name -> idx), lh)
@@ -128,7 +140,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case Ite(cond, thenn, elze) =>
         ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
       case Match(scrut, cases) =>
-        val local = lh.getFreshLocal()
+        val local = lh.getFreshLocal
         setLocal(cgExpr(scrut), local) <:> {
           for
             c <- cases
@@ -174,7 +186,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                         (using locals: Map[Identifier, Int], lh: LocalsHandler)
                         (using Context) = {
     val ConstrSig(_, _, index) = constrSig
-    val local = lh.getFreshLocal()
+    val local = lh.getFreshLocal
 
     GetGlobal(memoryBoundary) <:>
       SetLocal(local) <:>
@@ -236,7 +248,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def genIdPattern(id: Name)
                   (using locals: Map[Identifier, Int], lh: LocalsHandler)
                   (using Context) =
-    val idLocal = lh.getFreshLocal()
+    val idLocal = lh.getFreshLocal
     // HR : We return true as this pattern will be executed if encountered
     (SetLocal(idLocal) <:> mkBoolean(true), Map(id -> idLocal))
 
@@ -267,7 +279,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def genCaseClassPattern(constr: QualifiedName, args: List[Pattern])
                          (using locals: Map[Identifier, Int], lh: LocalsHandler)
                          (using Context) = {
-    val idx = lh.getFreshLocal()
+    val idx = lh.getFreshLocal
     val code = args.map(matchAndBind).zipWithIndex.map {
       p => (adtField(GetLocal(idx), p._2) <:> Load <:> p._1._1, p._1._2)
     }
