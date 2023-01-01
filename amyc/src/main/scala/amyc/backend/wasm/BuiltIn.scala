@@ -30,7 +30,7 @@ object BuiltIn {
   lazy val concatImpl: F = {
     // TODO HR : Add a symbol for this function
     //val sym = symbols.getFunction("S", "concat").get._2
-    Function("String_concat", 2, false, 0) { lh =>
+    Function("String_concat", 2, false, 20) { lh =>
       val ptrS = lh.getFreshLocal
       val ptrD = lh.getFreshLocal
       val label = getFreshLabel()
@@ -101,9 +101,8 @@ object BuiltIn {
   }
 
   lazy val readStringImpl: F = {
-    // TODO HR : Fix symbol for this method
     val sym = symbols.getFunction("Std", "readString").get._2
-    Function("Std_readString", 0, false, 0) { _ =>
+    Function("Std_readString", 0, false, sym.idx) { _ =>
       // We need to use the weird interface of javascript read string:
       // we pass the old memory boundary and get the new one.
       // In the end we have to return the old, where the fresh string lies.

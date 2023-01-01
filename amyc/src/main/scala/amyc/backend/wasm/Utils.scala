@@ -151,4 +151,10 @@ object Utils {
     elze <:>
     End
 
+  def resolveOrder(fn: List[Function], n: => Function)(using Context): List[Function] =
+    def resolve(idx: Int) =
+      fn.find(_.idx == idx).getOrElse(n)
+    val size = fn.map(_.idx).max
+    for i <- (0 to size).toList yield resolve(i)
+
 }

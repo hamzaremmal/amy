@@ -31,11 +31,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     if fn.isEmpty then
       None
     else
-      val total = fn.map(_.idx).max
-      val zipped = (0 to total zip List.fill(total)(null_fn)).toMap
-      val idx_f = fn.sorted(_.idx - _.idx).map(f =>(f.idx, f)).toMap
-      val f = (idx_f ++ zipped).values.toList
-      Some(Table(total, fn))
+      Some(Table(fn.size, resolveOrder(fn.filterNot(_.isMain), null_fn)))
 
   // Generate code for an Amy module
   private def cgModule(moduleDef: ModuleDef)(using Context): List[wasm.Function] = {
@@ -85,7 +81,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         }
         v match
           case i: Int => GetLocal(i)
-          case i: ApplicationSig[_] => Const(7)
+          case i: ApplicationSig[_] => Const(i.idx)
       case IntLiteral(i) => Const(i)
       case BooleanLiteral(b) => //withComment(expr.toString){
         mkBoolean(b)
