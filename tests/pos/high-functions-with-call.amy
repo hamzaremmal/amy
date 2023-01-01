@@ -1,7 +1,7 @@
 object F
 
     fn appendHello(s: String) : String = {
-        "Hello, cv " ++ " " ++ s
+        "Hello" ++ " " ++ s
     }
 
     fn test(s: String, f : (String) => String): String = {

@@ -21,7 +21,7 @@ object fs {
 
   def nameWithExt(module: Module, ext: Extension) = s"${module.name}.$ext"
 
-  def mkOutputDirectory(using Context) =
+  def mkOutputDirectory(using Context): Unit =
     val outDir = new File(outDirName)
     if (!outDir.exists()) {
       outDir.mkdir()

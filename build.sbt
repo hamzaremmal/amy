@@ -6,7 +6,6 @@ ThisBuild / scalaVersion := "3.1.3"
 ThisBuild / version := "1.0"
 ThisBuild / scalacOptions ++= Seq("-feature", "-language:implicitConversions")
 ThisBuild / shellPrompt := (Project.extract(_).currentRef.project + "> ")
-ThisBuild / fork := true
 
 
 // ================================================================================================

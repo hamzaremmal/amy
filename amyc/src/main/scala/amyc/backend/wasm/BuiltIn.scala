@@ -123,9 +123,9 @@ object BuiltIn {
       // we pass the old memory boundary and get the new one.
       // In the end we have to return the old, where the fresh string lies.
       GetGlobal(memoryBoundary) <:>
-        GetGlobal(memoryBoundary) <:>
-        Call("js_readString0") <:>
-        SetGlobal(memoryBoundary)
+      GetGlobal(memoryBoundary) <:>
+      Call("js_readString0") <:>
+      SetGlobal(memoryBoundary)
     }
 
 }
