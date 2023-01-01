@@ -39,13 +39,4 @@ object Signatures{
     val retType = ClassType(parent)
   }
 
-  /**
-    * The signature of a lambda in the symbol table
-    *
-    * @param argTypes
-    * @param retType
-    * @param index - index in the webassembly table
-    */
-  case class LambdaSig(argTypes: List[Type], retType: Type, idx: Int, owner: Identifier) extends ApplicationSig[Type]
-
 }

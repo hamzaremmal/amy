@@ -253,13 +253,6 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
 
       case N.Error(msg) =>
         S.Error(transformExpr(msg))
-      case N.LambdaLiteral(params, rte, body) =>
-        val newParams = params map { case pd@N.ParamDef(name, tt) =>
-          val s = Identifier.fresh(name)
-          val tpe = transformType(tt, module)
-          S.ParamDef(s, S.TypeTree(tpe).setPos(tt)).setPos(pd)
-        }
-        S.LambdaLiteral(newParams, S.TypeTree(transformType(rte, module)), transformExpr(body))
     }
     res.setPos(expr)
   }

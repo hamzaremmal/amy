@@ -367,7 +367,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
   // ==============================================================================================
 
   // A literal expression.
-  lazy val literal: Syntax[Literal[Boolean | Int | String | Unit]] =
+  lazy val literal: Syntax[Literal[Boolean | Int | String]] =
     accept(LiteralKind) {
       case BoolLitToken(value) => BooleanLiteral(value)
       case IntLitToken(value) => IntLiteral(value)
@@ -378,12 +378,6 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
              |Token is : $tk
              |Need to add it a new match case in syntax 'literal'.""".stripMargin
         )
-    }.up[Literal[Boolean | Int | String | Unit]] | lambdaLiteral.up[Literal[Boolean | Int | String | Unit]]
-
-  lazy val lambdaLiteral : Syntax[LambdaLiteral] =
-    kw("lambda") ~>~ inParenthesis(parameters) ~<~ ":" ~ typeTree ~<~ "=>" ~ inBrace(expr) map {
-      case params ~ rte ~ expr =>
-        LambdaLiteral(params, rte, expr)
     }
 
   // ==============================================================================================

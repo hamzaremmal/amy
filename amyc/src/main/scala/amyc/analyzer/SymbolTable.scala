@@ -14,13 +14,13 @@ class SymbolTable {
   private val modules = HashMap[String, Identifier]()
 
   private val types = HashMap[Identifier, Identifier]()
-  private val functions = HashMap[Identifier, ApplicationSig[Type]]()
+  private val functions = HashMap[Identifier, FunSig]()
   private val constructors = HashMap[Identifier, ConstrSig]()
 
   private val typesToConstructors = HashMap[Identifier, List[Identifier]]()
 
   private val constrIndexes = new UniqueCounter[Identifier]
-  private val lambdaIndexes = new AtomicInteger
+  private val funIndexes = new AtomicInteger
 
   def addModule(name: String) = {
     val s = Identifier.fresh(name)
@@ -62,7 +62,7 @@ class SymbolTable {
 
   def addFunction(owner: String, name: String, argTypes: List[Type], retType: Type) = {
     val s = Identifier.fresh(name)
-    val idx = lambdaIndexes.incrementAndGet()
+    val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> s
     functions += s -> FunSig(argTypes, retType, getModule(owner).getOrElse(sys.error(s"Module $owner not found!")), idx)
     s
@@ -74,12 +74,5 @@ class SymbolTable {
     } yield (sym, sig)
   }
   def getFunction(symbol: Identifier) = functions.get(symbol)
-
-  def addLambda(owner:String, argTypes: List[Type], retType: Type) =
-    val idx = lambdaIndexes.incrementAndGet()
-    val name = s"$owner$$_$idx"
-    val ident = Identifier.fresh(name)
-    functions.addOne((ident, LambdaSig(argTypes, retType,idx, getModule(owner).get)))
-    ident
 
 }

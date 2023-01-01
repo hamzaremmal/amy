@@ -47,8 +47,6 @@ trait TreeModule { self =>
   case class StringLiteral(value: String) extends Literal(value)
   case class UnitLiteral() extends Literal(())
 
-  case class LambdaLiteral(params: List[ParamDef], retType: TypeTree, body: Expr) extends Literal(())
-
   // Binary operators
   case class InfixCall(lhs: Expr, op: Name, rhs: Expr) extends Expr
 
