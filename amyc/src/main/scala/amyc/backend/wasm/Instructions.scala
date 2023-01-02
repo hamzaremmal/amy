@@ -4,7 +4,25 @@ import scala.language.implicitConversions
 
 // A subset of instructions defined by the WASM standard
 object Instructions {
-  abstract class Instruction
+  sealed abstract class Instruction
+
+  // Represents a sequence of instructions
+  case class Code(instructions: List[Instruction]) {
+    def <:>(i: Instruction) = Code(instructions :+ i)
+
+    def <:>(other: Code) = Code(this.instructions ++ other.instructions)
+  }
+
+  // Useful implicit conversions to construct Code objects
+  implicit def i2c(i: Instruction): Code = Code(List(i))
+
+  implicit def is2c(is: List[Instruction]): Code = Code(is)
+
+  implicit def cs2c(cs: List[Code]): Code = Code(cs flatMap (_.instructions))
+
+  // ==============================================================================================
+  // ============================= ??? ============================================================
+  // ==============================================================================================
 
   // Load an int32 constant to the stack
   case class Const(value: Int) extends Instruction
@@ -35,6 +53,8 @@ object Instructions {
   case class Block(label: String) extends Instruction // A block of instructions with a label at the end
   case class Br(label: String)    extends Instruction // Jump to "label", which MUST be the label of an enclosing structure
   case class Call(name: String)   extends Instruction
+
+  case class CallIndirect(tpe: String) extends Instruction
   case object Return              extends Instruction
   case object Unreachable         extends Instruction // Always fails the program
 
@@ -60,14 +80,4 @@ object Instructions {
     // Comment
   case class Comment(msg: String) extends Instruction
 
-  // Represents a sequence of instructions
-  case class Code(instructions: List[Instruction]) {
-    def <:>(i: Instruction) = Code(instructions :+ i)
-    def <:>(other: Code) = Code(this.instructions ++ other.instructions)
-  }
-
-  // Useful implicit conversions to construct Code objects
-  implicit def i2c(i: Instruction): Code = Code(List(i))
-  implicit def is2c(is: List[Instruction]): Code = Code(is)
-  implicit def cs2c(cs: List[Code]): Code = Code(cs flatMap (_.instructions))
 }

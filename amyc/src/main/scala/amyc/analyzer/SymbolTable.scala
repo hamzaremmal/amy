@@ -1,37 +1,12 @@
 package amyc.analyzer
 
 import amyc.ast.Identifier
-import amyc.ast.SymbolicTreeModule._
+import amyc.ast.SymbolicTreeModule.*
 import amyc.utils.UniqueCounter
+import amyc.core.Signatures.*
 
+import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable.HashMap
-
-trait Signature[RT <: Type]{
-  val argTypes: List[Type]
-  val retType: RT
-}
-
-/**
-  * The signature of a function in the symbol table
-  *
-  * @param argTypes Types of the args of the function, in order
-  * @param retType Return type of the function
-  * @param owner Name of the module in which the function is defined
-  */
-case class FunSig(argTypes: List[Type], retType: Type, owner: Identifier) extends Signature[Type]
-
-/**
-  * The signature of a constructor in the symbol table
-  *
-  * @param argTypes Types of the args of the constructor, in order
-  * @param parent Identifier of the abstract class that the constructor extends
-  * @param index Constructors extending a parent are numbered, starting at 0 for each parent.
-  *              This is useful for code generation, where we need a runtime representation of which
-  *              instance of the parent type a value represents.
-  */
-case class ConstrSig(argTypes: List[Type], parent: Identifier, index: Int) extends Signature[ClassType] {
-  val retType = ClassType(parent)
-}
 
 // A class that represents a dictionary of symbols for an Amy program
 class SymbolTable {
@@ -45,6 +20,7 @@ class SymbolTable {
   private val typesToConstructors = HashMap[Identifier, List[Identifier]]()
 
   private val constrIndexes = new UniqueCounter[Identifier]
+  private val funIndexes = new AtomicInteger
 
   def addModule(name: String) = {
     val s = Identifier.fresh(name)
@@ -86,11 +62,12 @@ class SymbolTable {
 
   def addFunction(owner: String, name: String, argTypes: List[Type], retType: Type) = {
     val s = Identifier.fresh(name)
+    val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> s
-    functions += s -> FunSig(argTypes, retType, getModule(owner).getOrElse(sys.error(s"Module $owner not found!")))
+    functions += s -> FunSig(argTypes, retType, getModule(owner).getOrElse(sys.error(s"Module $owner not found!")), idx)
     s
   }
-  def getFunction(owner: String, name: String): Option[(Identifier, FunSig)] = {
+  def getFunction(owner: String, name: String): Option[(Identifier, ApplicationSig[Type])] = {
     for {
       sym <- defsByName.get(owner, name)
       sig <- functions.get(sym)

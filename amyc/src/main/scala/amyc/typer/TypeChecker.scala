@@ -1,9 +1,10 @@
 package amyc.typer
 
-import amyc.analyzer.{ConstrSig, FunSig, SymbolTable}
+import amyc.analyzer.SymbolTable
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.{Context, StdNames}
+import amyc.core.Signatures.*
 import amyc.core.StdNames.*
 import amyc.{reporter, symbols}
 import amyc.utils.Pipeline
@@ -129,7 +130,7 @@ object TypeChecker extends Pipeline[Program, Program]{
     args.foreach(check)
     // In case of a function application
     for
-      FunSig(argTypes, retType, _) <- symbols.getFunction(qname)
+      FunSig(argTypes, retType, _, _) <- symbols.getFunction(qname)
     do
       args zip argTypes map ((arg, tpe) => =:=(arg, tpe))
       =:=(expr, retType)

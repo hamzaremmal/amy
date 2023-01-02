@@ -1,7 +1,6 @@
 package amyc.backend.js.runners
 
-import amyc.backend.codegen.CodePrinter
-import amyc.backend.wasm.Module
+import amyc.backend.wasm.{CodePrinter, Module}
 import amyc.core.Context
 import amyc.utils.Pipeline
 import amyc.utils.AmycFatalError

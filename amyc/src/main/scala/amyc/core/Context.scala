@@ -24,7 +24,7 @@ case class Context private (reporter: Reporter){
         reporter.fatal(s"Cannot access the symbol table before the NameAnalyzer")
     }
 
-  def withSymTable(table: SymbolTable) =
+  def withSymTable(table: SymbolTable): Unit =
     _symtable match
       case None if phase == NameAnalyzer.name => _symtable = Some(table)
       case _ => reporter.fatal(s"Cannot change the symbol table in a compiler Run")
@@ -33,7 +33,7 @@ case class Context private (reporter: Reporter){
   // ===================================== PHASE MANAGEMENT =======================================
   // ==============================================================================================
 
-  def atPhase(pipeline: Pipeline[_, _]) =
+  def atPhase(pipeline: Pipeline[_, _]): Unit =
     _pipeline = pipeline.name
 
   def phase : String =
@@ -43,7 +43,7 @@ case class Context private (reporter: Reporter){
 
 object Context {
 
-  def inFreshContext[A](body: Context ?=> A) =
+  def inFreshContext[A](body: Context ?=> A): A =
     given ctx : Context = new Context(new Reporter)
     body
 }

@@ -1,20 +1,40 @@
 package amyc.backend.wasm
 
-import scala.language.implicitConversions
+import amyc.*
+import amyc.core.Context
 import amyc.utils._
 import Instructions._
+
+// TODO HR : Remove this object and mix it with the WATFileGenerator
 
 // Printer for Wasm modules
 object ModulePrinter {
   private implicit def s2d(s: String): Raw = Raw(s)
 
-  private def mkMod(mod: Module): Document = Stacked(
+  private def mkMod(mod: Module)(using Context): Document = Stacked(
     "(module ",
     Indented(Stacked(mod.imports map mkImport)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
+    Indented(mkTable(mod.table.get)),
+    Indented(Stacked(Utils.defaultFunTypes.map(Raw))),
     Indented(Stacked(mod.functions map mkFun)),
     ")"
   )
+
+  def mkTable(table: Table): Document =
+    val elem: List[Document] = (for f <- table.elems yield Indented(s"$$${f.name} ")) ::: Raw(")") :: Nil
+    val header = Stacked(
+      s"(table ${table.size} funcref)",
+      "(elem (i32.const 0)")
+    Stacked{
+      header :: elem
+    }
+
+
+  private def registerFunction(fn: List[Function])(using Context): Document =
+    val names = for f <- fn.sorted(_.idx - _.idx) yield s"$$${f.name}"
+    reporter.info(s"${fn.map(_.idx)}")
+    Raw(s"(elem (i32.const 0) ${names.mkString(" ")})")
 
   private def mkImport(s: String): Document =
     Lined(List("(import ", s, ")"))
@@ -88,6 +108,7 @@ object ModulePrinter {
       case Return => "ret"
       case End => "end"
       case Call(name) => s"call $$$name"
+      case CallIndirect(tpe) => s"call_indirect (type $tpe)"
       case Unreachable => "unreachable"
       case GetLocal(index) => s"local.get $index"
       case SetLocal(index) => s"local.set $index"
@@ -110,8 +131,8 @@ object ModulePrinter {
     }
   }
 
-  def apply(mod: Module) = mkMod(mod).print
-  def apply(fh: Function) = mkFun(fh).print
-  def apply(instr: Instruction) = mkInstr(instr).print
+  def apply(mod: Module)(using Context) = mkMod(mod).print
+  def apply(fh: Function)(using Context) = mkFun(fh).print
+  def apply(instr: Instruction)(using Context) = mkInstr(instr).print
 
 }

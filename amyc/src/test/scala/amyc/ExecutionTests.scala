@@ -12,9 +12,9 @@ abstract class ExecutionTests extends TestSuite {
   // ======================================== TESTS ===============================================
   // ==============================================================================================
 
-  @Test def testEmptyObject = shouldOutput("EmptyObject")
+  @Test def testEmptyObject = shouldOutput(List("Std", "EmptyObject"), "EmptyObject")
 
-  @Test def testMinimalError = shouldFail("MinimalError")
+  @Test def testMinimalError = shouldFail(List("Std", "MinimalError"))
 
   @Test def testStringInputToOutput = shouldOutput(List("Std", "StringInputToOutput.grading"), "StringInputToOutput.grading", "Hello World\nHello World again")
 
@@ -24,7 +24,7 @@ abstract class ExecutionTests extends TestSuite {
 
   @Test def testBasicArithmetic = shouldOutput(List("Std", "BasicArithmetic.grading"), "BasicArithmetic.grading", "")
 
-  @Test def testDivisionByZero = shouldFail("Division.grading")
+  @Test def testDivisionByZero = shouldFail(List("Std", "Division.grading"))
 
   @Test def testBasicPatternMatching = shouldOutput(List("Std", "BasicPatternMatching.grading"), "BasicPatternMatching.grading", "")
 
@@ -32,7 +32,7 @@ abstract class ExecutionTests extends TestSuite {
 
   @Test def testBasicConditions = shouldOutput(List("Std", "BasicConditions.grading"), "BasicConditions.grading", "")
 
-  @Test def testBasicError = shouldFail("BasicError.grading")
+  @Test def testBasicError = shouldFail(List("Std", "BasicError.grading"))
 
   @Test def testEquality = shouldOutput(List("Std", "Equality.grading"), "Equality.grading")
 
@@ -42,29 +42,29 @@ abstract class ExecutionTests extends TestSuite {
 
   @Test def testLists = shouldOutput(List("Std", "Option", "List", "TestLists.grading"), "TestLists.grading", "")
 
-  @Test def testMatchError1 = shouldFail("MatchError1.grading")
+  @Test def testMatchError1 = shouldFail(List("Std", "MatchError1.grading"))
 
-  @Test def testMatchError2 = shouldFail("MatchError2.grading")
+  @Test def testMatchError2 = shouldFail(List("Std", "MatchError2.grading"))
 
-  @Test def testMatchError3 = shouldFail("MatchError3.grading")
+  @Test def testMatchError3 = shouldFail(List("Std", "MatchError3.grading"))
 
-  @Test def testMatchError4 = shouldFail("MatchError4.grading")
+  @Test def testMatchError4 = shouldFail(List("Std", "MatchError4.grading"))
 
-  @Test def testMatch1 = shouldPass("Match1.grading")
+  @Test def testMatch1 = shouldPass(List("Std", "Match1.grading"))
 
-  @Test def testMatch2 = shouldPass("Match2.grading")
+  @Test def testMatch2 = shouldPass(List("Std", "Match2.grading"))
 
-  @Test def testMatch3 = shouldPass("Match3.grading")
+  @Test def testMatch3 = shouldPass(List("Std", "Match3.grading"))
 
   @Test def testMatch4 = shouldOutput(List("Std", "Match4.grading"), "Match4.grading")
 
-  @Test def testShortCircuit1 = shouldPass("ShortCircuit.grading")
+  @Test def testShortCircuit1 = shouldPass(List("Std", "ShortCircuit.grading"))
 
-  @Test def testShortCircuit2 = shouldFail("ShortCircuit.grading")
+  @Test def testShortCircuit2 = shouldFail(List("Std","ShortCircuit.grading"))
 
-  @Test def testLocals1 = shouldPass("Locals.grading")
+  @Test def testLocals1 = shouldPass(List("Std","Locals.grading"))
 
-  @Test def testLocals2 = shouldFail("Locals.grading")
+  @Test def testLocals2 = shouldFail(List("Std","Locals.grading"))
 
   @Test def testFunCallEnv = shouldOutput(List("Std", "FunCallEnv.grading"), "FunCallEnv.grading")
 
