@@ -14,7 +14,7 @@ ThisBuild / shellPrompt := (Project.extract(_).currentRef.project + "> ")
 
 lazy val amyc = inputKey[Unit]("run amy's compiler")
 lazy val amy  = inputKey[Unit]("run amy's interpreter")
-lazy val repl = taskKey[Unit]("start a new repl session")
+lazy val repl = inputKey[Unit]("start a new repl session")
 
 // ================================================================================================
 // ======================================== SETTINGS ==============================================
@@ -35,15 +35,22 @@ lazy val amy_setting =
   }.evaluated
 
 lazy val amy_repl =
-  repl := {
-    println("REPL is not implemented yet :-(")
-  }
+  repl := Def.inputTaskDyn {
+    val args = spaceDelimited("<arg>").parsed.toList
+    val main = "amyc.repl.repl";
+    (`amy-repl` / Compile / runMain).toTask((main :: args).mkString(" ", " ", " "))
+  }.evaluated
 
 // ================================================================================================
 // ====================================== PROJECTS ================================================
 // ================================================================================================
 
 lazy val `amy-language` = (project in file("."))
+  .aggregate(
+    `amy-compiler`,
+    `amy-stdlib`,
+    `amy-repl`
+  )
   .settings(
     amy_setting,
     amyc_setting,
@@ -63,6 +70,11 @@ lazy val `amy-stdlib` = (project in file("library"))
   )
 
 lazy val `amy-repl` = (project in file("repl"))
+  .dependsOn(`amy-compiler`)
   .settings(
-
+    libraryDependencies ++= Seq(
+      "org.jline" % "jline-reader" % "3.21.0",
+      "org.jline" % "jline-terminal" % "3.21.0",
+      "org.jline" % "jline-terminal-jna" % "3.21.0"
+    )
   )
