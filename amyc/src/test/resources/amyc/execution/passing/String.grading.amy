@@ -1,0 +1,7 @@
+object String
+
+    fn concat(lhs: String, rhs: String): String = {
+        lhs ++ rhs
+    }
+
+end String

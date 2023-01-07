@@ -18,6 +18,7 @@ object FetchFiles extends Pipeline[List[String], List[File]]{
     files.find(!_.exists()).foreach { f =>
       reporter.fatal(s"File not found: ${f.getName}")
     }
+    reporter.info(s"Compiling ${files.length} Amy source file${if files.length == 1 then "" else "s"}")
     files
 
 }

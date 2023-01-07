@@ -2,9 +2,10 @@ package amyc
 package interpreter
 
 import amyc.utils.*
+import amyc.core.Signatures.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
-import amyc.analyzer.{ConstrSig, SymbolTable}
+import amyc.analyzer.SymbolTable
 import amyc.core.{Context, StdNames}
 import amyc.core.StdNames.*
 import amyc.interpreter.BuiltIns.*

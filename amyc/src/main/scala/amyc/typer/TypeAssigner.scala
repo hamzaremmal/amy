@@ -179,7 +179,6 @@ object TypeAssigner extends Pipeline[Program, Program]{
     val ModuleDef(_, defs, expr) = module
     for df <- defs do assign(df)
     for e <- expr do assign(e)
-    reporter.warning(s"Cannot assign a type to a Module for now")
     module
 
   def assignFunctionDefinition(fn: FunDef)(using Context) =
@@ -188,18 +187,15 @@ object TypeAssigner extends Pipeline[Program, Program]{
     assign(retType)
     assign(body)
     if !isBounded(body.tpe) then body.withType(bound(body.tpe, retType.tpe))
-    reporter.warning(s"Cannot assign a type to a Function Definition for now")
     fn
 
   def assignAbstractClassDef(cls: AbstractClassDef)(using Context) =
     val AbstractClassDef(_) = cls
-    reporter.warning("Cannot assign a type to an `abstract class` definition for now")
     cls
 
   def assignCaseClassDef(cls: CaseClassDef)(using Context) =
     val CaseClassDef(_, fields, _) = cls
     for field <- fields do assign(field)
-    reporter.warning("Cannot assign a type to a `case class` definition for now")
     cls
 
   def assignParamDef(df: ParamDef)(using Context) =
@@ -212,7 +208,6 @@ object TypeAssigner extends Pipeline[Program, Program]{
         mod <- prog.modules
       do
         assign(mod)
-      reporter.warning("Cannot assign a type to a Program for now")
       prog
 
   def assignType(tt: TypeTree)(using Context) =

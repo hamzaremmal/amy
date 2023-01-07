@@ -30,7 +30,7 @@ lazy val amyc_setting =
 lazy val amy_setting =
   amy := Def.inputTaskDyn {
     val args = spaceDelimited("<arg>").parsed.toList
-    val main = "amyc.compiler";
+    val main = "amyc.runner";
     (`amy-compiler` / Compile / runMain).toTask((main :: args).mkString(" ", " ", " "))
   }.evaluated
 
