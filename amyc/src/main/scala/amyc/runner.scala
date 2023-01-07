@@ -4,6 +4,7 @@ import amyc.core.Context.inFreshContext
 import amyc.interpreter.Interpreter
 import amyc.utils.{AmycFatalError, FetchFiles, Frontend, Pipeline}
 import amyc.utils.Pipeline.execute
+import amyc.utils.error.checkAmycErrors
 
 object runner {
 
@@ -14,13 +15,11 @@ object runner {
 
   def main(args: Array[String]): Unit =
     inFreshContext {
-      try
+      checkAmycErrors {
         execute(pipeline) {
           args.toList
         }
-      catch
-        case AmycFatalError(_) =>
-          sys.exit(1)
+      }
     }
 
 }

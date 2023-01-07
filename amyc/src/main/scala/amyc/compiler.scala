@@ -3,6 +3,7 @@ package amyc
 import amyc.backend.wasm.{CodePrinter, WASMCodeGenerator}
 import amyc.utils.{AmycFatalError, FetchFiles, Frontend, Pipeline}
 import amyc.core.Context.inFreshContext
+import amyc.utils.error.checkAmycErrors
 import amyc.utils.Pipeline.execute
 
 object compiler {
@@ -15,13 +16,11 @@ object compiler {
 
   def main(args: Array[String]): Unit =
     inFreshContext {
-      try
-        execute(pipeline){
+      checkAmycErrors {
+        execute(pipeline) {
           args.toList
         }
-      catch
-        case AmycFatalError(_) =>
-          sys.exit(1)
+      }
     }
 
 }
