@@ -145,6 +145,12 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
           case Some(id: Identifier) => S.Variable(id)
           case Some((id:Identifier, _)) => S.Variable(id)
           case _ => reporter.fatal(s"Variable $name not found", expr)
+      case N.FunRef(N.QualifiedName(module, name)) =>
+        // TODO HR : get won't throw an exception; operation guaranteed to work
+        val sym = symbols.getFunction(module.get, name)
+          .getOrElse(reporter.fatal(s"Fix error message here"))
+          ._1
+        S.FunRef(sym)
       case N.IntLiteral(value) =>
         S.IntLiteral(value)
       case N.BooleanLiteral(value) =>

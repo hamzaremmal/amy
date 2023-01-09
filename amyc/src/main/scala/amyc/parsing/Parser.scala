@@ -157,10 +157,11 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     case IdentifierToken(name) => name
   }
   // A QualifiedName (identifier.identifier)
-  def qualifiedName: Syntax[(Option[String], String)] =
-    (identifier ~ opt("." ~>~ identifier)) map {
-      case id ~ Some(id2) => (Some(id), id2)
-      case id ~ None => (None, id)
+  def qualifiedName: Syntax[QualifiedName | Name | FunRef] =
+    (identifier ~ opt(("." | "::") ~ identifier)) map {
+      case id ~ Some(DelimiterToken(".") ~ id2) => QualifiedName(Some(id), id2)
+      case id ~ Some(DelimiterToken("::") ~ id2) => FunRef(QualifiedName(Some(id), id2))
+      case id ~ None => id
     }
 
   // ==============================================================================================
@@ -197,8 +198,8 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
   // A user-defined type (such as `List`).
   lazy val identifierType: Syntax[TypeTree] =
     qualifiedName map {
-      case (Some(id), id2) => TypeTree(ClassType(QualifiedName(Some(id), id2)))
-      case (None, id) => TypeTree(ClassType(QualifiedName(None, id)))
+      case qn: QualifiedName => TypeTree(ClassType(qn))
+      case id: Name => TypeTree(ClassType(QualifiedName(None, id)))
     }
 
   lazy val functionType: Syntax[TypeTree] =
@@ -258,14 +259,13 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
   lazy val idOrCaseClassPattern : Syntax[IdPattern | CaseClassPattern] =
     (qualifiedName ~ opt(inParenthesis(patterns))) map {
       // Only an identifier
-      case (None, id) ~ None =>
-        IdPattern(id)
+      case (id: Name) ~ None => IdPattern(id)
       // Case class wih simple name or qualified name
-      case (None, id) ~ Some(patterns) =>
+      case (id: Name) ~ Some(patterns) =>
         CaseClassPattern(QualifiedName(None, id), patterns.toList)
-      case (Some(id), id2) ~ Some(patterns) =>
-        CaseClassPattern(QualifiedName(Some(id), id2), patterns.toList)
-      case (Some(id), id2) ~ None =>
+      case (qn:QualifiedName) ~ Some(patterns) =>
+        CaseClassPattern(qn, patterns.toList)
+      case QualifiedName(Some(id), id2) ~ None =>
         throw AmycFatalError(s"Cannot have qualified name $id.$id2 without parameters")
     }
 
@@ -346,13 +346,15 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
 
   lazy val variableOrCall: Syntax[Expr] =
     (qualifiedName ~ opt(inParenthesis(args))) map {
-      case (Some(id), id2) ~ Some(args) =>
-        Call(QualifiedName(Some(id), id2), args.toList)
-      case (None, id) ~ Some(args) =>
+      case (qn: QualifiedName) ~ Some(args) =>
+        Call(qn, args.toList)
+      case (id: Name) ~ Some(args) =>
         Call(QualifiedName(None, id), args.toList)
-      case (None, id) ~ None =>
-        Variable(id)
-      case (Some(id), id2) ~ None =>
+      case (id: Name) ~ None => Variable(id)
+      case (fr: FunRef) ~ None => fr
+      case (_: FunRef) ~ Some(_) =>
+        throw AmycFatalError(s"Cannot reference to a function with parameters")
+      case QualifiedName(Some(id), id2) ~ None =>
         throw AmycFatalError(s"Call to $id.$id2 is missing the parameters")
     }
 
