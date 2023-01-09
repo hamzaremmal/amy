@@ -75,14 +75,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def cgExpr(expr: Expr)(using locals: Map[Identifier, Int], lh: LocalsHandler)(using Context): Code = {
     expr match {
       case Variable(name) =>
-        val v = locals.get(name) orElse {
-          symbols.getFunction(name)
-        } getOrElse {
-          reporter.fatal(s"todo")
-        }
-        v match
-          case i: Int => GetLocal(i)
-          case i: ApplicationSig[_] => Const(i.idx)
+        GetLocal(locals.get(name).getOrElse(reporter.fatal(s"todo")))
       case FunRef(ref) =>
         val sig = symbols.getFunction(ref) getOrElse {
           reporter.fatal("todo")

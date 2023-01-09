@@ -4,9 +4,10 @@ object F
         "Hello" ++ " " ++ s
     }
 
-    fn test(s: String, f : (String) => Unit): Unit = {
+    fn test(s: String, f : (String) => String): String = {
         f(s)
     }
 
-    test("World", Std::printString)
+    val t : String = test("World", F::appendHello);
+    Std.printString(t)
 end F

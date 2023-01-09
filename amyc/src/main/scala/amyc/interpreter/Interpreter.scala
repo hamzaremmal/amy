@@ -19,16 +19,11 @@ object Interpreter extends Pipeline[Program, Unit] {
   override val name = "Interpreter"
 
   override def run(program: Program)(using Context): Unit = {
-    // Body of the interpreter: Go through every module in order
-    // and evaluate its expression if present
-    val env = new mutable.HashMap[Name, FunctionValue]()
-    for m <- program.modules do env ++= loadFunctions(m)
-
     for {
       m <- program.modules
       e <- m.optExpr
     } do
-      interpret(e, program)(env.toMap, ctx)
+      interpret(e, program)(Map.empty, ctx)
   }
 
   def findFunctionOwner(functionName: Identifier)(using Context) =

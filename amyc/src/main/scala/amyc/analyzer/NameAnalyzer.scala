@@ -138,12 +138,9 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
         // Local variables shadow parameters!
         val sym = locals.get(name) orElse {
           params.get(name)
-        } orElse {
-          symbols.getFunction(module, name)
         }
         sym match
           case Some(id: Identifier) => S.Variable(id)
-          case Some((id:Identifier, _)) => S.Variable(id)
           case _ => reporter.fatal(s"Variable $name not found", expr)
       case N.FunRef(N.QualifiedName(module, name)) =>
         // TODO HR : get won't throw an exception; operation guaranteed to work

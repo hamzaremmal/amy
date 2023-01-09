@@ -76,17 +76,11 @@ object TypeInferer extends Pipeline[Program, Program]{
     e match {
       // ===================== Type Check Variables =============================
       case Variable(name) =>
-        val symbol = env.get(name) orElse {
-          symbols.getFunction(name)
-        }
+        val symbol = env.get(name)
         symbol match {
           case Some(tpe: Type) =>
             e.withType(tpe)
             topLevelConstraint(tpe)
-          case Some(FunSig(argTypes, retType,_, _)) =>
-            e.withType(FunctionType(argTypes.map(TypeTree), TypeTree(retType)))
-            topLevelConstraint(retType)
-            // TODO HR: Need to test the implementation of the code here
           case _ =>
             e.withType(ErrorType)
             ctx.reporter.error(s"Cannot find symbol $name")
