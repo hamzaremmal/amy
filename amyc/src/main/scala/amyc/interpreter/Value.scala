@@ -112,3 +112,5 @@ case object UnitValue extends Value
 case class CaseClassValue(constructor: Identifier, args: List[Value]) extends Value
 
 case class FunctionValue(args: List[Identifier], body: Expr) extends Value
+
+case class BuiltInFunctionValue(fn: BuiltIns.BuiltInFunction) extends Value
