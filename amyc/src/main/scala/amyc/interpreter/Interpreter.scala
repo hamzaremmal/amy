@@ -50,10 +50,12 @@ object Interpreter extends Pipeline[Program, Unit] {
         val owner = findFunctionOwner(ref)
         builtIns.get(owner, ref.name) map {
           BuiltInFunctionValue
-        } orElse  {
-          locals.get(ref)
+        } orElse {
+          findFunction(program, owner, ref.name) map { fd =>
+            FunctionValue(fd.params.map(_.name), fd.body)
+          }
         } getOrElse {
-          reporter.fatal("todo")
+            reporter.fatal("Function not found")
         }
       case IntLiteral(i) => IntValue(i)
       case BooleanLiteral(b) => BooleanValue(b)
