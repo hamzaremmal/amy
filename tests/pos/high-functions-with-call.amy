@@ -8,7 +8,5 @@ object F
         f(s)
     }
 
-    val t : String = test("World", Std::printString);
-    Std.printString(t)
-
+    test("World", Std::printString)
 end F

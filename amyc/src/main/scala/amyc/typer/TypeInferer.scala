@@ -92,6 +92,10 @@ object TypeInferer extends Pipeline[Program, Program]{
             ctx.reporter.error(s"Cannot find symbol $name")
             Nil
         }
+      case FunRef(id) =>
+        val FunSig(argTypes, retType,_, _) = symbols.getFunction(id).get
+        e.withType(FunctionType(argTypes.map(TypeTree), TypeTree(retType)))
+        Nil
       // ===================== Type Check Literals ==============================
       case IntLiteral(_) =>
         e.withType(IntType)
