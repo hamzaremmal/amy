@@ -20,15 +20,15 @@ case class Function private (name: String, args: Int, isMain: Boolean, locals: I
 
 object Function {
 
-  def apply(name: String, args: Int, isMain: Boolean, idx: Int)(codeGen: LocalsHandler => Code): Function =
-    val lh = new LocalsHandler(args)
+  def apply(name: String, args: Int, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
+    given lh : LocalsHandler = new LocalsHandler(args)
     // Make code first, as it may increment the locals in lh
-    val code = codeGen(lh)
+    val code = codeGen
     new Function(name, args, isMain, lh.locals, code, idx)
 
 }
 
-case class Table(size: Int, elems: List[Function])(using @constructorOnly ctx: Context)
-  //require(elems.size == size)
+case class Table(size: Int, elems: List[Function])(using Context):
+  require(elems.size == size)
 
 case class Import(elem: String)

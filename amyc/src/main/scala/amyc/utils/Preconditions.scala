@@ -6,7 +6,7 @@ import amyc.core.Context
 object Preconditions {
 
   inline def require(cc: Boolean)(using Context): Unit =
-    reporter.fatal(s"require error")
+    if !cc then reporter.fatal(s"require error")
 
   inline def require[A](cc: Boolean)(body: => A)(using Context): A =
     if(cc)

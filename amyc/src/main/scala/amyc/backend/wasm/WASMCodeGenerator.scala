@@ -4,6 +4,7 @@ import amyc.ast.*
 import amyc.utils.Pipeline
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.backend.wasm
+import amyc.backend.wasm.*
 import amyc.backend.wasm.BuiltIn.*
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.Utils.*
@@ -55,9 +56,9 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     // module and function name, since we put everything in the same wasm module.
     val name = fullName(owner, fd.name)
     val sig = symbols.getFunction(owner.name, fd.name.name).map(_._2.idx).getOrElse(0)
-    wasm.Function(name, fd.params.size, isMain, sig) { lh =>
+    wasm.Function(name, fd.params.size, isMain, sig) {
       val locals = fd.paramNames.zipWithIndex.toMap
-      val body = cgExpr(fd.body)(using locals, lh)
+      val body = cgExpr(fd.body)(using locals)
       withComment(fd.toString) {
         if isMain then
           body <:> Drop // Main functions do not return a value,
@@ -72,7 +73,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   // Additional arguments are a mapping from identifiers (parameters and variables) to
   // their index in the wasm local variables, and a LocalsHandler which will generate
   // fresh local slots as required.
-  def cgExpr(expr: Expr)(using locals: Map[Identifier, Int], lh: LocalsHandler)(using Context): Code = {
+  def cgExpr(expr: Expr)(using locals: Map[Identifier, Int])(using LocalsHandler)(using Context): Code = {
     expr match {
       case Variable(name) =>
         GetLocal(locals.get(name).getOrElse(reporter.fatal(s"todo")))
@@ -130,7 +131,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         val idx = lh.getFreshLocal
         withComment(expr.toString) {
           setLocal(cgExpr(value), idx) <:>
-            cgExpr(body)(using locals + (paramDf.name -> idx), lh)
+            cgExpr(body)(using locals + (paramDf.name -> idx))
         }
       case Ite(cond, thenn, elze) =>
         ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
@@ -144,7 +145,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
             GetLocal(local) <:>
               cond <:>
               If_i32 <:>
-              cgExpr(c.expr)(using locals ++ loc, lh) <:>
+              cgExpr(c.expr)(using locals ++ loc) <:>
               Else
           // Else here become we are building a big if else bloc.
           // Last bloc will be concatenated with the Match error below and the

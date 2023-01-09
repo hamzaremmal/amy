@@ -2,6 +2,7 @@ package amyc.backend.wasm
 
 import amyc.*
 import amyc.core.Context
+import amyc.ast.SymbolicTreeModule.StringType
 import amyc.ast.SymbolicTreeModule.StringLiteral
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
@@ -17,16 +18,16 @@ object BuiltIn {
 
   lazy val wasmFunctions: Context ?=> List[Function] =
     null_fn ::
-      concatImpl ::
-      digitToStringImpl ::
-      readStringImpl ::
-      Nil
+    concatImpl ::
+    digitToStringImpl ::
+    readStringImpl ::
+    Nil
 
   // ==============================================================================================
   // ================================ CREATE CODE FOR BUILTIN =====================================
   // ==============================================================================================
 
-  def builtInForSym(owner: String, name: String)(code: LocalsHandler => Code)(using Context) =
+  def builtInForSym(owner: String, name: String)(code: LocalsHandler ?=> Code)(using Context) =
     val (id, sym) = symbols.getFunction(owner, name).getOrElse{
       reporter.fatal(s"BuiltIn function ${owner}_$name is not defined - symbol is missing")
     }
@@ -41,15 +42,18 @@ object BuiltIn {
 
   // Pointer to a null function
   lazy val null_fn : F =
-    Function("null", 0, false, -1) { lh =>
-      error(cgExpr(StringLiteral("Null function"))(using Map.empty, lh))
+    Function("null", 0, false, 0) {
+      error(cgExpr(StringLiteral("Null function"))(using Map.empty))
     }
 
   // Built-in implementation of concatenation
-  lazy val concatImpl: F = {
-    // TODO HR : Add a symbol for this function
-    //val sym = symbols.getFunction("S", "concat").get._2
-    Function("String_concat", 2, false, 20) { lh =>
+  lazy val concatImpl: F =
+  // Register function because it's missing
+  // TODO HR : This patch should be remove when introducing native functions and this method should
+  // TODO HR : Should be registered as a native method instead of adding it here
+    symbols.addModule("String") // This garanties not to fail since String is considered as a Keyword
+    symbols.addFunction("String", "concat", StringType :: StringType :: Nil, StringType)
+    builtInForSym("String", "concat") {
       val ptrS = lh.getFreshLocal
       val ptrD = lh.getFreshLocal
       val label = getFreshLabel()
@@ -105,10 +109,9 @@ object BuiltIn {
         // Put string pointer to stack, set new memory boundary and return
         GetGlobal(memoryBoundary) <:> GetLocal(ptrD) <:> Const(1) <:> Add <:> SetGlobal(memoryBoundary)
     }
-  }
 
   lazy val digitToStringImpl: F =
-    builtInForSym("Std", "digitToString") { _ =>
+    builtInForSym("Std", "digitToString") {
       // We know we have to create a string of total size 4 (digit code + padding), so we do it all together
       // We do not need to shift the digit due to little endian structure!
       GetGlobal(memoryBoundary) <:> GetLocal(0) <:> Const('0'.toInt) <:> Add <:> Store <:>
@@ -118,7 +121,7 @@ object BuiltIn {
     }
 
   lazy val readStringImpl: F =
-    builtInForSym("Std", "readString"){ _ =>
+    builtInForSym("Std", "readString"){
       // We need to use the weird interface of javascript read string:
       // we pass the old memory boundary and get the new one.
       // In the end we have to return the old, where the fresh string lies.
