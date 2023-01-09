@@ -39,6 +39,8 @@ trait TreeModule { self =>
 
   // Variables
   case class Variable(name: Name) extends Expr
+  // Function reference (Module::name)
+  case class FunRef(name: QualifiedName) extends Expr
 
   // Literals
   trait Literal[+T](value: T) extends Expr

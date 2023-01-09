@@ -8,7 +8,6 @@ object F
         f(s)
     }
 
-    val t : String = test("World", appendHello);
+    val t : String = test("World", F::appendHello);
     Std.printString(t)
-
 end F

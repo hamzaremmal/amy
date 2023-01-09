@@ -11,20 +11,19 @@ import amyc.core.StdNames.*
 import amyc.interpreter.BuiltIns.*
 import amyc.interpreter.*
 
+import scala.collection.mutable
+
 // An interpreter for Amy programs, implemented in Scala
 object Interpreter extends Pipeline[Program, Unit] {
 
   override val name = "Interpreter"
 
   override def run(program: Program)(using Context): Unit = {
-    // Body of the interpreter: Go through every module in order
-    // and evaluate its expression if present
     for {
       m <- program.modules
       e <- m.optExpr
     } do
-      val env = loadFunctions(m)
-      interpret(e, program)(env, ctx)
+      interpret(e, program)(Map.empty, ctx)
   }
 
   def findFunctionOwner(functionName: Identifier)(using Context) =
@@ -47,6 +46,17 @@ object Interpreter extends Pipeline[Program, Unit] {
           case Some(value) => value
           case None =>
             ctx.reporter.fatal(s"variable '$name' is not in scope or defined")
+      case FunRef(ref) =>
+        val owner = findFunctionOwner(ref)
+        builtIns.get(owner, ref.name) map {
+          BuiltInFunctionValue
+        } orElse {
+          findFunction(program, owner, ref.name) map { fd =>
+            FunctionValue(fd.params.map(_.name), fd.body)
+          }
+        } getOrElse {
+            reporter.fatal("Function not found")
+        }
       case IntLiteral(i) => IntValue(i)
       case BooleanLiteral(b) => BooleanValue(b)
       case StringLiteral(s) => StringValue(s)
@@ -91,6 +101,8 @@ object Interpreter extends Pipeline[Program, Unit] {
           case Some(ConstrSig(_, _, _)) =>
             CaseClassValue(qname, args.map(interpret(_, program)))
           case Some(f: BuiltIns.BuiltInFunction) =>
+            f(args.map(interpret(_, program)))
+          case Some(BuiltInFunctionValue(f)) =>
             f(args.map(interpret(_, program)))
           case Some(FunctionValue(n_args, body)) =>
             val vargs = (n_args zip args.map(interpret(_,program))).toMap
