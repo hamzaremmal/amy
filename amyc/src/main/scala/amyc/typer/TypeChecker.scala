@@ -19,6 +19,7 @@ object TypeChecker extends Pipeline[Program, Program]{
   def check(tree: Tree)(using Context): Tree =
     tree match
       case v : Variable => checkVariable(v)
+      case f : FunRef => checkFunRef(f)
       case i : IntLiteral => checkIntLiteral(i)
       case b : BooleanLiteral => checkBooleanLiteral(b)
       case s : StringLiteral => checkStringLiteral(s)
@@ -81,6 +82,9 @@ object TypeChecker extends Pipeline[Program, Program]{
     */
   def checkVariable(v: Variable)(using Context) =
     v
+
+  def checkFunRef(f: FunRef)(using Context) =
+    f
 
   def checkIntLiteral(i: IntLiteral)(using Context) =
     i

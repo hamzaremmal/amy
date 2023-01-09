@@ -57,6 +57,7 @@ object TypeAssigner extends Pipeline[Program, Program]{
   def assign(tree: Tree)(using Context): Tree =
     tree match
       case v: Variable => assignVariable(v)
+      case f: FunRef => assignFunRef(f)
       case i: IntLiteral => assignIntLiteral(i)
       case b: BooleanLiteral => assignBooleanLiteral(b)
       case s: StringLiteral => assignStringLiteral(s)
@@ -87,6 +88,9 @@ object TypeAssigner extends Pipeline[Program, Program]{
 
   def assignVariable(v: Variable)(using Context) =
     infer(v)
+
+  def assignFunRef(f: FunRef)(using Context) =
+    infer(f)
 
   def assignIntLiteral(i: IntLiteral)(using Context) =
     infer(i)
