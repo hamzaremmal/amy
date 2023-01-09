@@ -83,6 +83,11 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         v match
           case i: Int => GetLocal(i)
           case i: ApplicationSig[_] => Const(i.idx)
+      case FunRef(ref) =>
+        val sig = symbols.getFunction(ref) getOrElse {
+          reporter.fatal("todo")
+        }
+        Const(sig.idx)
       case IntLiteral(i) => Const(i)
       case BooleanLiteral(b) => //withComment(expr.toString){
         mkBoolean(b)
