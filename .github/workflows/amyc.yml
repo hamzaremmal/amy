@@ -29,5 +29,7 @@ jobs:
       run: npm install deasync
     - name: Install wat2wasm
       run: sudo apt install wabt
-    - name: Run tests
+    - name: Run the compiler's test
       run: sbt amy-compiler/test
+    - name: Run the interpreter's test
+      run: sbt amy-interpreter/test

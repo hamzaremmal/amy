@@ -1,6 +1,6 @@
-package amyc
-package interpreter
+package amyc.interpreter
 
+import amyc.*
 import amyc.utils.*
 import amyc.core.Signatures.*
 import amyc.ast.SymbolicTreeModule.*
@@ -8,8 +8,10 @@ import amyc.ast.Identifier
 import amyc.analyzer.SymbolTable
 import amyc.core.{Context, StdNames}
 import amyc.core.StdNames.*
-import amyc.interpreter.BuiltIns.*
 import amyc.interpreter.*
+import amyc.interpreter.Value.*
+import amyc.interpreter.BuiltIns.builtIns
+
 
 import scala.collection.mutable
 
