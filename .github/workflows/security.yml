@@ -1,0 +1,16 @@
+name: Amy Compiler Tests
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  synck-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Snyk
+        uses: snyk/actions@0.3.0
+        
+
