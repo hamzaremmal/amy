@@ -18,6 +18,7 @@ ThisBuild / testOptions += Tests.Argument(TestFrameworks.JUnit, "-v")
 
 lazy val amyc_entrypoint = "amyc.compiler"
 lazy val amy_entrypoint  = "amyc.runner"
+lazy val repl_entrypoint = "amyc.repl.repl"
 
 def printUsage =
   println {
@@ -62,8 +63,7 @@ lazy val amy_setting =
 lazy val amy_repl =
   repl := Def.inputTaskDyn {
     val args = spaceDelimited("<arg>").parsed.toList
-    val main = "amyc.repl.repl";
-    (`amy-repl` / Compile / runMain).toTask((main :: args).mkString(" ", " ", " "))
+    (`amy-repl` / Compile / run).toTask(args.mkString(" ", " ", " "))
   }.evaluated
 
 // ================================================================================================
@@ -110,8 +110,11 @@ lazy val `amy-stdlib` = (project in file("library"))
   )
 
 lazy val `amy-repl` = (project in file("repl"))
-  .dependsOn(`amy-compiler`)
-  .settings(
+  .dependsOn(
+    `amy-compiler` % "compile->compile;test->test",
+    `amy-interpreter` % "compile->compile;test->test"
+  ).settings(
+    Compile / mainClass := Some(repl_entrypoint),
     libraryDependencies ++= Seq(
       "org.jline" % "jline-reader" % "3.21.0",
       "org.jline" % "jline-terminal" % "3.21.0",
