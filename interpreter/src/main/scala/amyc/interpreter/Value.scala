@@ -4,19 +4,17 @@ import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.Expr
 import amyc.*
 import amyc.core.Context
-import amyc.interpreter.BooleanValue.*
-import amyc.interpreter.Value.{val2Boolean, val2Int, val2String}
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
 
 // A class that represents a value computed by interpreting an expression
 abstract class Value {
-  final def asInt(using Context): Int = val2Int(this).i
+  final def asInt(using Context): Int = Value.val2Int(this).i
 
-  final def asBoolean(using Context): Boolean = val2Boolean(this).b
+  final def asBoolean(using Context): Boolean = Value.val2Boolean(this).b
 
-  final def asString(using Context): String = val2String(this).s
+  final def asString(using Context): String = Value.val2String(this).s
 
   final infix def ==(value: Value): BooleanValue =
     // TODO HR : Handle if the effective type is not the same in lhs and rhs
