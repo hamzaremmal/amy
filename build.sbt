@@ -29,6 +29,8 @@ def printUsage =
       |         usage : amy  [PATH_TO_FILES]
       |     amyc : Compile files into WebAssembly
       |         usage : amyc [PATH_TO_FILES]
+      |     repl : Start a new REPL session
+      |         usage : repl
       |     help : Print into the terminal the given usage
       |         usage : help
       |""".stripMargin
