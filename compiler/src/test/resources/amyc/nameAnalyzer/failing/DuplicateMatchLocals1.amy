@@ -1,6 +1,6 @@
 object Locals
-  fn foo(): Int(32) = {
-    val i: Int(32) = 42;
+  fn foo(): Int = {
+    val i: Int = 42;
     i match {
       case i => 0
     }

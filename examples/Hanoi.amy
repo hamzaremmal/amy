@@ -1,6 +1,6 @@
 object Hanoi
 	
-  fn solve(n : Int(32)) : Int(32) = {
+  fn solve(n : Int) : Int = {
     if (n < 1) { 
       error("can't solve Hanoi for less than 1 plate")
     } else {

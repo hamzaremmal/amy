@@ -1,19 +1,19 @@
 object L
   abstract class List
   case class Nil() extends List
-  case class Cons(h: Int(32), t: List) extends List
+  case class Cons(h: Int, t: List) extends List
  
   fn isEmpty(l : List): Boolean = { l match {
     case Nil() => true
     case _ => false 
   }}
 
-  fn length(l: List): Int(32) = { l match {
+  fn length(l: List): Int = { l match {
     case Nil() => 0
     case Cons(_, t) => 1 + length(t)
   }}
 
-  fn head(l: List): Int(32) = {
+  fn head(l: List): Int = {
     l match {
       case Cons(h, _) => h
       case Nil() => error("head(Nil)")
@@ -38,27 +38,27 @@ object L
     }
   }
 
-  fn indexOf(l: List, i: Int(32)): Int(32) = {
+  fn indexOf(l: List, i: Int): Int = {
     l match {
       case Nil() => -1
       case Cons(h, t) =>
         if (h == i) { 0 }
         else {
-          val rec: Int(32) = indexOf(t, i);
+          val rec: Int = indexOf(t, i);
           if (0 <= rec) { rec + 1 }
           else { -1 }
         }
     }
   }
 
-  fn range(from: Int(32), to: Int(32)): List = {
+  fn range(from: Int, to: Int): List = {
     if (to < from) { Nil() }
     else {
       Cons(from, range(from + 1, to))
     }
   }
 
-  fn sum(l: List): Int(32) = { l match {
+  fn sum(l: List): Int = { l match {
     case Nil() => 0
     case Cons(h, t) => h + sum(t)
   }}
@@ -70,7 +70,7 @@ object L
     }
   }
 
-  fn contains(l: List, elem: Int(32)): Boolean = { l match {
+  fn contains(l: List, elem: Int): Boolean = { l match {
     case Nil() =>
       false
     case Cons(h, t) =>

@@ -174,7 +174,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     }
 
   // A built-in type (such as `Int`).
-  val primitiveType: Syntax[TypeTree] = (accept(PrimTypeKind) {
+  val primitiveType: Syntax[TypeTree] = accept(PrimTypeKind) {
     case tk@PrimTypeToken(name) => TypeTree(name match {
       case "Unit" => UnitType
       case "Boolean" => BooleanType
@@ -182,17 +182,6 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
       case "String" => StringType
       case _ => throw new java.lang.Error("Unexpected primitive type name: " + name)
     }).setPos(tk)
-  } ~ opt("(" ~ literal ~ ")")).map {
-    case (prim@TypeTree(IntType)) ~ Some(_ ~ IntLiteral(32) ~ _) => prim
-    case TypeTree(IntType) ~ Some(_ ~ IntLiteral(width) ~ _) =>
-      throw AmycFatalError("Int type can only be used with a width of 32 bits, found : " + width)
-    case TypeTree(IntType) ~ Some(_ ~ lit ~ _) =>
-      throw AmycFatalError("Int type should have an integer width (only 32 bits is supported)")
-    case TypeTree(IntType) ~ None =>
-      throw AmycFatalError("Int type should have a specific width (only 32 bits is supported)")
-    case _ ~ Some(_) =>
-      throw AmycFatalError("Only Int type can have a specific width")
-    case prim ~ None => prim
   }
 
   // A user-defined type (such as `List`).

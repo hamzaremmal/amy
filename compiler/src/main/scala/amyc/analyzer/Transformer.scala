@@ -14,7 +14,7 @@ object Transformer {
     * @param core .Context
     * @return
     */
-  def transformProgram(p: N.Program)(using core.Context): S.Program =
+  def transformProgram(p: N.Program)(using Context): S.Program =
     val symMods = for mod <- p.modules yield
       transformModule(mod).setPos(mod)
     S.Program(symMods).setPos(p)
@@ -103,7 +103,7 @@ object Transformer {
     * @param core.Context
     * @return
     */
-  def transformDef(df: N.ClassOrFunDef, module: String)(using core.Context): S.ClassOrFunDef = {
+  def transformDef(df: N.ClassOrFunDef, module: String)(using Context): S.ClassOrFunDef = {
     df match {
       case N.AbstractClassDef(name) =>
         S.AbstractClassDef(symbols.getType(module, name).get)
@@ -128,7 +128,7 @@ object Transformer {
     * @return
     */
   def transformExpr(expr: N.Expr)
-                   (implicit module: String, names: (Map[String, Identifier], Map[String, Identifier]), context: core.Context): S.Expr = {
+                   (implicit module: String, names: (Map[String, Identifier], Map[String, Identifier]), context: Context): S.Expr = {
     val (params, locals) = names
     val res = expr match {
       case N.Variable(name) =>

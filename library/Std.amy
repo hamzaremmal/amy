@@ -3,7 +3,7 @@
   * (implemented in WASM or JavaScript)
   */
 object Std 
-  fn printInt(i: Int(32)): Unit = {
+  fn printInt(i: Int): Unit = {
     error("") // Stub implementation
   }
   fn printString(s: String): Unit = {
@@ -17,21 +17,21 @@ object Std
     error("") // Stub implementation
   }
 
-  fn readInt(): Int(32) = {
+  fn readInt(): Int = {
     error("") // Stub implementation
   }
 
-  fn intToString(i: Int(32)): String = {
+  fn intToString(i: Int): String = {
     if (i < 0) {
       "-" ++ intToString(-i)
     } else {
-      val rem: Int(32) = i % 10;
-      val div: Int(32) = i / 10;
+      val rem: Int = i % 10;
+      val div: Int = i / 10;
       if (div == 0) { digitToString(rem) }
       else { intToString(div) ++ digitToString(rem) }
     }
   }
-  fn digitToString(i: Int(32)): String = {
+  fn digitToString(i: Int): String = {
     error("") // Stub implementation
   }
   fn booleanToString(b: Boolean): String = {

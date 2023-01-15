@@ -1,5 +1,5 @@
 object Factorial
-  fn fact(i: Int(32)): Int(32) = {
+  fn fact(i: Int): Int = {
     if (i < 2) { 1 }
     else { i * fact(i-1) }
   }
