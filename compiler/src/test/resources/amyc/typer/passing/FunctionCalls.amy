@@ -1,5 +1,5 @@
 object FunctionCalls
-  fn foo(i: Int(32), j: Boolean): String = {
+  fn foo(i: Int, j: Boolean): String = {
     if(j) { i < 0 || j; "Hello" } else {foo(i-1, !j)}
   }
 end FunctionCalls

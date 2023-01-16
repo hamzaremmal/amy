@@ -1,6 +1,6 @@
 object LetError2
-  fn test(): Int(32) = {
-    val x: Int(32) = false;
+  fn test(): Int = {
+    val x: Int = false;
     2
   }
 end LetError2
