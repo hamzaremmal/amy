@@ -1,5 +1,5 @@
 object Precedence
-  val v: Int(32) =
+  val v: Int =
     (((1 * 2) < x) || (y + 3));
   u match {
     case foo =>

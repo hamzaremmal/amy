@@ -1,6 +1,6 @@
 object Parens
   -(!((1 + ((2 * 3) / (
-    val x: Int(32) =
+    val x: Int =
       (
         42;
         x

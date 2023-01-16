@@ -1,9 +1,9 @@
 object AssocSemicolon
   1;
   2;
-  val x: Int(32) =
+  val x: Int =
     z;
-  val y: Int(32) =
+  val y: Int =
     w;
   u
 end AssocSemicolon

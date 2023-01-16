@@ -1,29 +1,29 @@
 object FunCalls
-  fn foo(i: Int(32)): Int(32) = {
+  fn foo(i: Int): Int = {
     i
   }
-  fn bar(i: Int(32), j: Int(32)): Int(32) = {
+  fn bar(i: Int, j: Int): Int = {
     (i + j)
   }
   foo(1);
-  val foz: Int(32) =
+  val foz: Int =
     4;
   foo(foz);
   foo((
-    val f: Int(32) =
+    val f: Int =
       42;
     f
   ));
   bar(1, 2);
-  val baz: Int(32) =
+  val baz: Int =
     4;
   foo(foz, baz);
   foo((
-    val f: Int(32) =
+    val f: Int =
       42;
     f
   ), (
-    val b: Int(32) =
+    val b: Int =
       1;
     b
   ))
