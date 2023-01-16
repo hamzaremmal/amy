@@ -1,7 +1,5 @@
 import sbt.Def.spaceDelimited
 
-organization := "ch.epfl.lara"
-
 ThisBuild / scalaVersion := "3.1.3"
 ThisBuild / version := "1.0"
 ThisBuild / scalacOptions ++= Seq("-feature", "-language:implicitConversions")
@@ -95,4 +93,8 @@ lazy val `amy-interpreter` = (project in file("interpreter"))
 // =================================== AMY'S STANDARD LIBRARY =====================================
 // ================================================================================================
 
-lazy val `amy-stdlib` = project in file("library")
+lazy val `amy-stdlib` = (project in file("library"))
+  .dependsOn(`amy-compiler` % "test->test")
+  .settings(
+    Test / unmanagedResourceDirectories += baseDirectory.value / "src" / "main" / "stdlib"
+  )

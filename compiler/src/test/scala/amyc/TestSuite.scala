@@ -30,9 +30,9 @@ abstract class TestSuite extends CompilerTest {
           path = p
 
     val targetPath = tmpDir.resolve(path)
-    Files.createDirectories(targetPath.getParent())
+    Files.createDirectories(targetPath.getParent)
     Files.copy(stream, targetPath, StandardCopyOption.REPLACE_EXISTING)
-    targetPath.toAbsolutePath().toString()
+    targetPath.toAbsolutePath.toString
 
   def shouldOutput(inputFiles: List[String], outputFile: String, input: String = ""): Unit = {
     compareOutputs(
