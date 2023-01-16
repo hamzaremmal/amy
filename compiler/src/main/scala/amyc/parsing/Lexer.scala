@@ -64,7 +64,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
   lazy val keywords : P =
     word("abstract") | word("case") | word("class") |
     word("fn") | word("else") | word("if") | word("match") |
-    word("object") | word("val") | word("error") | word("_") |
+    word("module") | word("val") | word("error") | word("_") |
     word("end")
     |> { (cs, range) =>
       withPosition(range._1) {

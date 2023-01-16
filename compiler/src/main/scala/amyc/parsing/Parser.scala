@@ -52,7 +52,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
   lazy val `class`    : Syntax[Token] = kw("class")
   lazy val `abstract` : Syntax[Token] = kw("abstract")
   lazy val `case`     : Syntax[Token] = kw("case")
-  lazy val `object`   : Syntax[Token] = kw("object")
+  lazy val `modulekw` : Syntax[Token] = kw("module")
   lazy val `fn`       : Syntax[Token] = kw("fn")
   lazy val `end`      : Syntax[Token] = kw("end")
   lazy val `kw_`      : Syntax[Token] = kw("_")
@@ -100,7 +100,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     *
     */
   lazy val module: Syntax[ModuleDef] =
-    (`object` ~ identifier ~
+    (`modulekw` ~ identifier ~
       many(definition) ~
       opt(expr) ~
       `end` ~ identifier) map {
