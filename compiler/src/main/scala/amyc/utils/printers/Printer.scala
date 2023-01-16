@@ -132,7 +132,7 @@ trait Printer {
       /* Types */
       case TypeTree(tp) =>
         tp match {
-          case IntType => "Int(32)"
+          case IntType => "Int"
           case BooleanType => "Boolean"
           case StringType => "String"
           case UnitType => "Unit"
