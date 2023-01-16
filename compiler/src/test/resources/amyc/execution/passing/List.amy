@@ -44,7 +44,7 @@ object L
       case Cons(h, t) =>
         if (h == i) { 0 }
         else {
-          val rec: Int(32) = indexOf(t, i);
+          val rec: Int = indexOf(t, i);
           if (0 <= rec) { rec + 1 }
           else { -1 }
         }

@@ -130,7 +130,7 @@ object L
     case Cons(h, t) => Std.intToString(h) ++ ", " ++ toString1(t)
   }}
 
-  fn take(l: List, n: Int(32)): List = {
+  fn take(l: List, n: Int): List = {
     if (n <= 0) { Nil() }
     else { 
       l match {
