@@ -17,7 +17,7 @@ object O
     }
   }
 
-  fn getOrElse(o: Option, i: Int): Int(32) = {
+  fn getOrElse(o: Option, i: Int): Int = {
     o match {
       case None() => i
       case Some(oo) => oo
