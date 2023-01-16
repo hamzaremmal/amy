@@ -1,7 +1,7 @@
 object Equality
   abstract class Foo
-  case class Foo1() extends Foo
-  case class Foo2() extends Foo
+  case class Foo1() : Foo
+  case class Foo2() : Foo
 
   Std.printString(Std.booleanToString(0 == 0));
   Std.printString(Std.booleanToString(0 == 1));

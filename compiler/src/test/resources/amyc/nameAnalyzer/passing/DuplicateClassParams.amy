@@ -1,4 +1,4 @@
 object ClassParams
   abstract class Foo
-  case class Bar(v: Int, v: Int) extends Foo
+  case class Bar(v: Int, v: Int) : Foo
 end ClassParams

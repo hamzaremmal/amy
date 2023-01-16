@@ -1,7 +1,7 @@
 object L
   abstract class List
-  case class Nil() extends List
-  case class Cons(v: Int, v: List) extends List
+  case class Nil() : List
+  case class Cons(v: Int, v: List) : List
   fn isEmpty(l: List): Boolean = {
     l match {
       case Nil() =>
@@ -97,7 +97,7 @@ object L
     }
   }
   abstract class LPair
-  case class LP(v: List, v: List) extends LPair
+  case class LP(v: List, v: List) : LPair
   fn merge(l1: List, l2: List): List = {
     l1 match {
       case Nil() =>

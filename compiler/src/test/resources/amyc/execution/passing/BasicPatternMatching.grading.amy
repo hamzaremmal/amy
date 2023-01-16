@@ -1,9 +1,9 @@
 object BasicPatternMatching
   abstract class Letter
-  case class A() extends Letter
-  case class APrim(i: Int) extends Letter
-  case class B() extends Letter
-  case class BPrim(i: Int) extends Letter
+  case class A() : Letter
+  case class APrim(i: Int) : Letter
+  case class B() : Letter
+  case class BPrim(i: Int) : Letter
  
   fn isRegularLetter(l: Letter): Boolean = { 
   	l match {

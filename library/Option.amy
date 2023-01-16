@@ -1,7 +1,7 @@
 object O 
   abstract class Option
-  case class None() extends Option
-  case class Some(v: Int) extends Option
+  case class None() : Option
+  case class Some(v: Int) : Option
 
   fn isDefined(o: Option): Boolean = {
     o match {
