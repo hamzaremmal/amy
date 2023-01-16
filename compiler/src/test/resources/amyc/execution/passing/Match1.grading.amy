@@ -1,7 +1,7 @@
 object MatchError
   abstract class Foo
-  case class Bar(i: Int) extends Foo
-  case class Baz(f1: Foo, f2: Foo) extends Foo
+  case class Bar(i: Int) : Foo
+  case class Baz(f1: Foo, f2: Foo) : Foo
 
   Baz(Baz(Baz(Bar(1), Bar(2)), Bar(3)), Bar(4)) match {
     case Baz(Baz(Baz(Bar(1), Bar(2)), Bar(3)), Bar(4)) =>
