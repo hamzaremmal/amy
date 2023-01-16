@@ -52,7 +52,6 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
   lazy val `class`    : Syntax[Token] = kw("class")
   lazy val `abstract` : Syntax[Token] = kw("abstract")
   lazy val `case`     : Syntax[Token] = kw("case")
-  lazy val `extends`  : Syntax[Token] = kw("extends")
   lazy val `object`   : Syntax[Token] = kw("object")
   lazy val `fn`       : Syntax[Token] = kw("fn")
   lazy val `end`      : Syntax[Token] = kw("end")
@@ -134,7 +133,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     *
     */
   lazy val caseClassDef: Syntax[CaseClassDef] =
-    (`case` ~ `class` ~ identifier ~ inParenthesis(parameters) ~ `extends` ~ identifier) map {
+    (`case` ~ `class` ~ identifier ~ inParenthesis(parameters) ~ ":" ~ identifier) map {
       case _ ~ _ ~ className ~ params ~ _ ~ superClassName =>
         CaseClassDef(className, params.map(_.tt), superClassName)
     }
