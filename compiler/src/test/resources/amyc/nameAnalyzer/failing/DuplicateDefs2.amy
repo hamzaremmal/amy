@@ -2,5 +2,5 @@ object DefNames
   abstract class Foo
   case class Bar() extends Foo
 
-  fn Foo(): Int(32) = { 42 }
+  fn Foo(): Int = { 42 }
 end DefNames

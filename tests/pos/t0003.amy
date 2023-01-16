@@ -1,6 +1,6 @@
 object t0003
 
-  fn testMatch(i : Int(32)) : Unit = {
+  fn testMatch(i : Int) : Unit = {
     i match {
       case ab =>
         Std.printString("Found ab")

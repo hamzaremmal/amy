@@ -1,4 +1,4 @@
 object IntInputToOutput
-  val intInput: Int(32) = Std.readInt();
+  val intInput: Int = Std.readInt();
   Std.printString(Std.intToString(intInput))
 end IntInputToOutput

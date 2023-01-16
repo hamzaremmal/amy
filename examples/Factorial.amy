@@ -1,8 +1,8 @@
 object Factorial
-  fn fact(i: Int(32)): Int(32) = {
+  fn fact(i: Int): Int = {
     if (i < 2) { 1 }
     else { 
-      val rec: Int(32) = fact(i-1);
+      val rec: Int = fact(i-1);
       i * rec
     }
   }

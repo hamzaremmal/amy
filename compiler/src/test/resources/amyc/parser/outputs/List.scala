@@ -1,7 +1,7 @@
 object L
   abstract class List
   case class Nil() extends List
-  case class Cons(v: Int(32), v: List) extends List
+  case class Cons(v: Int, v: List) extends List
   fn isEmpty(l: List): Boolean = {
     l match {
       case Nil() =>
@@ -10,7 +10,7 @@ object L
         false
     }
   }
-  fn length(l: List): Int(32) = {
+  fn length(l: List): Int = {
     l match {
       case Nil() =>
         0
@@ -18,7 +18,7 @@ object L
         (1 + length(t))
     }
   }
-  fn head(l: List): Int(32) = {
+  fn head(l: List): Int = {
     l match {
       case Cons(h, _) =>
         h
@@ -45,7 +45,7 @@ object L
         reverseAcc(t, Cons(h, acc))
     }
   }
-  fn indexOf(l: List, i: Int(32)): Int(32) = {
+  fn indexOf(l: List, i: Int): Int = {
     l match {
       case Nil() =>
         -(1)
@@ -54,7 +54,7 @@ object L
           0
         } else {
           (
-            val rec: Int(32) =
+            val rec: Int =
               indexOf(t, i);
             (if((0 <= rec)) {
               (rec + 1)
@@ -65,14 +65,14 @@ object L
         })
     }
   }
-  fn range(from: Int(32), to: Int(32)): List = {
+  fn range(from: Int, to: Int): List = {
     (if((to < from)) {
       Nil()
     } else {
       Cons(from, range((from + 1), to))
     })
   }
-  fn sum(l: List): Int(32) = {
+  fn sum(l: List): Int = {
     l match {
       case Nil() =>
         0
@@ -88,7 +88,7 @@ object L
         Cons(h, concat(t, l2))
     }
   }
-  fn contains(l: List, elem: Int(32)): Boolean = {
+  fn contains(l: List, elem: Int): Boolean = {
     l match {
       case Nil() =>
         false
@@ -159,7 +159,7 @@ object L
         ((Std.intToString(h) ++ ", ") ++ toString1(t))
     }
   }
-  fn take(l: List, n: Int(32)): List = {
+  fn take(l: List, n: Int): List = {
     (if((n <= 0)) {
       Nil()
     } else {

@@ -1,9 +1,9 @@
 object ConstructorError
   abstract class Foo 
-  case class Bar(i: Int(32)) extends Foo
+  case class Bar(i: Int) extends Foo
 
   abstract class Foo2
-  case class Bar2(i: Int(32)) extends Foo2
+  case class Bar2(i: Int) extends Foo2
   
   val x: Foo = Bar2(42);
   x

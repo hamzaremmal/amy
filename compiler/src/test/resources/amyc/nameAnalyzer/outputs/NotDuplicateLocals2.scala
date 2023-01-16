@@ -1,8 +1,8 @@
 object Locals_0
-  fn foo_0(): Int(32) = {
+  fn foo_0(): Int = {
     (if(true) {
       (
-        val i_0: Int(32) =
+        val i_0: Int =
           42;
         i_0
       )

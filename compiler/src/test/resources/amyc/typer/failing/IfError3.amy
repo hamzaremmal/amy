@@ -1,4 +1,4 @@
 object IfError
-  val x: Int(32) = if (false) { "" } else { "" };
+  val x: Int = if (false) { "" } else { "" };
   x
 end IfError
