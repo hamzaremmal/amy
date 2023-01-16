@@ -1,9 +1,9 @@
 object MatchError
   abstract class Foo
-  case class Bar(i: Int) extends Foo
+  case class Bar(i: Int) : Foo
 
   abstract class Foo2
-  case class Bar2(i: Int) extends Foo2
+  case class Bar2(i: Int) : Foo2
 
   Bar(1) match {
     case Bar2(1) => ()

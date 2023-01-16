@@ -1,6 +1,6 @@
 object ConstructorError
   abstract class Foo 
-  case class Bar(i: Int) extends Foo
+  case class Bar(i: Int) : Foo
 
   Bar(true)
 end ConstructorError
