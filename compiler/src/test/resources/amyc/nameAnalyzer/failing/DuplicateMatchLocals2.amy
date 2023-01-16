@@ -1,6 +1,6 @@
 object Locals
   abstract class IP
-  case class IntPair(i: Int, j: Int) extends IP
+  case class IntPair(i: Int, j: Int) : IP
   fn foo(): Int = {
     IntPair(1,2) match {
       case IntPair(i, i) => 42

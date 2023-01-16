@@ -1,7 +1,7 @@
 object L_0
   abstract class List_0
-  case class Nil_0() extends List_0
-  case class Cons_0(v: Int, v: List_0) extends List_0
+  case class Nil_0() : List_0
+  case class Cons_0(v: Int, v: List_0) : List_0
   fn isEmpty_0(l_0: List_0): Boolean = {
     l_0 match {
       case Nil_0() =>
@@ -97,7 +97,7 @@ object L_0
     }
   }
   abstract class LPair_0
-  case class LP_0(v: List_0, v: List_0) extends LPair_0
+  case class LP_0(v: List_0, v: List_0) : LPair_0
   fn merge_0(l1_1: List_0, l2_1: List_0): List_0 = {
     l1_1 match {
       case Nil_0() =>
@@ -218,8 +218,8 @@ object Std_0
 end Std_0
 object O_0
   abstract class Option_0
-  case class None_0() extends Option_0
-  case class Some_0(v: Int) extends Option_0
+  case class None_0() : Option_0
+  case class Some_0(v: Int) : Option_0
   fn isDefined_0(o_0: Option_0): Boolean = {
     o_0 match {
       case None_0() =>

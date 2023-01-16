@@ -1,6 +1,6 @@
 object ConstructorVsId
   abstract class Foo
-  case class Bar() extends Foo
+  case class Bar() : Foo
   fn foo(f: Foo): Int = {
     f match {
       case Bar() => 42
