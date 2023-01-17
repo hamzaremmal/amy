@@ -1,4 +1,4 @@
-object Match4
+module Match4
   fn sideEffect(): Int = {
     Std.printString("This side effect should only happen once!");
     10

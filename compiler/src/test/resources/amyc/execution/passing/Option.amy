@@ -1,4 +1,4 @@
-object O
+module O
   abstract class Option
   case class None() : Option
   case class Some(v: Int) : Option

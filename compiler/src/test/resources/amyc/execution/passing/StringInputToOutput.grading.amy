@@ -1,4 +1,4 @@
-object StringInputToOutput
+module StringInputToOutput
   val stringInput: String = Std.readString();
   val stringInput2: String = Std.readString();
 

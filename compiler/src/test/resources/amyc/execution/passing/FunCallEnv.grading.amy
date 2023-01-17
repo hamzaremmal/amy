@@ -1,4 +1,4 @@
-object FunCallEnv
+module FunCallEnv
   fn printRec(i: Int, j: Int): Unit = {
     if (i <= 0) { () } else {
       Std.printInt(i);

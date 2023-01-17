@@ -1,4 +1,4 @@
-object IntInputToOutput
+module IntInputToOutput
   val intInput: Int = Std.readInt();
   Std.printString(Std.intToString(intInput))
 end IntInputToOutput

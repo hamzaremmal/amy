@@ -1,4 +1,4 @@
-object Equality
+module Equality
   abstract class Foo
   case class Foo1() : Foo
   case class Foo2() : Foo

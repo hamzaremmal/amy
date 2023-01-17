@@ -1,4 +1,4 @@
-object String
+module String
 
     fn concat(lhs: String, rhs: String): String = {
         lhs ++ rhs

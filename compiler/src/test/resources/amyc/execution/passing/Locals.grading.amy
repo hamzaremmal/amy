@@ -1,4 +1,4 @@
-object Locals
+module Locals
   fn foo(i: Int): Int = {
     val i: Int = 0;
     if (i == 1) { error("") }
