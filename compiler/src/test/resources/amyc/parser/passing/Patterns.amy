@@ -1,4 +1,4 @@
-object Patterns
+module Patterns
   x match {
     case 1 => 0
     case () => 0

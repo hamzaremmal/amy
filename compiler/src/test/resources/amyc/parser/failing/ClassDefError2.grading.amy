@@ -1,3 +1,0 @@
-object ClassDef
-  case class Foo : Bar
-end ClassDef
