@@ -1,4 +1,4 @@
-KeywordToken(object)(1:1)
+KeywordToken(module)(1:1)
 OperatorToken(<=)(1:7)
 IdentifierToken(id_1)(1:9)
 OperatorToken(++)(1:13)

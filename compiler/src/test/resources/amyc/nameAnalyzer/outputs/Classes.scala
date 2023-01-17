@@ -1,4 +1,4 @@
-object Classes_0
+module Classes_0
   abstract class Foo_0
   case class Bar_0() : Foo_0
   case class Baz_0(v: Int, v: Foo_0) : Foo_0

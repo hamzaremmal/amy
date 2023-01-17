@@ -1,4 +1,4 @@
-object Hanoi
+module Hanoi
 	
   fn solve(n : Int) : Int = {
     if (n < 1) { 

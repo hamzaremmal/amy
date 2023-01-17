@@ -1,4 +1,4 @@
-object t0003
+module t0003
 
   fn testMatch(i : Int) : Unit = {
     i match {

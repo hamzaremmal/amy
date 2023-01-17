@@ -1,4 +1,4 @@
-object L
+module L
   abstract class List
   case class Nil() : List
   case class Cons(h: Int, t: List) : List

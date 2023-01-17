@@ -1,4 +1,4 @@
-object BasicArithmetic
+module BasicArithmetic
 
 	fn plus(a: Int, b: Int): Int = {
 		a + b

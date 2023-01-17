@@ -25,7 +25,7 @@ trait Printer {
 
       case ModuleDef(name, defs, optExpr) =>
         Stacked(
-          "object " <:> name,
+          "module " <:> name,
           "",
           Indented(Stacked(defs ++ optExpr.toList map (rec(_, false)), emptyLines = true)),
           "end " <:> name,

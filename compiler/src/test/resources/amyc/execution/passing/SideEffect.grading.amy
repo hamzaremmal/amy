@@ -1,4 +1,4 @@
-object SideEffect
+module SideEffect
 
   fn firstI(): Int = {
     Std.printInt(1);

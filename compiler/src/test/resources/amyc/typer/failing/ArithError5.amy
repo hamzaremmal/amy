@@ -1,3 +1,3 @@
-object ArithError5
+module ArithError5
   - ()
 end ArithError5

@@ -2,7 +2,7 @@
   * including stub implementations for some built-in functions
   * (implemented in WASM or JavaScript)
   */
-object Std 
+module Std
   fn printInt(i: Int): Unit = {
     error("") // Stub implementation
   }

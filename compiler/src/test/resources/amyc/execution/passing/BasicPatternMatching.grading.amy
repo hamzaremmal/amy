@@ -1,4 +1,4 @@
-object BasicPatternMatching
+module BasicPatternMatching
   abstract class Letter
   case class A() : Letter
   case class APrim(i: Int) : Letter

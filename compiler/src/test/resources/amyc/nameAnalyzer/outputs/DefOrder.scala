@@ -1,4 +1,4 @@
-object DefOrder_0
+module DefOrder_0
   fn bar_0(): Foo_0 = {
     foo_0()
   }

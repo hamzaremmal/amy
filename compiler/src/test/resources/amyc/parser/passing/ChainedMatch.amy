@@ -1,4 +1,4 @@
-object ChainedMatch
+module ChainedMatch
   0 match {
     case x => x 
   } match {

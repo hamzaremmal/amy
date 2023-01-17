@@ -1,4 +1,4 @@
-object Equality
+module Equality
   abstract class Foo
   case class Bar(i: Int) : Foo
   1 == Bar(2)

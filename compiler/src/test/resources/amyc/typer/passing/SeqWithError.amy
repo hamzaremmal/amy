@@ -1,4 +1,4 @@
-object SeqWithError
+module SeqWithError
   val x: Int = (1 + 2; error("this is fine"));
   x
 end SeqWithError

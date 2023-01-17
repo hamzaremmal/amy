@@ -1,4 +1,4 @@
-object FunctionCall
+module FunctionCall
   fn foo(i: Int): Boolean = { i < 0 }
   
   val x: Int = foo(1); x

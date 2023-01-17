@@ -1,3 +1,0 @@
-object WrongQName
-  case class Foo() : Baz.bar
-end WrongQName

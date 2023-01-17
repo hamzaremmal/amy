@@ -1,4 +1,4 @@
-object Args
+module Args
   abstract class Foo
   case class Bar(i: Int, j: Int) : Foo
   fn foo(i: Int): Foo = { Bar(i, i, i) }

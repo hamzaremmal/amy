@@ -1,4 +1,4 @@
-object ConstructorError
+module ConstructorError
   abstract class Foo 
   case class Bar(i: Int) : Foo
 

@@ -1,4 +1,4 @@
-object Locals_0
+module Locals_0
   fn foo_0(): Int = {
     (if(true) {
       (

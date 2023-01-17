@@ -1,4 +1,4 @@
-object ParamAndLocal
+module ParamAndLocal
   fn foo(i: Int): Int = {
     val i: Int = i + 1;
     i

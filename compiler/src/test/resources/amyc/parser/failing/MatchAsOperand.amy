@@ -1,4 +1,4 @@
-object Match
+module Match
   x match {
     case y => z
   } + 1

@@ -1,4 +1,4 @@
-object F
+module F
 
     fn appendHello(s: String) : String = {
         "Hello" ++ " " ++ s

@@ -1,4 +1,4 @@
-object MatchError
+module MatchError
   abstract class Foo
   case class Bar(i: Int) : Foo
 

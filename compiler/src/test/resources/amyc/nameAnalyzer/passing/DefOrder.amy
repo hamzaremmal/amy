@@ -1,4 +1,4 @@
-object DefOrder
+module DefOrder
   fn bar(): Foo = { foo() }
   fn foo(): Foo = { Bar(42) }
   case class Bar(i: Int) : Foo

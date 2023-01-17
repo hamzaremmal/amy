@@ -1,4 +1,4 @@
-object ConstructorVsId_0
+module ConstructorVsId_0
   abstract class Foo_0
   case class Bar_0() : Foo_0
   fn foo_0(f_0: Foo_0): Int = {

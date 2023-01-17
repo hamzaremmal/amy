@@ -1,4 +1,4 @@
-object BasicBranching
+module BasicBranching
 
 	fn less(a: Int, b: Int): Boolean = {
 		a < b

@@ -1,3 +1,3 @@
-object Args
+module Args
   fn foo(i: Int): Int = { foo(1, 2) }
 end Args

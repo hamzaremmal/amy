@@ -1,4 +1,4 @@
-object FunctionCalls
+module FunctionCalls
   fn foo(i: Int, j: Boolean): String = {
     if(j) { i < 0 || j; "Hello" } else {foo(i-1, !j)}
   }

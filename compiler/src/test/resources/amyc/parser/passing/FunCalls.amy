@@ -1,4 +1,4 @@
-object FunCalls
+module FunCalls
   fn foo(i: Int): Int = {
     i
   }

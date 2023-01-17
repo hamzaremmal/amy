@@ -1,4 +1,4 @@
-object MixStdAndNonStd
+module MixStdAndNonStd
   fn printString(str: String): Unit = {
     Std.printString(str);
     Std.printString(str)

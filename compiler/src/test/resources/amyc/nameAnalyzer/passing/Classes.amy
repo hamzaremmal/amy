@@ -1,4 +1,4 @@
-object Classes
+module Classes
   abstract class Foo
   case class Bar() : Foo
   case class Baz(i: Int, f: Foo) : Foo

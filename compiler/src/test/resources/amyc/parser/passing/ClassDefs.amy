@@ -1,4 +1,4 @@
-object CaseClassDefs
+module CaseClassDefs
   abstract class Foo
   case class Bar() : Foo
   case class Bar(x: Int) : Foo

@@ -1,4 +1,4 @@
-object Locals
+module Locals
   fn foo(): Int = {
     val i: Int = 42;
     i match {

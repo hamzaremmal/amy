@@ -1,4 +1,4 @@
-object LetError1
+module LetError1
   fn test(): Int = {
     val x: Int = 1;
     false
