@@ -1,4 +1,4 @@
-object t0004
+module t0004
 
   fn testMatch(i : Int) : Int = {
   1 ;

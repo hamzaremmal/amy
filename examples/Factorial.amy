@@ -1,4 +1,4 @@
-object Factorial
+module Factorial
   fn fact(i: Int): Int = {
     if (i < 2) { 1 }
     else { 

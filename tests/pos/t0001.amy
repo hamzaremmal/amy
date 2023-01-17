@@ -1,4 +1,4 @@
-object t0001
+module t0001
 
   fn testMatch(l : L.List) : Unit = {
     l match {
