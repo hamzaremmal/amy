@@ -1,4 +1,4 @@
-object Constructors
+module Constructors
   abstract class Foo 
   case class Bar(i: Int) : Foo
   case class Baz(b: Boolean, f: Foo) : Foo

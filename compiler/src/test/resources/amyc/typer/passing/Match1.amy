@@ -1,4 +1,4 @@
-object Match1
+module Match1
   1 match {
     case _ => ()
   }

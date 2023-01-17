@@ -1,4 +1,4 @@
-object IfAndErrorWrong
+module IfAndErrorWrong
   val x: Int = if (true) { error("") } else { "" };
   x
 end IfAndErrorWrong

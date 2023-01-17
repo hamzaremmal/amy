@@ -1,4 +1,4 @@
-object IfError
+module IfError
   val x: Int = if (false) { "" } else { "" };
   x
 end IfError

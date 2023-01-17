@@ -1,4 +1,4 @@
-object Match2
+module Match2
   val a: Int = 1 match {
     case x => error("")
   };

@@ -1,4 +1,4 @@
-object LetWithError
+module LetWithError
   val y: Int = (val x: Int = 1; error("this is fine"));
   y
 end LetWithError
