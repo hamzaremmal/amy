@@ -1,4 +1,4 @@
-object Locals
+module Locals
   abstract class IP
   case class IntPair(i: Int, j: Int) : IP
   fn foo(): Int = {

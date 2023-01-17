@@ -1,4 +1,4 @@
-object Locals
+module Locals
   fn foo(i: Int): Int = {
     i match {
       case i => 0 // should pass, but give a warning about suspicious shadowing

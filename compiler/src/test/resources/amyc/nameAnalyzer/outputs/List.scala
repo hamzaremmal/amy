@@ -1,4 +1,4 @@
-object L_0
+module L_0
   abstract class List_0
   case class Nil_0() : List_0
   case class Cons_0(v: Int, v: List_0) : List_0
@@ -172,7 +172,7 @@ object L_0
     })
   }
 end L_0
-object Std_0
+module Std_0
   fn printInt_0(i_1: Int): Unit = {
     error("")
   }
@@ -216,7 +216,7 @@ object Std_0
     })
   }
 end Std_0
-object O_0
+module O_0
   abstract class Option_0
   case class None_0() : Option_0
   case class Some_0(v: Int) : Option_0

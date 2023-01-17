@@ -1,4 +1,4 @@
-object LocalScope
+module LocalScope
   fn foo(): Int = {
     val i: Int = i;
     i

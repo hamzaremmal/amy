@@ -1,4 +1,4 @@
-object Constructor
+module Constructor
   abstract class Foo
   fn foo(f: Foo): Foo = { f match {
     case Bar(_) => f

@@ -1,4 +1,4 @@
-object Locals
+module Locals
   fn foo(): Int = {
     if (true) {
       val i: Int = 42;
