@@ -3,6 +3,10 @@ package amyc.backend.wasm.instructions
 import amyc.backend.wasm.indices.dataidx
 import amyc.backend.wasm.instructions.Instructions.Instruction
 
+/**
+  * https://webassembly.github.io/spec/core/text/instructions.html#memory-instructions
+  */
+
 object memory :
   case object size extends Instruction
   case object grow extends Instruction
