@@ -1,7 +1,7 @@
 package amyc.backend.wasm.instructions.numeric
 
-object f32 {
+import amyc.backend.wasm.types.WasmType
+
+object f32 extends WasmType:
 
   // TODO HR : Add missing instructions
-
-}
