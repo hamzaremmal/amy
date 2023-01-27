@@ -111,7 +111,7 @@ object ModulePrinter {
       case `else`(id) => s"else ${id.getOrElse("")}"
       case Block(label) => s"block $$$label"
       case Loop(label) => s"loop $$$label"
-      case Br(label)=> s"br $$$label"
+      case br(label)=> s"br $label"
       case instructions.`return` => "ret"
       case _ : end.type => "end"
       case call(name) => s"call $name"

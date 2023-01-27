@@ -43,7 +43,7 @@ object String extends BuiltInModule {
           // Increment pointers
           incr(ptrD) <:> incr(ptrS) <:>
           // Jump to loop
-          Br(label) <:>
+          br(label) <:>
           `else`() <:> end <:> end
       }
 
@@ -71,7 +71,7 @@ object String extends BuiltInModule {
         `if`() <:>
         // Increment pointer and go back
         incr(ptrD) <:>
-        Br(label) <:> `else`() <:> end <:> end <:>
+        br(label) <:> `else`() <:> end <:> end <:>
         // Put string pointer to stack, set new memory boundary and return
         global.get(memoryBoundary) <:> local.get(ptrD) <:> i32.const(1) <:> i32.add <:> global.set(memoryBoundary)
     }

@@ -14,7 +14,7 @@ import amyc.backend.wasm.types.result
 
 case object unreachable extends Instruction
 case object nop extends Instruction
-case class label(l: labelidx) extends Instruction
+case class br(l: labelidx) extends Instruction
 case class br_if(l: labelidx) extends Instruction
 case class br_table(l: List[labelidx], ln: labelidx) extends Instruction
 case object `return` extends Instruction
