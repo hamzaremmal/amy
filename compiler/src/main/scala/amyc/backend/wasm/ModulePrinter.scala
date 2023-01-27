@@ -109,7 +109,7 @@ object ModulePrinter {
       case Block(label) => s"block $$$label"
       case Loop(label) => s"loop $$$label"
       case Br(label)=> s"br $$$label"
-      case instructions.ret => "ret"
+      case instructions.`return` => "ret"
       case End => "end"
       case Call(name) => s"call $$$name"
       case CallIndirect(tpe) => s"call_indirect (type $tpe)"
