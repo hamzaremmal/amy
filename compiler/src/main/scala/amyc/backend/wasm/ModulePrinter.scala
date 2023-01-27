@@ -111,7 +111,7 @@ object ModulePrinter {
       case Br(label)=> s"br $$$label"
       case instructions.`return` => "ret"
       case End => "end"
-      case Call(name) => s"call $$$name"
+      case call(name) => s"call $name"
       case CallIndirect(tpe) => s"call_indirect (type $tpe)"
       case instructions.unreachable => "unreachable"
       case local.get(index) => s"local.get $index"
@@ -132,6 +132,7 @@ object ModulePrinter {
             Raw(s";;| $s")
           }
         ))
+      case _ => throw new Exception(instr.toString)
     }
   }
 

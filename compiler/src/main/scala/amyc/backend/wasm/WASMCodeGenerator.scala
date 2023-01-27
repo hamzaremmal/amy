@@ -14,6 +14,7 @@ import amyc.core.*
 import amyc.*
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.unnamed.null_fn
+import amyc.backend.wasm.instructions.call
 import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.utils.LocalsHandler
@@ -114,7 +115,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case InfixCall(lhs, StdNames.eq_==, rhs) =>
         equ(cgExpr(lhs), cgExpr(rhs))
       case InfixCall(lhs, StdNames.++, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(String.concat.name))
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(call(id(String.concat.name)))
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot generate wasm code for operator $op")
       case Not(e) =>
@@ -172,15 +173,14 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def genFunctionCall(args: List[Expr], qname: Identifier)
                      (using locals: Map[Identifier, Int], lh: LocalsHandler)
                      (using Context) =
-    val call: Code = {
-      locals.get(qname).map { idx =>
-        local.get(idx) <:>
+    args.map(cgExpr) <:> {
+        locals.get(qname).map { idx =>
+          local.get(idx) <:>
           CallIndirect(mkFunTypeName(args.size))
-      } getOrElse {
-        Call(fullName(symbols.getFunction(qname).get.owner, qname))
-      }
-    }
-    args.map(cgExpr) <:> call
+        } getOrElse {
+          call(fullName(symbols.getFunction(qname).get.owner, qname))
+        }
+      }.asInstanceOf[Instruction]
 
 
   def genConstructorCall(constrSig: ConstrSig, args: List[Expr])

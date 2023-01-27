@@ -144,7 +144,7 @@ object Utils {
     i32.const(const.idx)
 
   inline def error(inline msg: Code) : Code =
-    msg <:> Call("Std_printString") <:> unreachable
+    msg <:> call("Std_printString") <:> unreachable
 
   inline def ift(inline cond: Code, inline thenn: Code, elze: Code) =
     cond <:>
