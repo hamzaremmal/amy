@@ -1,7 +1,7 @@
 package amyc.backend.wasm.builtin
 
 import amyc.backend.wasm.Function
-import amyc.backend.wasm.instructions.Instructions.Code
+import amyc.backend.wasm.Instructions.Code
 import amyc.backend.wasm.utils.LocalsHandler
 import amyc.backend.wasm.utils.Utils.fullName
 import amyc.core.Context

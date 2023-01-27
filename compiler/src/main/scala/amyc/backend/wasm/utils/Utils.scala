@@ -2,11 +2,8 @@ package amyc.backend.wasm.utils
 
 import amyc.ast.Identifier
 import amyc.backend.wasm.Function
-import amyc.backend.wasm.instructions.*
+import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.types.*
-import amyc.backend.wasm.instructions.Instructions.*
-import amyc.backend.wasm.instructions.numeric.i32
-import amyc.backend.wasm.instructions.variable.*
 import amyc.core.Context
 import amyc.core.Signatures.*
 import amyc.reporter

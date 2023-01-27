@@ -7,9 +7,7 @@ import amyc.backend.wasm.*
 import amyc.backend.wasm.utils.Utils.*
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.builtin.amy.Std
-import amyc.backend.wasm.instructions.Instructions.*
-import amyc.backend.wasm.instructions.numeric.i32
-import amyc.backend.wasm.instructions.variable.*
+import Instructions.*
 import amyc.backend.wasm.utils.*
 import amyc.core.Context
 import amyc.core.Signatures.FunSig

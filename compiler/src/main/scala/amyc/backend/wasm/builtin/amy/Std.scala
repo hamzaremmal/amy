@@ -3,9 +3,7 @@ package amyc.backend.wasm.builtin.amy
 import amyc.backend.wasm
 import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.builtin.BuiltInModule
-import amyc.backend.wasm.instructions.call
-import amyc.backend.wasm.instructions.numeric.i32
-import amyc.backend.wasm.instructions.variable.*
+import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.Utils.memoryBoundary
 
 object Std extends BuiltInModule {
