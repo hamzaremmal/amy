@@ -159,7 +159,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
           // match error case there
         } <:>
           error(mkString("Match error!" + scrut.toString)) <:>
-          cases.map(_ => End) // HR: Autant de End que de cases
+          cases.map(_ => end) // HR: Autant de End que de cases
       case Error(msg) =>
         error(cgExpr(msg))
       case _ =>

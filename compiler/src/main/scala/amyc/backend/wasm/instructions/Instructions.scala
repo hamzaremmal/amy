@@ -36,7 +36,6 @@ object Instructions {
 
   // Control instructions
   case object Else    extends Instruction // Marks the end of the implicit 'then' of an if-block
-  case object End     extends Instruction // Marks the end of an if-then-else or block
   case class Loop(label: String)  extends Instruction // A block of instructions with a label at the beginning
   case class Block(label: String) extends Instruction // A block of instructions with a label at the end
   case class Br(label: String)    extends Instruction // Jump to "label", which MUST be the label of an enclosing structure

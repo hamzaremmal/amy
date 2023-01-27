@@ -79,7 +79,7 @@ object ModulePrinter {
       case Else =>
         Unindented(mkInstr(h)) ::
         mkCode(t)
-      case End =>
+      case _ : end.type =>
         Unindented(mkInstr(h)) ::
         (mkCode(t) map Unindented.apply)
       case `if`(_, _) | Block(_) | Loop(_) =>
@@ -113,7 +113,7 @@ object ModulePrinter {
       case Loop(label) => s"loop $$$label"
       case Br(label)=> s"br $$$label"
       case instructions.`return` => "ret"
-      case End => "end"
+      case _ : end.type => "end"
       case call(name) => s"call $name"
       case CallIndirect(tpe) => s"call_indirect (type $tpe)"
       case instructions.unreachable => "unreachable"
