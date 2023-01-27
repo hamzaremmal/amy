@@ -20,6 +20,11 @@ object Instructions {
 
   implicit def cs2c(cs: List[Code]): Code = Code(cs flatMap (_.instructions))
 
+  // id
+  opaque type id = String
+  // TODO HR : Should check for allowed characters (https://webassembly.github.io/spec/core/text/values.html#text-id)
+  def id(str: String) : id = s"$$${str}"
+
   // ==============================================================================================
   // ============================= ??? ============================================================
   // ==============================================================================================
