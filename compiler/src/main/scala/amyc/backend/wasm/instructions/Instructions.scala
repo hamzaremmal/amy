@@ -23,7 +23,7 @@ object Instructions {
   // ==============================================================================================
   // ============================= ??? ============================================================
   // ==============================================================================================
-  
+
   case object Drop extends Instruction // Drops the top value of the stack
 
   // Control instructions
@@ -39,14 +39,6 @@ object Instructions {
   case class CallIndirect(tpe: String) extends Instruction
   case object Return              extends Instruction
   case object Unreachable         extends Instruction // Always fails the program
-
-  // Locals (parameters, local variables)
-  case class GetLocal(index: Int) extends Instruction
-  case class SetLocal(index: Int) extends Instruction
-
-  // Global variables
-  case class GetGlobal(index: Int) extends Instruction
-  case class SetGlobal(index: Int) extends Instruction
 
   // Memory
   // Stores an i32 to memory. Expects memory address, then stored value as operands

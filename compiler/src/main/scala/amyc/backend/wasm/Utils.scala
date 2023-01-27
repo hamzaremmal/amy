@@ -3,6 +3,7 @@ package amyc.backend.wasm
 import amyc.ast.Identifier
 import amyc.backend.wasm
 import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.types.Integer.i32
 import amyc.core.Context
 import amyc.core.Signatures.*
@@ -82,8 +83,8 @@ object Utils {
     }
 
   // Increment a local variable
-  inline def incr(local: Int) =
-    GetLocal(local) <:> i32.const(1) <:> i32.add <:> SetLocal(local)
+  inline def incr(l: Int) =
+    local.get(l) <:> i32.const(1) <:> i32.add <:> local.set(l)
 
   inline def withComment(inline comment : String)(inline code: Code) : Code =
     Comment(comment) <:> code
@@ -96,13 +97,13 @@ object Utils {
     val completeS = s + 0.toChar.toString * padding
 
     val setChars = for ((c, ind) <- completeS.zipWithIndex.toList) yield {
-      GetGlobal(memoryBoundary) <:> i32.const(ind) <:> i32.add <:>
+      global.get(memoryBoundary) <:> i32.const(ind) <:> i32.add <:>
         i32.const(c.toInt) <:> Store8
     }
 
     val setMemory =
-      GetGlobal(memoryBoundary) <:> GetGlobal(memoryBoundary) <:> i32.const(size + padding) <:> i32.add <:>
-        SetGlobal(memoryBoundary)
+      global.get(memoryBoundary) <:> global.get(memoryBoundary) <:> i32.const(size + padding) <:> i32.add <:>
+        global.set(memoryBoundary)
 
     withComment(s"mkString: $s"){
       setChars <:> setMemory
@@ -127,16 +128,16 @@ object Utils {
     ift(lhs, mkBoolean(true), rhs)
 
   inline def loadGlobal(inline idx: Int) : Code =
-    GetGlobal(idx) <:> Load
+    global.get(idx) <:> Load
 
   inline def setGlobal(inline code: Code, inline idx: Int): Code =
-    code <:> SetGlobal(idx)
+    code <:> global.set(idx)
 
   inline def loadLocal(inline idx: Int) : Code =
-    GetLocal(idx) <:> Load
+    local.get(idx) <:> Load
 
   inline def setLocal(inline code: Code, inline idx: Int): Code =
-    code <:> SetLocal(idx)
+    code <:> local.set(idx)
 
   inline def constructor(inline const: ConstrSig) : Code =
     i32.const(const.idx)

@@ -10,6 +10,7 @@ import amyc.backend.wasm.utils.LocalsHandler
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import Utils.*
 import amyc.ast.Identifier
+import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.types.Integer.i32
 import amyc.core.Signatures.FunSig
 
@@ -63,12 +64,12 @@ object BuiltIn {
         val label = getFreshLabel()
         Loop(label) <:>
           // Load current character
-          GetLocal(ptrS) <:> Load8_u <:>
+          local.get(ptrS) <:> Load8_u <:>
           // If != 0
           If_void <:>
           // Copy to destination
-          GetLocal(ptrD) <:>
-          GetLocal(ptrS) <:> Load8_u <:>
+          local.get(ptrD) <:>
+          local.get(ptrS) <:> Load8_u <:>
           Store8 <:>
           // Increment pointers
           incr(ptrD) <:> incr(ptrS) <:>
@@ -80,15 +81,15 @@ object BuiltIn {
       }
 
       // Instantiate ptrD to previous memory, ptrS to first string
-      GetGlobal(memoryBoundary) <:>
-        SetLocal(ptrD) <:>
-        GetLocal(0) <:>
-        SetLocal(ptrS) <:>
+      global.get(memoryBoundary) <:>
+        local.set(ptrD) <:>
+        local.get(0) <:>
+        local.set(ptrS) <:>
         // Copy first string
         mkLoop <:>
         // Set ptrS to second string
-        GetLocal(1) <:>
-        SetLocal(ptrS) <:>
+        local.get(1) <:>
+        local.set(ptrS) <:>
         // Copy second string
         mkLoop <:>
         //
@@ -96,9 +97,9 @@ object BuiltIn {
         //
         Loop(label) <:>
         // Write 0
-        GetLocal(ptrD) <:> i32.const(0) <:> Store8 <:>
+        local.get(ptrD) <:> i32.const(0) <:> Store8 <:>
         // Check if multiple of 4
-        GetLocal(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
+        local.get(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
         // If not
         If_void <:>
         // Increment pointer and go back
@@ -108,17 +109,17 @@ object BuiltIn {
         End <:>
         End <:>
         // Put string pointer to stack, set new memory boundary and return
-        GetGlobal(memoryBoundary) <:> GetLocal(ptrD) <:> i32.const(1) <:> i32.add <:> SetGlobal(memoryBoundary)
+        global.get(memoryBoundary) <:> local.get(ptrD) <:> i32.const(1) <:> i32.add <:> global.set(memoryBoundary)
     }
 
   lazy val digitToStringImpl: F =
     builtInForSym("Std", "digitToString") {
       // We know we have to create a string of total size 4 (digit code + padding), so we do it all together
       // We do not need to shift the digit due to little endian structure!
-      GetGlobal(memoryBoundary) <:> GetLocal(0) <:> i32.const('0'.toInt) <:> i32.add <:> Store <:>
+      global.get(memoryBoundary) <:> local.get(0) <:> i32.const('0'.toInt) <:> i32.add <:> Store <:>
         // Load memory boundary to stack, then move it by 4
-        GetGlobal(memoryBoundary) <:>
-        GetGlobal(memoryBoundary) <:> i32.const(4) <:> i32.add <:> SetGlobal(memoryBoundary)
+        global.get(memoryBoundary) <:>
+        global.get(memoryBoundary) <:> i32.const(4) <:> i32.add <:> global.set(memoryBoundary)
     }
 
   lazy val readStringImpl: F =
@@ -126,10 +127,10 @@ object BuiltIn {
       // We need to use the weird interface of javascript read string:
       // we pass the old memory boundary and get the new one.
       // In the end we have to return the old, where the fresh string lies.
-      GetGlobal(memoryBoundary) <:>
-      GetGlobal(memoryBoundary) <:>
+      global.get(memoryBoundary) <:>
+      global.get(memoryBoundary) <:>
       Call("js_readString0") <:>
-      SetGlobal(memoryBoundary)
+      global.set(memoryBoundary)
     }
 
 }

@@ -11,6 +11,7 @@ import amyc.backend.wasm.Utils.*
 import amyc.core.Signatures.*
 import amyc.core.*
 import amyc.*
+import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.types.Integer.i32
 import amyc.backend.wasm.utils.LocalsHandler
 
@@ -77,7 +78,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def cgExpr(expr: Expr)(using locals: Map[Identifier, Int])(using LocalsHandler)(using Context): Code = {
     expr match {
       case Variable(name) =>
-        GetLocal(locals.get(name).getOrElse(reporter.fatal(s"todo")))
+        local.get(locals.get(name).getOrElse(reporter.fatal(s"todo")))
       case FunRef(ref) =>
         val sig = symbols.getFunction(ref) getOrElse {
           reporter.fatal("todo")
@@ -137,13 +138,13 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case Ite(cond, thenn, elze) =>
         ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
       case Match(scrut, cases) =>
-        val local = lh.getFreshLocal
-        setLocal(cgExpr(scrut), local) <:> {
+        val l = lh.getFreshLocal
+        setLocal(cgExpr(scrut), l) <:> {
           for
             c <- cases
             (cond, loc) = matchAndBind(c.pat)
           yield
-            GetLocal(local) <:>
+            local.get(l) <:>
               cond <:>
               If_i32 <:>
               cgExpr(c.expr)(using locals ++ loc) <:>
@@ -170,7 +171,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                      (using Context) =
     val call: Code = {
       locals.get(qname).map { idx =>
-        GetLocal(idx) <:>
+        local.get(idx) <:>
           CallIndirect(mkFunTypeName(args.size))
       } getOrElse {
         Call(fullName(symbols.getFunction(qname).get.owner, qname))
@@ -183,24 +184,24 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                         (using locals: Map[Identifier, Int], lh: LocalsHandler)
                         (using Context) = {
     val ConstrSig(_, _, index) = constrSig
-    val local = lh.getFreshLocal
+    val l = lh.getFreshLocal
 
-    GetGlobal(memoryBoundary) <:>
-      SetLocal(local) <:>
-      adtField(GetGlobal(memoryBoundary), args.size) <:>
-      SetGlobal(memoryBoundary) <:>
-      GetLocal(local) <:>
+    global.get(memoryBoundary) <:>
+      local.set(l) <:>
+      adtField(global.get(memoryBoundary), args.size) <:>
+      global.set(memoryBoundary) <:>
+      local.get(l) <:>
       i32.const(index) <:>
       Store <:> {
       // HR: Store each of the constructor parameter
       for
         (arg, idx) <- args.zipWithIndex
       yield
-        adtField(GetLocal(local), idx) <:> // Compute the offset to store in
+        adtField(local.get(l), idx) <:> // Compute the offset to store in
           cgExpr(arg) <:> // Compute the data to store
           Store
     } <:>
-      GetLocal(local)
+      local.get(l)
   }
 
   // ==============================================================================================
@@ -247,7 +248,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                   (using Context) =
     val idLocal = lh.getFreshLocal
     // HR : We return true as this pattern will be executed if encountered
-    (SetLocal(idLocal) <:> mkBoolean(true), Map(id -> idLocal))
+    (local.set(idLocal) <:> mkBoolean(true), Map(id -> idLocal))
 
   /**
     *
@@ -278,13 +279,13 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                          (using Context) = {
     val idx = lh.getFreshLocal
     val code = args.map(matchAndBind).zipWithIndex.map {
-      p => (adtField(GetLocal(idx), p._2) <:> Load <:> p._1._1, p._1._2)
+      p => (adtField(local.get(idx), p._2) <:> Load <:> p._1._1, p._1._2)
     }
     val lc = code.map(_._2).foldLeft(Map[Identifier, Int]())(_ ++ _)
 
     // HR : Setting the constructor index we are checking as a local variable
     (
-      SetLocal(idx) <:>
+      local.set(idx) <:>
         ift({
           // HR : First check if the primary constructor is the same
           equ(loadLocal(idx), constructor(symbols.getConstructor(constr).get))

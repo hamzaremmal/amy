@@ -2,8 +2,9 @@ package amyc.backend.wasm
 
 import amyc.*
 import amyc.core.Context
-import amyc.utils._
-import amyc.backend.wasm.instructions.Instructions._
+import amyc.utils.*
+import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.types.Integer.i32
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
@@ -111,10 +112,10 @@ object ModulePrinter {
       case Call(name) => s"call $$$name"
       case CallIndirect(tpe) => s"call_indirect (type $tpe)"
       case Unreachable => "unreachable"
-      case GetLocal(index) => s"local.get $index"
-      case SetLocal(index) => s"local.set $index"
-      case GetGlobal(index) => s"global.get $index"
-      case SetGlobal(index) => s"global.set $index"
+      case local.get(index) => s"local.get $index"
+      case local.set(index) => s"local.set $index"
+      case global.get(index) => s"global.get $index"
+      case global.set(index) => s"global.set $index"
       case Store => "i32.store"
       case Load => "i32.load"
       case Store8 => "i32.store8"
