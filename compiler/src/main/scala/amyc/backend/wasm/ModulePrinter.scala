@@ -3,11 +3,8 @@ package amyc.backend.wasm
 import amyc.*
 import amyc.core.Context
 import amyc.utils.*
-import amyc.backend.wasm.instructions.Instructions.*
-import amyc.backend.wasm.instructions.*
-import amyc.backend.wasm.instructions.numeric.i32
+import Instructions.*
 import amyc.backend.wasm.types.{result, typeuse}
-import variable.*
 import amyc.backend.wasm.utils.Utils
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
@@ -115,11 +112,11 @@ object ModulePrinter {
       case Block(label) => s"block $$$label"
       case Loop(label) => s"loop $$$label"
       case br(label)=> s"br $label"
-      case instructions.`return` => "ret"
+      case _ : `return`.type => "ret"
       case _ : end.type => "end"
       case call(name) => s"call $name"
       case call_indirect(tpe, idx) => s"call_indirect $idx ${mkTypeUse(tpe)}"
-      case instructions.unreachable => "unreachable"
+      case _ : unreachable.type => "unreachable"
       case local.get(index) => s"local.get $index"
       case local.set(index) => s"local.set $index"
       case global.get(index) => s"global.get $index"

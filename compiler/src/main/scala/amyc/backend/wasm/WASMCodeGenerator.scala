@@ -7,16 +7,14 @@ import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.*
 import amyc.backend.wasm.builtin.BuiltIn.*
-import amyc.backend.wasm.instructions.Instructions.*
+import Instructions.*
 import Utils.*
 import amyc.core.Signatures.*
 import amyc.core.*
 import amyc.*
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.unnamed.null_fn
-import amyc.backend.wasm.instructions.*
-import amyc.backend.wasm.instructions.numeric.i32
-import amyc.backend.wasm.instructions.variable.*
+import Instructions.*
 import amyc.backend.wasm.types.{result, typeuse}
 import amyc.backend.wasm.utils.LocalsHandler
 

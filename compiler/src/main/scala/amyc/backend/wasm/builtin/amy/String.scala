@@ -2,10 +2,7 @@ package amyc.backend.wasm.builtin.amy
 
 import amyc.ast.SymbolicTreeModule.*
 import amyc.backend.wasm.builtin.BuiltInModule
-import amyc.backend.wasm.instructions.*
-import amyc.backend.wasm.instructions.Instructions.*
-import amyc.backend.wasm.instructions.numeric.i32
-import amyc.backend.wasm.instructions.variable.*
+import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.Utils.{getFreshLabel, incr, memoryBoundary}
 import amyc.backend.wasm.utils.lh
 import amyc.core.Context

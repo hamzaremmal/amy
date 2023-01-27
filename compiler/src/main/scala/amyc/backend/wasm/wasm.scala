@@ -1,7 +1,7 @@
 package amyc.backend.wasm
 
 import amyc.utils.Preconditions.*
-import amyc.backend.wasm.instructions.Instructions.Code
+import Instructions.Code
 import amyc.backend.wasm.utils.LocalsHandler
 import amyc.core.Context
 

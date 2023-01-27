@@ -18,7 +18,7 @@ object unnamed extends BuiltInModule {
     // TODO HR : This patch should be remove when introducing native functions and this method should
     // TODO HR : Should be registered as a native method instead of adding it here
     symbols.addModule(owner) // This garanties not to fail since String is considered as a Keyword
-    symbols.addFunction(owner, "null", StringType :: StringType :: Nil, StringType)
+    symbols.addFunction(owner, "null", Nil, StringType)
 
   // Pointer to a null function
   lazy val null_fn: BuiltIn =
