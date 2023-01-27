@@ -20,10 +20,8 @@ case class br_table(l: List[labelidx], ln: labelidx) extends Instruction
 case object `return` extends Instruction
 case class call(x: funcidx) extends Instruction
 
-// TODO HR : Add second parameter here after defining typeuse
 case class call_indirect(tpe: typeuse, x: tableidx = 0) extends Instruction
 
-// TODO HR : Should not be defined here
 case object end extends Instruction
 
 // ================================================================================================

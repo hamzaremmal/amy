@@ -7,6 +7,11 @@ import amyc.core.Context
 
 import scala.annotation.constructorOnly
 
+/**
+  * https://webassembly.github.io/spec/core/syntax/modules.html
+  */
+
+
 // A WebAssembly module
 case class Module(name: String,
                   globals: Int,

@@ -2,6 +2,10 @@ package amyc.backend.wasm
 
 import amyc.backend.wasm.instructions.Instructions.id
 
+/**
+  * https://webassembly.github.io/spec/core/text/modules.html#indices
+  */
+
 object indices {
 
   type typeidx   = Int | id

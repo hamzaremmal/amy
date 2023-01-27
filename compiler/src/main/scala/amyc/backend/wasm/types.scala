@@ -2,6 +2,10 @@ package amyc.backend.wasm
 
 import amyc.backend.wasm.indices.typeidx
 
+/**
+  * https://webassembly.github.io/spec/core/syntax/types.html
+  */
+
 object types :
   abstract class WasmType
 
