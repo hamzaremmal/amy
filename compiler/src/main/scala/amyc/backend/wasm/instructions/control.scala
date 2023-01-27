@@ -7,4 +7,6 @@ case object unreachable extends Instruction
 // Return
 case object ret extends Instruction
 
+case object end extends Instruction
+
 

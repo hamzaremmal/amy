@@ -4,8 +4,8 @@ import amyc.backend.wasm
 import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.instructions.Instructions.{Call, Store}
+import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
-import amyc.backend.wasm.types.Integer.i32
 import amyc.backend.wasm.utils.Utils.memoryBoundary
 
 object Std extends BuiltInModule {

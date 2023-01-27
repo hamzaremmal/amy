@@ -1,4 +1,4 @@
-package amyc.backend.wasm.types.Integer
+package amyc.backend.wasm.instructions.numeric
 
 object i64 {
 

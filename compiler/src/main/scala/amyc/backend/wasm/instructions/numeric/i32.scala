@@ -1,9 +1,11 @@
-package amyc.backend.wasm.types.Integer
+package amyc.backend.wasm.instructions.numeric
 
 import amyc.backend.wasm.instructions.Instructions.Instruction
-import amyc.backend.wasm.instructions.numeric.integer.ibinop
 
-object i32 extends WasmInt[Int] {
+/**
+  * For Numeric Instructions : https://webassembly.github.io/spec/core/text/instructions.html#numeric-instructions
+  */
+object i32 :
 
   case class const(value : Int) extends Instruction
 
@@ -24,6 +26,8 @@ object i32 extends WasmInt[Int] {
   case object rotr extends Instruction
 
   case object eq extends Instruction
+  case object eqz extends Instruction
+  case object ne extends Instruction
   case object ge_s extends Instruction
   case object ge_u  extends Instruction
   case object gt_s extends Instruction
@@ -32,9 +36,8 @@ object i32 extends WasmInt[Int] {
   case object le_u extends Instruction
   case object lt_s extends Instruction
   case object lt_u extends Instruction
-  case object ne extends Instruction
 
-  case object eqz extends Instruction
+
 
   case object clz extends Instruction
   case object ctz extends Instruction
@@ -45,10 +48,17 @@ object i32 extends WasmInt[Int] {
 
   case object wrap_i64 extends Instruction
 
-  // TODO HR : Add below instructions
-  /**
-    * inn_trunc_fmm_sx
-    * inn_trunc_sat_fmm_sx
-    * inn_reinterpret_fnn
-    */
-}
+  case object trunc_f32_s extends Instruction
+  case object trunc_f32_u extends Instruction
+  case object trunc_f64_s extends Instruction
+  case object trunc_f64_u extends Instruction
+
+  case object trunc_sat_f32_s extends Instruction
+
+  case object trunc_sat_f32_u extends Instruction
+
+  case object trunc_sat_f64_s extends Instruction
+
+  case object trunc_sat_f64_u extends Instruction
+
+  case object reinterpret_f32 extends Instruction

@@ -1,4 +1,4 @@
-package amyc.backend.wasm.types.Float
+package amyc.backend.wasm.instructions.numeric
 
 object f64 {
 

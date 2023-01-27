@@ -14,8 +14,8 @@ import amyc.core.*
 import amyc.*
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.unnamed.null_fn
+import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
-import amyc.backend.wasm.types.Integer.i32
 import amyc.backend.wasm.utils.LocalsHandler
 
 // TODO HR: Generate all wasm related files here
