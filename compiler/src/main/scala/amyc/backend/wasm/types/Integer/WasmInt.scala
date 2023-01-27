@@ -3,7 +3,7 @@ package amyc.backend.wasm.types.Integer
 import amyc.backend.wasm.Type
 import amyc.backend.wasm.instructions.*
 import amyc.backend.wasm.instructions.Instructions.Instruction
-import amyc.backend.wasm.instructions.integer.*
+import amyc.backend.wasm.instructions.numeric.integer.{ibinop, irelop, itestop, iunop}
 
 trait WasmInt[V <: Int | Long] extends Type, const, iunop, ibinop, itestop, irelop :
 

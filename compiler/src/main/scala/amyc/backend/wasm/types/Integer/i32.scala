@@ -1,7 +1,7 @@
 package amyc.backend.wasm.types.Integer
 
 import amyc.backend.wasm.instructions.Instructions.Instruction
-import amyc.backend.wasm.instructions.integer.ibinop
+import amyc.backend.wasm.instructions.numeric.integer.ibinop
 
 object i32 extends WasmInt[Int] {
 

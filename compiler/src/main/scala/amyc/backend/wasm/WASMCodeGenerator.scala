@@ -1,9 +1,10 @@
 package amyc.backend.wasm
 
+import amyc.backend.wasm.*
 import amyc.ast.*
 import amyc.utils.Pipeline
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
-import amyc.backend.wasm
+import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.*
 import amyc.backend.wasm.BuiltIn.*
 import amyc.backend.wasm.instructions.Instructions.*
@@ -22,7 +23,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
 
   override def run(program: Program)(using Context): Module =
     val fn = wasmFunctions ++ (program.modules flatMap cgModule)
-    wasm.Module(
+    Module(
       program.modules.last.name.name,
       globalsNo,
       defaultImports,
@@ -38,7 +39,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       Some(Table(f.size, f))
 
   // Generate code for an Amy module
-  private def cgModule(moduleDef: ModuleDef)(using Context): List[wasm.Function] = {
+  private def cgModule(moduleDef: ModuleDef)(using Context): List[Function] = {
     val ModuleDef(name, defs, optExpr) = moduleDef
     // Generate code for all functions
     defs.collect {
@@ -53,12 +54,12 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   }
 
   // Generate code for a function in module 'owner'
-  def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): wasm.Function = {
+  def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
     val name = fullName(owner, fd.name)
     val sig = symbols.getFunction(owner.name, fd.name.name).map(_._2.idx).getOrElse(0)
-    wasm.Function(name, fd.params.size, isMain, sig) {
+    Function(name, fd.params.size, isMain, sig) {
       val locals = fd.paramNames.zipWithIndex.toMap
       val body = cgExpr(fd.body)(using locals)
       withComment(fd.toString) {

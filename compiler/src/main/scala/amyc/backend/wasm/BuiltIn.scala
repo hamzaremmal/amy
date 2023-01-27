@@ -4,9 +4,9 @@ import amyc.*
 import amyc.core.Context
 import amyc.ast.SymbolicTreeModule.StringType
 import amyc.ast.SymbolicTreeModule.StringLiteral
-import amyc.backend.wasm.Function
+import amyc.backend.wasm.*
+import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.instructions.Instructions.*
-import amyc.backend.wasm.utils.LocalsHandler
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import Utils.*
 import amyc.ast.Identifier

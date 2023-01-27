@@ -1,4 +1,4 @@
-package amyc.backend.wasm.instructions.integer
+package amyc.backend.wasm.instructions.numeric.integer
 
 import amyc.backend.wasm.instructions.Instructions.Instruction
 
