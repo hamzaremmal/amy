@@ -6,7 +6,7 @@ import amyc.backend.wasm.instructions.Instructions.Instruction
 /**
   * https://webassembly.github.io/spec/core/text/instructions.html#variable-instructions
   */
-object variable {
+object variable:
 
   object global:
     case class get(idx: globalidx) extends Instruction
@@ -17,5 +17,3 @@ object variable {
     case class get(idx: localidx) extends Instruction
     case class set(idx: localidx) extends Instruction
     case class tee(idx: localidx) extends Instruction
-
-}
