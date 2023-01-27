@@ -8,6 +8,7 @@ import scala.language.implicitConversions
 
 // A subset of instructions defined by the WASM standard
 object Instructions {
+
   sealed abstract class Instruction:
     @targetName("concat")
     def <:>(i: Instruction): Code = (this, i) match
@@ -21,17 +22,16 @@ object Instructions {
 
   // Comment
   case class Comment(msg: String) extends Instruction
+
   // ==============================================================================================
   // =================== Useful implicit conversions to construct Code objects ====================
   // ==============================================================================================
-  // Useful implicit conversions to construct Code objects
+
+  implicit def is2c(is: List[Instruction]): Code = is.foldRight(Code(Nil))(_ <:> _)
+  implicit def cs2c(cs: List[Code]): Code = cs.foldRight(Code(Nil))(_ <:> _)
   implicit def i2c(i: Instruction): Code = i match
     case c:Code => c
     case _ => Code(List(i))
-
-  implicit def is2c(is: List[Instruction]): Code = is.foldRight(Code(Nil))(_ <:> _)
-
-  implicit def cs2c(cs: List[Code]): Code = cs.foldRight(Code(Nil))(_ <:> _)
 
   // id
   opaque type id = String
@@ -57,15 +57,12 @@ object Instructions {
     */
   object global:
     case class get(idx: globalidx) extends Instruction
-
     case class set(idx: globalidx) extends Instruction
 
   object local:
 
     case class get(idx: localidx) extends Instruction
-
     case class set(idx: localidx) extends Instruction
-
     case class tee(idx: localidx) extends Instruction
 
   /**
@@ -73,17 +70,11 @@ object Instructions {
     */
   object table:
     case class get(idx: tableidx = 0) extends Instruction
-
     case class set(idx: tableidx = 0) extends Instruction
-
     case class size(idx: tableidx = 0) extends Instruction
-
     case class grow(idx: tableidx = 0) extends Instruction
-
     case class fill(idx: tableidx = 0) extends Instruction
-
     case class copy(x: tableidx = 0, y: tableidx = 0) extends Instruction
-
     case class init(x: tableidx = 0, y: elemidx) extends Instruction
 
   object elem:
@@ -94,12 +85,9 @@ object Instructions {
     * https://webassembly.github.io/spec/core/text/instructions.html#reference-instructions
     */
   object ref:
-
     // TODO HR : Fix parameter type
     case class `null`(t: Any) extends Instruction
-
     case object is_null extends Instruction
-
     case class func(idx: funcidx) extends Instruction
 
   /**
@@ -116,13 +104,9 @@ object Instructions {
 
   object memory:
     case object size extends Instruction
-
     case object grow extends Instruction
-
     case object fill extends Instruction
-
     case object copy extends Instruction
-
     case class init(x: dataidx) extends Instruction
 
   object data:
@@ -137,21 +121,13 @@ object Instructions {
   // ================================================================================================
 
   case object unreachable extends Instruction
-
   case object nop extends Instruction
-
   case class br(l: labelidx) extends Instruction
-
   case class br_if(l: labelidx) extends Instruction
-
   case class br_table(l: List[labelidx], ln: labelidx) extends Instruction
-
   case object `return` extends Instruction
-
   case class call(x: funcidx) extends Instruction
-
   case class call_indirect(tpe: typeuse, x: tableidx = 0) extends Instruction
-
   case object end extends Instruction
 
   // ================================================================================================
@@ -159,7 +135,6 @@ object Instructions {
   // ================================================================================================
 
   case class `if`(label: Option[id] = None, blocktype: Option[result] = None) extends Instruction
-
   case class `else`(l: Option[id] = None) extends Instruction
 
   /**
