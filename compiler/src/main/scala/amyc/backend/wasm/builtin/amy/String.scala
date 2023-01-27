@@ -2,9 +2,10 @@ package amyc.backend.wasm.builtin.amy
 
 import amyc.ast.SymbolicTreeModule.*
 import amyc.backend.wasm.builtin.BuiltInModule
+import amyc.backend.wasm.instructions.*
 import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
-import amyc.backend.wasm.types.Integer.*
 import amyc.backend.wasm.utils.Utils.{getFreshLabel, incr, memoryBoundary}
 import amyc.backend.wasm.utils.lh
 import amyc.core.Context
@@ -25,26 +26,25 @@ object String extends BuiltInModule {
     builtInForSym("concat") {
       val ptrS = lh.getFreshLocal
       val ptrD = lh.getFreshLocal
+
       val label = getFreshLabel()
 
       def mkLoop: Code = {
         val label = getFreshLabel()
         Loop(label) <:>
           // Load current character
-          local.get(ptrS) <:> Load8_u <:>
+          local.get(ptrS) <:> i32.load8_u <:>
           // If != 0
-          If_void <:>
+          `if`() <:>
           // Copy to destination
           local.get(ptrD) <:>
-          local.get(ptrS) <:> Load8_u <:>
-          Store8 <:>
+          local.get(ptrS) <:> i32.load8_u <:>
+          i32.store8 <:>
           // Increment pointers
           incr(ptrD) <:> incr(ptrS) <:>
           // Jump to loop
-          Br(label) <:>
-          Else <:>
-          End <:>
-          End
+          br(label) <:>
+          `else`() <:> end <:> end
       }
 
       // Instantiate ptrD to previous memory, ptrS to first string
@@ -64,17 +64,14 @@ object String extends BuiltInModule {
         //
         Loop(label) <:>
         // Write 0
-        local.get(ptrD) <:> i32.const(0) <:> Store8 <:>
+        local.get(ptrD) <:> i32.const(0) <:> i32.store8 <:>
         // Check if multiple of 4
         local.get(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
         // If not
-        If_void <:>
+        `if`() <:>
         // Increment pointer and go back
         incr(ptrD) <:>
-        Br(label) <:>
-        Else <:>
-        End <:>
-        End <:>
+        br(label) <:> `else`() <:> end <:> end <:>
         // Put string pointer to stack, set new memory boundary and return
         global.get(memoryBoundary) <:> local.get(ptrD) <:> i32.const(1) <:> i32.add <:> global.set(memoryBoundary)
     }

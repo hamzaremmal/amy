@@ -3,9 +3,10 @@ package amyc.backend.wasm.utils
 import amyc.ast.Identifier
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.instructions.*
+import amyc.backend.wasm.types.*
 import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
-import amyc.backend.wasm.types.Integer.i32
 import amyc.core.Context
 import amyc.core.Signatures.*
 import amyc.reporter
@@ -99,7 +100,7 @@ object Utils {
 
     val setChars = for ((c, ind) <- completeS.zipWithIndex.toList) yield {
       global.get(memoryBoundary) <:> i32.const(ind) <:> i32.add <:>
-        i32.const(c.toInt) <:> Store8
+        i32.const(c.toInt) <:> i32.store8
     }
 
     val setMemory =
@@ -129,13 +130,13 @@ object Utils {
     ift(lhs, mkBoolean(true), rhs)
 
   inline def loadGlobal(inline idx: Int) : Code =
-    global.get(idx) <:> Load
+    global.get(idx) <:> i32.load
 
   inline def setGlobal(inline code: Code, inline idx: Int): Code =
     code <:> global.set(idx)
 
   inline def loadLocal(inline idx: Int) : Code =
-    local.get(idx) <:> Load
+    local.get(idx) <:> i32.load
 
   inline def setLocal(inline code: Code, inline idx: Int): Code =
     code <:> local.set(idx)
@@ -144,15 +145,14 @@ object Utils {
     i32.const(const.idx)
 
   inline def error(inline msg: Code) : Code =
-    msg <:> Call("Std_printString") <:> unreachable
+    msg <:> call("Std_printString") <:> unreachable
 
   inline def ift(inline cond: Code, inline thenn: Code, elze: Code) =
     cond <:>
-    If_i32 <:>
+    `if`(None, Some(result(i32))) <:>
     thenn <:>
-    Else <:>
-    elze <:>
-    End
+    `else`() <:>
+    elze <:> end
 
   def resolveOrder(fn: List[Function], n: => Function)(using Context): List[Function] =
     def resolve(idx: Int) =
