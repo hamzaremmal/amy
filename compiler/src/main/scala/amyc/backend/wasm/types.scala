@@ -1,5 +1,7 @@
 package amyc.backend.wasm
 
+import amyc.backend.wasm.indices.typeidx
+
 object types :
   abstract class WasmType
 
@@ -10,3 +12,4 @@ object types :
   abstract class reftype extends valtype
 
   case class result(tpe: valtype)
+  case class typeuse(x: typeidx)

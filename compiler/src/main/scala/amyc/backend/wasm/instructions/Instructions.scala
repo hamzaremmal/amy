@@ -38,8 +38,6 @@ object Instructions {
   case class Loop(label: String)  extends Instruction // A block of instructions with a label at the beginning
   case class Block(label: String) extends Instruction // A block of instructions with a label at the end
 
-  case class CallIndirect(tpe: String) extends Instruction
-
     // Comment
   case class Comment(msg: String) extends Instruction
 

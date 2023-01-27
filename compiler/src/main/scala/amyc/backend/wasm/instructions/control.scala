@@ -2,7 +2,7 @@ package amyc.backend.wasm.instructions
 
 import amyc.backend.wasm.indices.*
 import amyc.backend.wasm.instructions.Instructions.{Instruction, id}
-import amyc.backend.wasm.types.result
+import amyc.backend.wasm.types.{result, typeuse}
 
 /**
   * https://webassembly.github.io/spec/core/text/instructions.html#control-instructions
@@ -21,7 +21,7 @@ case object `return` extends Instruction
 case class call(x: funcidx) extends Instruction
 
 // TODO HR : Add second parameter here after defining typeuse
-case class call_indirect(x: tableidx = 0) extends Instruction
+case class call_indirect(tpe: typeuse, x: tableidx = 0) extends Instruction
 
 // TODO HR : Should not be defined here
 case object end extends Instruction

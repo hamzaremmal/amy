@@ -17,7 +17,7 @@ import amyc.backend.wasm.builtin.unnamed.null_fn
 import amyc.backend.wasm.instructions.*
 import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
-import amyc.backend.wasm.types.result
+import amyc.backend.wasm.types.{result, typeuse}
 import amyc.backend.wasm.utils.LocalsHandler
 
 // TODO HR: Generate all wasm related files here
@@ -177,7 +177,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     args.map(cgExpr) <:> {
         locals.get(qname).map { idx =>
           local.get(idx) <:>
-          CallIndirect(mkFunTypeName(args.size))
+          call_indirect(typeuse(mkFunTypeName(args.size)))
         } getOrElse {
           call(fullName(symbols.getFunction(qname).get.owner, qname))
         }

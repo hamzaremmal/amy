@@ -6,7 +6,7 @@ import amyc.utils.*
 import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.instructions.*
 import amyc.backend.wasm.instructions.numeric.i32
-import amyc.backend.wasm.types.result
+import amyc.backend.wasm.types.{result, typeuse}
 import variable.*
 import amyc.backend.wasm.utils.Utils
 
@@ -37,6 +37,9 @@ object ModulePrinter {
 
   def mkResult(res: result): Document =
     s"(result ${res.tpe})"
+
+  def mkTypeUse(tpe: typeuse): Document =
+    s"(type ${tpe.x})"
 
 
   private def registerFunction(fn: List[Function])(using Context): Document =
@@ -115,7 +118,7 @@ object ModulePrinter {
       case instructions.`return` => "ret"
       case _ : end.type => "end"
       case call(name) => s"call $name"
-      case CallIndirect(tpe) => s"call_indirect (type $tpe)"
+      case call_indirect(tpe, idx) => s"call_indirect $idx ${mkTypeUse(tpe)}"
       case instructions.unreachable => "unreachable"
       case local.get(index) => s"local.get $index"
       case local.set(index) => s"local.set $index"
