@@ -76,7 +76,7 @@ object ModulePrinter {
   private def mkCode(code: Code): List[Document] = code.instructions match {
     case Nil => Nil
     case h :: t => h match {
-      case Else =>
+      case `else`(_) =>
         Unindented(mkInstr(h)) ::
         mkCode(t)
       case _ : end.type =>
@@ -108,7 +108,7 @@ object ModulePrinter {
       case _ : i32.eq.type => "i32.eq"
       case _ : drop.type => "drop"
       case `if`(label, tpe) => Lined(List(s"if", tpe.map(mkResult).getOrElse("")), " ")
-      case Else => "else"
+      case `else`(id) => s"else ${id.getOrElse("")}"
       case Block(label) => s"block $$$label"
       case Loop(label) => s"loop $$$label"
       case Br(label)=> s"br $$$label"

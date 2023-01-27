@@ -153,7 +153,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
               cond <:>
               `if`(None, Some(result(i32))) <:>
               cgExpr(c.expr)(using locals ++ loc) <:>
-              Else
+              `else`()
           // Else here become we are building a big if else bloc.
           // Last bloc will be concatenated with the Match error below and the
           // match error case there

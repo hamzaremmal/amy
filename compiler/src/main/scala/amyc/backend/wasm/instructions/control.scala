@@ -31,5 +31,6 @@ case object end extends Instruction
 // ================================================================================================
 
 case class `if`(label: Option[id] = None, blocktype: Option[result] = None) extends Instruction
+case class `else` (l: Option[id] = None) extends Instruction
 
 

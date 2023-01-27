@@ -151,7 +151,7 @@ object Utils {
     cond <:>
     `if`(None, Some(result(i32))) <:>
     thenn <:>
-    Else <:>
+    `else`() <:>
     elze <:> end
 
   def resolveOrder(fn: List[Function], n: => Function)(using Context): List[Function] =
