@@ -37,8 +37,6 @@ object Instructions {
   case class Call(name: String)   extends Instruction
 
   case class CallIndirect(tpe: String) extends Instruction
-  case object Return              extends Instruction
-  case object Unreachable         extends Instruction // Always fails the program
 
   // Memory
   // Stores an i32 to memory. Expects memory address, then stored value as operands

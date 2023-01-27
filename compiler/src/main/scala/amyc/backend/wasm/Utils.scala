@@ -3,6 +3,7 @@ package amyc.backend.wasm
 import amyc.ast.Identifier
 import amyc.backend.wasm
 import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.instructions.*
 import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.types.Integer.i32
 import amyc.core.Context
@@ -143,7 +144,7 @@ object Utils {
     i32.const(const.idx)
 
   inline def error(inline msg: Code) : Code =
-    msg <:> Call("Std_printString") <:> Unreachable
+    msg <:> Call("Std_printString") <:> unreachable
 
   inline def ift(inline cond: Code, inline thenn: Code, elze: Code) =
     cond <:>
