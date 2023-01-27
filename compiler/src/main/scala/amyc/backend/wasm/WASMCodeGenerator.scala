@@ -6,9 +6,9 @@ import amyc.utils.Pipeline
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.*
-import amyc.backend.wasm.BuiltIn.*
+import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.instructions.Instructions.*
-import amyc.backend.wasm.Utils.*
+import Utils.*
 import amyc.core.Signatures.*
 import amyc.core.*
 import amyc.*

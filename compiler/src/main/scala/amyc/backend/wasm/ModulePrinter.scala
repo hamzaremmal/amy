@@ -7,6 +7,7 @@ import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.instructions.*
 import variable.*
 import amyc.backend.wasm.types.Integer.i32
+import amyc.backend.wasm.utils.Utils
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
 

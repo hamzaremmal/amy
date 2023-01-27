@@ -1,8 +1,9 @@
-package amyc.backend.wasm
+package amyc.backend.wasm.utils
 
 import amyc.ast.Identifier
-import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.Function
 import amyc.backend.wasm.instructions.*
+import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.types.Integer.i32
 import amyc.core.Context
