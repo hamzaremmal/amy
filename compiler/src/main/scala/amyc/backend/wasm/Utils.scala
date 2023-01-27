@@ -2,7 +2,8 @@ package amyc.backend.wasm
 
 import amyc.ast.Identifier
 import amyc.backend.wasm
-import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.types.Integer.i32
 import amyc.core.Context
 import amyc.core.Signatures.*
 import amyc.reporter
@@ -77,12 +78,12 @@ object Utils {
   // 'index' MUST be 0-based.
   inline def adtField(inline base: Code, inline index: Int): Code =
     withComment(s"adtField index: $index from base : $base"){
-      base <:> Const(4* (index + 1)) <:> Add
+      base <:> i32.const(4* (index + 1)) <:> i32.add
     }
 
   // Increment a local variable
   inline def incr(local: Int) =
-    GetLocal(local) <:> Const(1) <:> Add <:> SetLocal(local)
+    GetLocal(local) <:> i32.const(1) <:> i32.add <:> SetLocal(local)
 
   inline def withComment(inline comment : String)(inline code: Code) : Code =
     Comment(comment) <:> code
@@ -95,12 +96,12 @@ object Utils {
     val completeS = s + 0.toChar.toString * padding
 
     val setChars = for ((c, ind) <- completeS.zipWithIndex.toList) yield {
-      GetGlobal(memoryBoundary) <:> Const(ind) <:> Add <:>
-        Const(c.toInt) <:> Store8
+      GetGlobal(memoryBoundary) <:> i32.const(ind) <:> i32.add <:>
+        i32.const(c.toInt) <:> Store8
     }
 
     val setMemory =
-      GetGlobal(memoryBoundary) <:> GetGlobal(memoryBoundary) <:> Const(size + padding) <:> Add <:>
+      GetGlobal(memoryBoundary) <:> GetGlobal(memoryBoundary) <:> i32.const(size + padding) <:> i32.add <:>
         SetGlobal(memoryBoundary)
 
     withComment(s"mkString: $s"){
@@ -109,15 +110,15 @@ object Utils {
   }
 
   inline def mkBoolean(inline b : Boolean): Code =
-    Const(if b then 1 else 0)
+    i32.const(if b then 1 else 0)
 
-  inline def mkUnit : Code = Const(0)
+  inline def mkUnit : Code = i32.const(0)
 
   inline def mkBinOp(inline lhs : Code, inline rhs : Code)(op : Instruction) : Code =
     lhs <:> rhs <:> op
 
   inline def equ(inline lhs: Code, inline rhs: Code) : Code =
-    mkBinOp(lhs, rhs)(Eq)
+    mkBinOp(lhs, rhs)(i32.eq)
 
   inline def and(inline lhs: Code, inline rhs: Code) : Code =
     ift(lhs, rhs, mkBoolean(false))
@@ -138,7 +139,7 @@ object Utils {
     code <:> SetLocal(idx)
 
   inline def constructor(inline const: ConstrSig) : Code =
-    Const(const.idx)
+    i32.const(const.idx)
 
   inline def error(inline msg: Code) : Code =
     msg <:> Call("Std_printString") <:> Unreachable

@@ -5,11 +5,12 @@ import amyc.core.Context
 import amyc.ast.SymbolicTreeModule.StringType
 import amyc.ast.SymbolicTreeModule.StringLiteral
 import amyc.backend.wasm.Function
-import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.utils.LocalsHandler
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import Utils.*
 import amyc.ast.Identifier
+import amyc.backend.wasm.types.Integer.i32
 import amyc.core.Signatures.FunSig
 
 object BuiltIn {
@@ -95,9 +96,9 @@ object BuiltIn {
         //
         Loop(label) <:>
         // Write 0
-        GetLocal(ptrD) <:> Const(0) <:> Store8 <:>
+        GetLocal(ptrD) <:> i32.const(0) <:> Store8 <:>
         // Check if multiple of 4
-        GetLocal(ptrD) <:> Const(4) <:> Rem <:>
+        GetLocal(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
         // If not
         If_void <:>
         // Increment pointer and go back
@@ -107,17 +108,17 @@ object BuiltIn {
         End <:>
         End <:>
         // Put string pointer to stack, set new memory boundary and return
-        GetGlobal(memoryBoundary) <:> GetLocal(ptrD) <:> Const(1) <:> Add <:> SetGlobal(memoryBoundary)
+        GetGlobal(memoryBoundary) <:> GetLocal(ptrD) <:> i32.const(1) <:> i32.add <:> SetGlobal(memoryBoundary)
     }
 
   lazy val digitToStringImpl: F =
     builtInForSym("Std", "digitToString") {
       // We know we have to create a string of total size 4 (digit code + padding), so we do it all together
       // We do not need to shift the digit due to little endian structure!
-      GetGlobal(memoryBoundary) <:> GetLocal(0) <:> Const('0'.toInt) <:> Add <:> Store <:>
+      GetGlobal(memoryBoundary) <:> GetLocal(0) <:> i32.const('0'.toInt) <:> i32.add <:> Store <:>
         // Load memory boundary to stack, then move it by 4
         GetGlobal(memoryBoundary) <:>
-        GetGlobal(memoryBoundary) <:> Const(4) <:> Add <:> SetGlobal(memoryBoundary)
+        GetGlobal(memoryBoundary) <:> i32.const(4) <:> i32.add <:> SetGlobal(memoryBoundary)
     }
 
   lazy val readStringImpl: F =

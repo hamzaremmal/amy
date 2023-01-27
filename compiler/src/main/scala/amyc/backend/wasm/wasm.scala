@@ -1,7 +1,7 @@
 package amyc.backend.wasm
 
 import amyc.utils.Preconditions.*
-import amyc.backend.wasm.Instructions.Code
+import amyc.backend.wasm.instructions.Instructions.Code
 import amyc.backend.wasm.utils.LocalsHandler
 import amyc.core.Context
 
@@ -13,6 +13,9 @@ case class Module(name: String,
                   imports: List[String],
                   table: Option[Table],
                   functions: List[Function])
+
+// A web assembly type (i32, i64, f32, f64)
+abstract class Type
 
 // If isMain = false, represents a function which returns an i32 and will not be exported to js
 // If isMain = true , represents a function which does not return a value, and will be exported to js

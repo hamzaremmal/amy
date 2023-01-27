@@ -6,11 +6,12 @@ import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.backend.wasm
 import amyc.backend.wasm.*
 import amyc.backend.wasm.BuiltIn.*
-import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.Utils.*
 import amyc.core.Signatures.*
 import amyc.core.*
 import amyc.*
+import amyc.backend.wasm.types.Integer.i32
 import amyc.backend.wasm.utils.LocalsHandler
 
 // TODO HR: Generate all wasm related files here
@@ -81,27 +82,27 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         val sig = symbols.getFunction(ref) getOrElse {
           reporter.fatal("todo")
         }
-        Const(sig.idx)
-      case IntLiteral(i) => Const(i)
+        i32.const(sig.idx)
+      case IntLiteral(i) => i32.const(i)
       case BooleanLiteral(b) => //withComment(expr.toString){
         mkBoolean(b)
       //}
       case StringLiteral(s) => mkString(s)
       case UnitLiteral() => mkUnit
       case InfixCall(lhs, StdNames.+, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Add)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.add)
       case InfixCall(lhs, StdNames.-, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Sub)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.sub)
       case InfixCall(lhs, StdNames.*, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Mul)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.mul)
       case InfixCall(lhs, StdNames./, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Div)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.div_s)
       case InfixCall(lhs, StdNames.%, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Rem)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.rem_s)
       case InfixCall(lhs, StdNames.<, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Lt_s)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.lt_s)
       case InfixCall(lhs, StdNames.<=, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Le_s)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.le_s)
       case InfixCall(lhs, StdNames.&&, rhs) =>
         and(cgExpr(lhs), cgExpr(rhs))
       case InfixCall(lhs, StdNames.||, rhs) =>
@@ -113,9 +114,9 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot generate wasm code for operator $op")
       case Not(e) =>
-        cgExpr(e) <:> Eqz
+        cgExpr(e) <:> i32.eqz
       case Neg(e) =>
-        mkBinOp(Const(0), cgExpr(e))(Sub)
+        mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
       case AmyCall(qname, args) =>
         symbols.getConstructor(qname)
           .map(genConstructorCall(_, args))
@@ -189,7 +190,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       adtField(GetGlobal(memoryBoundary), args.size) <:>
       SetGlobal(memoryBoundary) <:>
       GetLocal(local) <:>
-      Const(index) <:>
+      i32.const(index) <:>
       Store <:> {
       // HR: Store each of the constructor parameter
       for
@@ -260,7 +261,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def genLiteralPattern(lit: Literal[_])
                        (using locals: Map[Identifier, Int], lh: LocalsHandler)
                        (using Context) =
-    (cgExpr(lit) <:> Eq, locals)
+    (cgExpr(lit) <:> i32.eq, locals)
 
   /**
     *

@@ -3,7 +3,8 @@ package amyc.backend.wasm
 import amyc.*
 import amyc.core.Context
 import amyc.utils._
-import Instructions._
+import amyc.backend.wasm.instructions.Instructions._
+import amyc.backend.wasm.types.Integer.i32
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
 
@@ -85,19 +86,19 @@ object ModulePrinter {
 
   private def mkInstr(instr: Instruction): Document = {
     instr match {
-      case Const(value) => s"i32.const $value"
-      case Add => "i32.add"
-      case Sub => "i32.sub"
-      case Mul => "i32.mul"
-      case Div => "i32.div_s"
-      case Rem => "i32.rem_s"
-      case And => "i32.and"
-      case Or  => "i32.or"
-      case Xor => "i32.xor"
-      case Eqz => "i32.eqz"
-      case Lt_s => "i32.lt_s"
-      case Le_s => "i32.le_s"
-      case Eq => "i32.eq"
+      case i32.const(value) => s"i32.const $value"
+      case i32.add => "i32.add"
+      case i32.sub => "i32.sub"
+      case i32.mul => "i32.mul"
+      case i32.div_s => "i32.div_s"
+      case i32.rem_s => "i32.rem_s"
+      case i32.and => "i32.and"
+      case i32.or  => "i32.or"
+      case i32.xor => "i32.xor"
+      case i32.eqz => "i32.eqz"
+      case i32.lt_s => "i32.lt_s"
+      case i32.le_s => "i32.le_s"
+      case _ : i32.eq.type => "i32.eq"
       case Drop => "drop"
       case If_void => "if"
       case If_i32 => "if (result i32)"
