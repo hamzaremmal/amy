@@ -1,8 +1,11 @@
-package amyc.backend.wasm
+package amyc.backend.wasm.utils
 
 import amyc.ast.Identifier
-import amyc.backend.wasm
-import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.Function
+import amyc.backend.wasm.instructions.*
+import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.instructions.variable.*
+import amyc.backend.wasm.types.Integer.i32
 import amyc.core.Context
 import amyc.core.Signatures.*
 import amyc.reporter
@@ -77,12 +80,12 @@ object Utils {
   // 'index' MUST be 0-based.
   inline def adtField(inline base: Code, inline index: Int): Code =
     withComment(s"adtField index: $index from base : $base"){
-      base <:> Const(4* (index + 1)) <:> Add
+      base <:> i32.const(4* (index + 1)) <:> i32.add
     }
 
   // Increment a local variable
-  inline def incr(local: Int) =
-    GetLocal(local) <:> Const(1) <:> Add <:> SetLocal(local)
+  inline def incr(l: Int) =
+    local.get(l) <:> i32.const(1) <:> i32.add <:> local.set(l)
 
   inline def withComment(inline comment : String)(inline code: Code) : Code =
     Comment(comment) <:> code
@@ -95,13 +98,13 @@ object Utils {
     val completeS = s + 0.toChar.toString * padding
 
     val setChars = for ((c, ind) <- completeS.zipWithIndex.toList) yield {
-      GetGlobal(memoryBoundary) <:> Const(ind) <:> Add <:>
-        Const(c.toInt) <:> Store8
+      global.get(memoryBoundary) <:> i32.const(ind) <:> i32.add <:>
+        i32.const(c.toInt) <:> Store8
     }
 
     val setMemory =
-      GetGlobal(memoryBoundary) <:> GetGlobal(memoryBoundary) <:> Const(size + padding) <:> Add <:>
-        SetGlobal(memoryBoundary)
+      global.get(memoryBoundary) <:> global.get(memoryBoundary) <:> i32.const(size + padding) <:> i32.add <:>
+        global.set(memoryBoundary)
 
     withComment(s"mkString: $s"){
       setChars <:> setMemory
@@ -109,15 +112,15 @@ object Utils {
   }
 
   inline def mkBoolean(inline b : Boolean): Code =
-    Const(if b then 1 else 0)
+    i32.const(if b then 1 else 0)
 
-  inline def mkUnit : Code = Const(0)
+  inline def mkUnit : Code = i32.const(0)
 
   inline def mkBinOp(inline lhs : Code, inline rhs : Code)(op : Instruction) : Code =
     lhs <:> rhs <:> op
 
   inline def equ(inline lhs: Code, inline rhs: Code) : Code =
-    mkBinOp(lhs, rhs)(Eq)
+    mkBinOp(lhs, rhs)(i32.eq)
 
   inline def and(inline lhs: Code, inline rhs: Code) : Code =
     ift(lhs, rhs, mkBoolean(false))
@@ -126,22 +129,22 @@ object Utils {
     ift(lhs, mkBoolean(true), rhs)
 
   inline def loadGlobal(inline idx: Int) : Code =
-    GetGlobal(idx) <:> Load
+    global.get(idx) <:> Load
 
   inline def setGlobal(inline code: Code, inline idx: Int): Code =
-    code <:> SetGlobal(idx)
+    code <:> global.set(idx)
 
   inline def loadLocal(inline idx: Int) : Code =
-    GetLocal(idx) <:> Load
+    local.get(idx) <:> Load
 
   inline def setLocal(inline code: Code, inline idx: Int): Code =
-    code <:> SetLocal(idx)
+    code <:> local.set(idx)
 
   inline def constructor(inline const: ConstrSig) : Code =
-    Const(const.idx)
+    i32.const(const.idx)
 
   inline def error(inline msg: Code) : Code =
-    msg <:> Call("Std_printString") <:> Unreachable
+    msg <:> Call("Std_printString") <:> unreachable
 
   inline def ift(inline cond: Code, inline thenn: Code, elze: Code) =
     cond <:>

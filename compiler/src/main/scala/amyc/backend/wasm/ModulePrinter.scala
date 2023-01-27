@@ -2,8 +2,12 @@ package amyc.backend.wasm
 
 import amyc.*
 import amyc.core.Context
-import amyc.utils._
-import Instructions._
+import amyc.utils.*
+import amyc.backend.wasm.instructions.Instructions.*
+import amyc.backend.wasm.instructions.*
+import variable.*
+import amyc.backend.wasm.types.Integer.i32
+import amyc.backend.wasm.utils.Utils
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
 
@@ -85,19 +89,19 @@ object ModulePrinter {
 
   private def mkInstr(instr: Instruction): Document = {
     instr match {
-      case Const(value) => s"i32.const $value"
-      case Add => "i32.add"
-      case Sub => "i32.sub"
-      case Mul => "i32.mul"
-      case Div => "i32.div_s"
-      case Rem => "i32.rem_s"
-      case And => "i32.and"
-      case Or  => "i32.or"
-      case Xor => "i32.xor"
-      case Eqz => "i32.eqz"
-      case Lt_s => "i32.lt_s"
-      case Le_s => "i32.le_s"
-      case Eq => "i32.eq"
+      case i32.const(value) => s"i32.const $value"
+      case i32.add => "i32.add"
+      case i32.sub => "i32.sub"
+      case i32.mul => "i32.mul"
+      case i32.div_s => "i32.div_s"
+      case i32.rem_s => "i32.rem_s"
+      case i32.and => "i32.and"
+      case i32.or  => "i32.or"
+      case i32.xor => "i32.xor"
+      case i32.eqz => "i32.eqz"
+      case i32.lt_s => "i32.lt_s"
+      case i32.le_s => "i32.le_s"
+      case _ : i32.eq.type => "i32.eq"
       case Drop => "drop"
       case If_void => "if"
       case If_i32 => "if (result i32)"
@@ -105,15 +109,15 @@ object ModulePrinter {
       case Block(label) => s"block $$$label"
       case Loop(label) => s"loop $$$label"
       case Br(label)=> s"br $$$label"
-      case Return => "ret"
+      case instructions.ret => "ret"
       case End => "end"
       case Call(name) => s"call $$$name"
       case CallIndirect(tpe) => s"call_indirect (type $tpe)"
-      case Unreachable => "unreachable"
-      case GetLocal(index) => s"local.get $index"
-      case SetLocal(index) => s"local.set $index"
-      case GetGlobal(index) => s"global.get $index"
-      case SetGlobal(index) => s"global.set $index"
+      case instructions.unreachable => "unreachable"
+      case local.get(index) => s"local.get $index"
+      case local.set(index) => s"local.set $index"
+      case global.get(index) => s"global.get $index"
+      case global.set(index) => s"global.set $index"
       case Store => "i32.store"
       case Load => "i32.load"
       case Store8 => "i32.store8"

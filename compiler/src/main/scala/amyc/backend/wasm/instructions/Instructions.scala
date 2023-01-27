@@ -1,10 +1,10 @@
-package amyc.backend.wasm
+package amyc.backend.wasm.instructions
 
 import scala.language.implicitConversions
 
 // A subset of instructions defined by the WASM standard
 object Instructions {
-  sealed abstract class Instruction
+  abstract class Instruction
 
   // Represents a sequence of instructions
   case class Code(instructions: List[Instruction]) {
@@ -24,24 +24,6 @@ object Instructions {
   // ============================= ??? ============================================================
   // ==============================================================================================
 
-  // Load an int32 constant to the stack
-  case class Const(value: Int) extends Instruction
-
-  // Numeric/logical instructions (all take i32 operands)
-  case object Add  extends Instruction
-  case object Sub  extends Instruction
-  case object Mul  extends Instruction
-  case object Div  extends Instruction
-  case object Rem  extends Instruction
-  case object And  extends Instruction
-  case object Or   extends Instruction
-
-  case object Xor extends Instruction
-
-  case object Eqz  extends Instruction // Return 1 if operand is 0, 0 otherwise
-  case object Lt_s extends Instruction // Signed less-than
-  case object Le_s extends Instruction // Signed less-equals
-  case object Eq   extends Instruction
   case object Drop extends Instruction // Drops the top value of the stack
 
   // Control instructions
@@ -55,16 +37,6 @@ object Instructions {
   case class Call(name: String)   extends Instruction
 
   case class CallIndirect(tpe: String) extends Instruction
-  case object Return              extends Instruction
-  case object Unreachable         extends Instruction // Always fails the program
-
-  // Locals (parameters, local variables)
-  case class GetLocal(index: Int) extends Instruction
-  case class SetLocal(index: Int) extends Instruction
-
-  // Global variables
-  case class GetGlobal(index: Int) extends Instruction
-  case class SetGlobal(index: Int) extends Instruction
 
   // Memory
   // Stores an i32 to memory. Expects memory address, then stored value as operands

@@ -1,16 +1,21 @@
 package amyc.backend.wasm
 
+import amyc.backend.wasm.*
 import amyc.ast.*
 import amyc.utils.Pipeline
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
-import amyc.backend.wasm
+import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.*
-import amyc.backend.wasm.BuiltIn.*
-import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.Utils.*
+import amyc.backend.wasm.builtin.BuiltIn.*
+import amyc.backend.wasm.instructions.Instructions.*
+import Utils.*
 import amyc.core.Signatures.*
 import amyc.core.*
 import amyc.*
+import amyc.backend.wasm.builtin.amy.*
+import amyc.backend.wasm.builtin.unnamed.null_fn
+import amyc.backend.wasm.instructions.variable.*
+import amyc.backend.wasm.types.Integer.i32
 import amyc.backend.wasm.utils.LocalsHandler
 
 // TODO HR: Generate all wasm related files here
@@ -20,7 +25,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
 
   override def run(program: Program)(using Context): Module =
     val fn = wasmFunctions ++ (program.modules flatMap cgModule)
-    wasm.Module(
+    Module(
       program.modules.last.name.name,
       globalsNo,
       defaultImports,
@@ -36,7 +41,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       Some(Table(f.size, f))
 
   // Generate code for an Amy module
-  private def cgModule(moduleDef: ModuleDef)(using Context): List[wasm.Function] = {
+  private def cgModule(moduleDef: ModuleDef)(using Context): List[Function] = {
     val ModuleDef(name, defs, optExpr) = moduleDef
     // Generate code for all functions
     defs.collect {
@@ -51,12 +56,12 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   }
 
   // Generate code for a function in module 'owner'
-  def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): wasm.Function = {
+  def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
     val name = fullName(owner, fd.name)
     val sig = symbols.getFunction(owner.name, fd.name.name).map(_._2.idx).getOrElse(0)
-    wasm.Function(name, fd.params.size, isMain, sig) {
+    Function(name, fd.params.size, isMain, sig) {
       val locals = fd.paramNames.zipWithIndex.toMap
       val body = cgExpr(fd.body)(using locals)
       withComment(fd.toString) {
@@ -76,32 +81,32 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def cgExpr(expr: Expr)(using locals: Map[Identifier, Int])(using LocalsHandler)(using Context): Code = {
     expr match {
       case Variable(name) =>
-        GetLocal(locals.get(name).getOrElse(reporter.fatal(s"todo")))
+        local.get(locals.get(name).getOrElse(reporter.fatal(s"todo")))
       case FunRef(ref) =>
         val sig = symbols.getFunction(ref) getOrElse {
           reporter.fatal("todo")
         }
-        Const(sig.idx)
-      case IntLiteral(i) => Const(i)
+        i32.const(sig.idx)
+      case IntLiteral(i) => i32.const(i)
       case BooleanLiteral(b) => //withComment(expr.toString){
         mkBoolean(b)
       //}
       case StringLiteral(s) => mkString(s)
       case UnitLiteral() => mkUnit
       case InfixCall(lhs, StdNames.+, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Add)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.add)
       case InfixCall(lhs, StdNames.-, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Sub)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.sub)
       case InfixCall(lhs, StdNames.*, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Mul)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.mul)
       case InfixCall(lhs, StdNames./, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Div)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.div_s)
       case InfixCall(lhs, StdNames.%, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Rem)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.rem_s)
       case InfixCall(lhs, StdNames.<, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Lt_s)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.lt_s)
       case InfixCall(lhs, StdNames.<=, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Le_s)
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.le_s)
       case InfixCall(lhs, StdNames.&&, rhs) =>
         and(cgExpr(lhs), cgExpr(rhs))
       case InfixCall(lhs, StdNames.||, rhs) =>
@@ -109,13 +114,13 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case InfixCall(lhs, StdNames.eq_==, rhs) =>
         equ(cgExpr(lhs), cgExpr(rhs))
       case InfixCall(lhs, StdNames.++, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(concatImpl.name))
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(String.concat.name))
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot generate wasm code for operator $op")
       case Not(e) =>
-        cgExpr(e) <:> Eqz
+        cgExpr(e) <:> i32.eqz
       case Neg(e) =>
-        mkBinOp(Const(0), cgExpr(e))(Sub)
+        mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
       case AmyCall(qname, args) =>
         symbols.getConstructor(qname)
           .map(genConstructorCall(_, args))
@@ -136,13 +141,13 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case Ite(cond, thenn, elze) =>
         ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
       case Match(scrut, cases) =>
-        val local = lh.getFreshLocal
-        setLocal(cgExpr(scrut), local) <:> {
+        val l = lh.getFreshLocal
+        setLocal(cgExpr(scrut), l) <:> {
           for
             c <- cases
             (cond, loc) = matchAndBind(c.pat)
           yield
-            GetLocal(local) <:>
+            local.get(l) <:>
               cond <:>
               If_i32 <:>
               cgExpr(c.expr)(using locals ++ loc) <:>
@@ -169,7 +174,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                      (using Context) =
     val call: Code = {
       locals.get(qname).map { idx =>
-        GetLocal(idx) <:>
+        local.get(idx) <:>
           CallIndirect(mkFunTypeName(args.size))
       } getOrElse {
         Call(fullName(symbols.getFunction(qname).get.owner, qname))
@@ -182,24 +187,24 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                         (using locals: Map[Identifier, Int], lh: LocalsHandler)
                         (using Context) = {
     val ConstrSig(_, _, index) = constrSig
-    val local = lh.getFreshLocal
+    val l = lh.getFreshLocal
 
-    GetGlobal(memoryBoundary) <:>
-      SetLocal(local) <:>
-      adtField(GetGlobal(memoryBoundary), args.size) <:>
-      SetGlobal(memoryBoundary) <:>
-      GetLocal(local) <:>
-      Const(index) <:>
+    global.get(memoryBoundary) <:>
+      local.set(l) <:>
+      adtField(global.get(memoryBoundary), args.size) <:>
+      global.set(memoryBoundary) <:>
+      local.get(l) <:>
+      i32.const(index) <:>
       Store <:> {
       // HR: Store each of the constructor parameter
       for
         (arg, idx) <- args.zipWithIndex
       yield
-        adtField(GetLocal(local), idx) <:> // Compute the offset to store in
+        adtField(local.get(l), idx) <:> // Compute the offset to store in
           cgExpr(arg) <:> // Compute the data to store
           Store
     } <:>
-      GetLocal(local)
+      local.get(l)
   }
 
   // ==============================================================================================
@@ -246,7 +251,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                   (using Context) =
     val idLocal = lh.getFreshLocal
     // HR : We return true as this pattern will be executed if encountered
-    (SetLocal(idLocal) <:> mkBoolean(true), Map(id -> idLocal))
+    (local.set(idLocal) <:> mkBoolean(true), Map(id -> idLocal))
 
   /**
     *
@@ -260,7 +265,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def genLiteralPattern(lit: Literal[_])
                        (using locals: Map[Identifier, Int], lh: LocalsHandler)
                        (using Context) =
-    (cgExpr(lit) <:> Eq, locals)
+    (cgExpr(lit) <:> i32.eq, locals)
 
   /**
     *
@@ -277,13 +282,13 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                          (using Context) = {
     val idx = lh.getFreshLocal
     val code = args.map(matchAndBind).zipWithIndex.map {
-      p => (adtField(GetLocal(idx), p._2) <:> Load <:> p._1._1, p._1._2)
+      p => (adtField(local.get(idx), p._2) <:> Load <:> p._1._1, p._1._2)
     }
     val lc = code.map(_._2).foldLeft(Map[Identifier, Int]())(_ ++ _)
 
     // HR : Setting the constructor index we are checking as a local variable
     (
-      SetLocal(idx) <:>
+      local.set(idx) <:>
         ift({
           // HR : First check if the primary constructor is the same
           equ(loadLocal(idx), constructor(symbols.getConstructor(constr).get))
