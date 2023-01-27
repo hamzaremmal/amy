@@ -2,6 +2,7 @@ package amyc.backend.wasm.builtin.amy
 
 import amyc.ast.SymbolicTreeModule.*
 import amyc.backend.wasm.builtin.BuiltInModule
+import amyc.backend.wasm.instructions.*
 import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
@@ -25,6 +26,7 @@ object String extends BuiltInModule {
     builtInForSym("concat") {
       val ptrS = lh.getFreshLocal
       val ptrD = lh.getFreshLocal
+
       val label = getFreshLabel()
 
       def mkLoop: Code = {
@@ -33,7 +35,7 @@ object String extends BuiltInModule {
           // Load current character
           local.get(ptrS) <:> i32.load8_u <:>
           // If != 0
-          If_void <:>
+          `if`() <:>
           // Copy to destination
           local.get(ptrD) <:>
           local.get(ptrS) <:> i32.load8_u <:>
@@ -68,7 +70,7 @@ object String extends BuiltInModule {
         // Check if multiple of 4
         local.get(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
         // If not
-        If_void <:>
+        `if`() <:>
         // Increment pointer and go back
         incr(ptrD) <:>
         Br(label) <:>

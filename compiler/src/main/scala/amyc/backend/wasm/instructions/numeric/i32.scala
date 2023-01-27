@@ -1,13 +1,13 @@
 package amyc.backend.wasm.instructions.numeric
 
 import amyc.backend.wasm.instructions.Instructions.Instruction
-import amyc.backend.wasm.types.WasmType
+import amyc.backend.wasm.types.numtype
 
 /**
   * For Numeric Instructions : https://webassembly.github.io/spec/core/text/instructions.html#numeric-instructions
   * For Memory Instructions : https://webassembly.github.io/spec/core/text/instructions.html#memory-instructions
   */
-object i32 extends WasmType:
+case object i32 extends numtype:
 
   // ==============================================================================================
   // =================================== NUMERIC INSTRUCTIONS =====================================

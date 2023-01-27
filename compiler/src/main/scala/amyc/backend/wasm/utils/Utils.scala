@@ -3,6 +3,7 @@ package amyc.backend.wasm.utils
 import amyc.ast.Identifier
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.instructions.*
+import amyc.backend.wasm.types.*
 import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
@@ -148,7 +149,7 @@ object Utils {
 
   inline def ift(inline cond: Code, inline thenn: Code, elze: Code) =
     cond <:>
-    If_i32 <:>
+    `if`(None, Some(result(i32))) <:>
     thenn <:>
     Else <:>
     elze <:>

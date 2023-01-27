@@ -1,11 +1,16 @@
 package amyc.backend.wasm.instructions
 
 import amyc.backend.wasm.indices.*
-import amyc.backend.wasm.instructions.Instructions.Instruction
+import amyc.backend.wasm.instructions.Instructions.{Instruction, id}
+import amyc.backend.wasm.types.result
 
 /**
   * https://webassembly.github.io/spec/core/text/instructions.html#control-instructions
   */
+
+// ================================================================================================
+// ================================ PLAIN INSTRUCTIONS ============================================
+// ================================================================================================
 
 case object unreachable extends Instruction
 case object nop extends Instruction
@@ -20,5 +25,11 @@ case class call_indirect(x: tableidx = 0) extends Instruction
 
 // TODO HR : Should not be defined here
 case object end extends Instruction
+
+// ================================================================================================
+// =================================== BLOCK INSTRUCTIONS =========================================
+// ================================================================================================
+
+case class `if`(label: Option[id] = None, blocktype: Option[result] = None) extends Instruction
 
 

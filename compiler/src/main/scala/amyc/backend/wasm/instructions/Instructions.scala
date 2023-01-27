@@ -35,8 +35,6 @@ object Instructions {
   // ==============================================================================================
 
   // Control instructions
-  case object If_void extends Instruction // Marks the beginning of an if-block (with implicit 'then').
-  case object If_i32  extends Instruction // Marks the beginning of an if-block (with implicit 'then'). Must leave an i32 on the stack
   case object Else    extends Instruction // Marks the end of the implicit 'then' of an if-block
   case object End     extends Instruction // Marks the end of an if-then-else or block
   case class Loop(label: String)  extends Instruction // A block of instructions with a label at the beginning

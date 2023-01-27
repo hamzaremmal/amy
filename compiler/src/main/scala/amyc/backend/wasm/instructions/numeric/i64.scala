@@ -1,8 +1,9 @@
 package amyc.backend.wasm.instructions.numeric
 
-import amyc.backend.wasm.types.WasmType
+import amyc.backend.wasm.types.numtype
 
-object i64 extends WasmType:
+case object i64 extends numtype:
 
   // TODO HR : Add missing instructions
 
+  ???

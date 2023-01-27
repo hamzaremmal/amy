@@ -6,6 +6,7 @@ import amyc.utils.*
 import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.instructions.*
 import amyc.backend.wasm.instructions.numeric.i32
+import amyc.backend.wasm.types.result
 import variable.*
 import amyc.backend.wasm.utils.Utils
 
@@ -33,6 +34,9 @@ object ModulePrinter {
     Stacked{
       header :: elem
     }
+
+  def mkResult(res: result): Document =
+    s"(result ${res.tpe})"
 
 
   private def registerFunction(fn: List[Function])(using Context): Document =
@@ -78,7 +82,7 @@ object ModulePrinter {
       case End =>
         Unindented(mkInstr(h)) ::
         (mkCode(t) map Unindented.apply)
-      case If_void | If_i32 | Block(_) | Loop(_) =>
+      case `if`(_, _) | Block(_) | Loop(_) =>
         mkInstr(h) ::
         (mkCode(t) map Indented.apply)
       case _ =>
@@ -103,8 +107,7 @@ object ModulePrinter {
       case i32.le_s => "i32.le_s"
       case _ : i32.eq.type => "i32.eq"
       case _ : drop.type => "drop"
-      case If_void => "if"
-      case If_i32 => "if (result i32)"
+      case `if`(label, tpe) => Lined(List(s"if", tpe.map(mkResult).getOrElse("")), " ")
       case Else => "else"
       case Block(label) => s"block $$$label"
       case Loop(label) => s"loop $$$label"

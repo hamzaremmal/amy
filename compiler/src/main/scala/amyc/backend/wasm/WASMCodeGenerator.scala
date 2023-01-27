@@ -17,6 +17,7 @@ import amyc.backend.wasm.builtin.unnamed.null_fn
 import amyc.backend.wasm.instructions.*
 import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
+import amyc.backend.wasm.types.result
 import amyc.backend.wasm.utils.LocalsHandler
 
 // TODO HR: Generate all wasm related files here
@@ -150,7 +151,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
           yield
             local.get(l) <:>
               cond <:>
-              If_i32 <:>
+              `if`(None, Some(result(i32))) <:>
               cgExpr(c.expr)(using locals ++ loc) <:>
               Else
           // Else here become we are building a big if else bloc.
