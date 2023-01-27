@@ -28,13 +28,11 @@ object Instructions {
   // id
   opaque type id = String
   // TODO HR : Should check for allowed characters (https://webassembly.github.io/spec/core/text/values.html#text-id)
-  implicit def id(str: String) : id = s"$$${str}"
+  implicit def id(str: String) : id = s"$$$str"
 
   // ==============================================================================================
   // ============================= ??? ============================================================
   // ==============================================================================================
-
-  case object Drop extends Instruction // Drops the top value of the stack
 
   // Control instructions
   case object If_void extends Instruction // Marks the beginning of an if-block (with implicit 'then').

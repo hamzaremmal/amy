@@ -102,7 +102,7 @@ object ModulePrinter {
       case i32.lt_s => "i32.lt_s"
       case i32.le_s => "i32.le_s"
       case _ : i32.eq.type => "i32.eq"
-      case Drop => "drop"
+      case _ : drop.type => "drop"
       case If_void => "if"
       case If_i32 => "if (result i32)"
       case Else => "else"
