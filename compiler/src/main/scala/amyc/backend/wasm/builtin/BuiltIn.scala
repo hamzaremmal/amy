@@ -6,6 +6,7 @@ import amyc.ast.SymbolicTreeModule.{StringLiteral, StringType}
 import amyc.backend.wasm.*
 import amyc.backend.wasm.utils.Utils.*
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
+import amyc.backend.wasm.builtin.amy.Std
 import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.types.Integer.i32
@@ -13,123 +14,11 @@ import amyc.backend.wasm.utils.*
 import amyc.core.Context
 import amyc.core.Signatures.FunSig
 
-object BuiltIn {
-
-  private type F = Context ?=> Function
+object BuiltIn :
 
   lazy val wasmFunctions: Context ?=> List[Function] =
-    null_fn ::
-    concatImpl ::
-    digitToStringImpl ::
-    readStringImpl ::
+    unnamed.null_fn ::
+    amy.String.concat ::
+    Std.digitToString ::
+    Std.readString ::
     Nil
-
-  // ==============================================================================================
-  // ================================ CREATE CODE FOR BUILTIN =====================================
-  // ==============================================================================================
-
-  def builtInForSym(owner: String, name: String)(code: LocalsHandler ?=> Code)(using Context) =
-    val (id, sym) = symbols.getFunction(owner, name).getOrElse{
-      reporter.fatal(s"BuiltIn function ${owner}_$name is not defined - symbol is missing")
-    }
-    Function(fullName(sym.owner, id), sym.argTypes.length, false, sym.idx){
-      code
-    }
-
-  // ==============================================================================================
-  // ======================================= BUILTINs =============================================
-  // ==============================================================================================
-
-
-  // Pointer to a null function
-  lazy val null_fn : F =
-    Function("null", 0, false, 0) {
-      error(cgExpr(StringLiteral("Null function"))(using Map.empty))
-    }
-
-  // Built-in implementation of concatenation
-  lazy val concatImpl: F =
-  // Register function because it's missing
-  // TODO HR : This patch should be remove when introducing native functions and this method should
-  // TODO HR : Should be registered as a native method instead of adding it here
-    symbols.addModule("String") // This garanties not to fail since String is considered as a Keyword
-    symbols.addFunction("String", "concat", StringType :: StringType :: Nil, StringType)
-    builtInForSym("String", "concat") {
-      val ptrS = lh.getFreshLocal
-      val ptrD = lh.getFreshLocal
-      val label = getFreshLabel()
-
-      def mkLoop: Code = {
-        val label = getFreshLabel()
-        Loop(label) <:>
-          // Load current character
-          local.get(ptrS) <:> Load8_u <:>
-          // If != 0
-          If_void <:>
-          // Copy to destination
-          local.get(ptrD) <:>
-          local.get(ptrS) <:> Load8_u <:>
-          Store8 <:>
-          // Increment pointers
-          incr(ptrD) <:> incr(ptrS) <:>
-          // Jump to loop
-          Br(label) <:>
-          Else <:>
-          End <:>
-          End
-      }
-
-      // Instantiate ptrD to previous memory, ptrS to first string
-      global.get(memoryBoundary) <:>
-        local.set(ptrD) <:>
-        local.get(0) <:>
-        local.set(ptrS) <:>
-        // Copy first string
-        mkLoop <:>
-        // Set ptrS to second string
-        local.get(1) <:>
-        local.set(ptrS) <:>
-        // Copy second string
-        mkLoop <:>
-        //
-        // Pad with zeros until multiple of 4
-        //
-        Loop(label) <:>
-        // Write 0
-        local.get(ptrD) <:> i32.const(0) <:> Store8 <:>
-        // Check if multiple of 4
-        local.get(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
-        // If not
-        If_void <:>
-        // Increment pointer and go back
-        incr(ptrD) <:>
-        Br(label) <:>
-        Else <:>
-        End <:>
-        End <:>
-        // Put string pointer to stack, set new memory boundary and return
-        global.get(memoryBoundary) <:> local.get(ptrD) <:> i32.const(1) <:> i32.add <:> global.set(memoryBoundary)
-    }
-
-  lazy val digitToStringImpl: F =
-    builtInForSym("Std", "digitToString") {
-      // We know we have to create a string of total size 4 (digit code + padding), so we do it all together
-      // We do not need to shift the digit due to little endian structure!
-      global.get(memoryBoundary) <:> local.get(0) <:> i32.const('0'.toInt) <:> i32.add <:> Store <:>
-        // Load memory boundary to stack, then move it by 4
-        global.get(memoryBoundary) <:>
-        global.get(memoryBoundary) <:> i32.const(4) <:> i32.add <:> global.set(memoryBoundary)
-    }
-
-  lazy val readStringImpl: F =
-    builtInForSym("Std", "readString"){
-      // We need to use the weird interface of javascript read string:
-      // we pass the old memory boundary and get the new one.
-      // In the end we have to return the old, where the fresh string lies.
-      global.get(memoryBoundary) <:>
-      global.get(memoryBoundary) <:>
-      Call("js_readString0") <:>
-      global.set(memoryBoundary)
-    }
-
-}

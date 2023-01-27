@@ -12,6 +12,8 @@ import Utils.*
 import amyc.core.Signatures.*
 import amyc.core.*
 import amyc.*
+import amyc.backend.wasm.builtin.amy.*
+import amyc.backend.wasm.builtin.unnamed.null_fn
 import amyc.backend.wasm.instructions.variable.*
 import amyc.backend.wasm.types.Integer.i32
 import amyc.backend.wasm.utils.LocalsHandler
@@ -112,7 +114,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case InfixCall(lhs, StdNames.eq_==, rhs) =>
         equ(cgExpr(lhs), cgExpr(rhs))
       case InfixCall(lhs, StdNames.++, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(concatImpl.name))
+        mkBinOp(cgExpr(lhs), cgExpr(rhs))(Call(String.concat.name))
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot generate wasm code for operator $op")
       case Not(e) =>
