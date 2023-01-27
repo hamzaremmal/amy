@@ -195,14 +195,14 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       global.set(memoryBoundary) <:>
       local.get(l) <:>
       i32.const(index) <:>
-      Store <:> {
+      i32.store <:> {
       // HR: Store each of the constructor parameter
       for
         (arg, idx) <- args.zipWithIndex
       yield
         adtField(local.get(l), idx) <:> // Compute the offset to store in
           cgExpr(arg) <:> // Compute the data to store
-          Store
+          i32.store
     } <:>
       local.get(l)
   }
@@ -282,7 +282,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
                          (using Context) = {
     val idx = lh.getFreshLocal
     val code = args.map(matchAndBind).zipWithIndex.map {
-      p => (adtField(local.get(idx), p._2) <:> Load <:> p._1._1, p._1._2)
+      p => (adtField(local.get(idx), p._2) <:> i32.load <:> p._1._1, p._1._2)
     }
     val lc = code.map(_._2).foldLeft(Map[Identifier, Int]())(_ ++ _)
 

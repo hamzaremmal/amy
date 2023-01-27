@@ -38,17 +38,6 @@ object Instructions {
 
   case class CallIndirect(tpe: String) extends Instruction
 
-  // Memory
-  // Stores an i32 to memory. Expects memory address, then stored value as operands
-  case object Store extends Instruction
-  // Loads an i32 to memory. Expects memory address as operand
-  case object Load  extends Instruction
-  // Stores a single byte to memory (the least significant byte of the operand)
-  // Operands expected are like Store
-  case object Store8 extends Instruction
-  // Load a byte from memory, then zero-extend it to fill an i32
-  case object Load8_u extends Instruction
-
     // Comment
   case class Comment(msg: String) extends Instruction
 

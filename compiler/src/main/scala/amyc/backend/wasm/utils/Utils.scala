@@ -99,7 +99,7 @@ object Utils {
 
     val setChars = for ((c, ind) <- completeS.zipWithIndex.toList) yield {
       global.get(memoryBoundary) <:> i32.const(ind) <:> i32.add <:>
-        i32.const(c.toInt) <:> Store8
+        i32.const(c.toInt) <:> i32.store8
     }
 
     val setMemory =
@@ -129,13 +129,13 @@ object Utils {
     ift(lhs, mkBoolean(true), rhs)
 
   inline def loadGlobal(inline idx: Int) : Code =
-    global.get(idx) <:> Load
+    global.get(idx) <:> i32.load
 
   inline def setGlobal(inline code: Code, inline idx: Int): Code =
     code <:> global.set(idx)
 
   inline def loadLocal(inline idx: Int) : Code =
-    local.get(idx) <:> Load
+    local.get(idx) <:> i32.load
 
   inline def setLocal(inline code: Code, inline idx: Int): Code =
     code <:> local.set(idx)

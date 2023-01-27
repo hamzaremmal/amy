@@ -118,10 +118,10 @@ object ModulePrinter {
       case local.set(index) => s"local.set $index"
       case global.get(index) => s"global.get $index"
       case global.set(index) => s"global.set $index"
-      case Store => "i32.store"
-      case Load => "i32.load"
-      case Store8 => "i32.store8"
-      case Load8_u => "i32.load8_u"
+      case i32.store => "i32.store"
+      case i32.load => "i32.load"
+      case i32.store8 => "i32.store8"
+      case i32.load8_u => "i32.load8_u"
       case Comment(s) =>
         var first = true;
         Stacked(s.split('\n').toList.map(s =>

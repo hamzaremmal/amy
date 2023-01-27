@@ -5,7 +5,6 @@ import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.instructions.Instructions.*
 import amyc.backend.wasm.instructions.numeric.i32
 import amyc.backend.wasm.instructions.variable.*
-import amyc.backend.wasm.types.Integer.*
 import amyc.backend.wasm.utils.Utils.{getFreshLabel, incr, memoryBoundary}
 import amyc.backend.wasm.utils.lh
 import amyc.core.Context
@@ -32,13 +31,13 @@ object String extends BuiltInModule {
         val label = getFreshLabel()
         Loop(label) <:>
           // Load current character
-          local.get(ptrS) <:> Load8_u <:>
+          local.get(ptrS) <:> i32.load8_u <:>
           // If != 0
           If_void <:>
           // Copy to destination
           local.get(ptrD) <:>
-          local.get(ptrS) <:> Load8_u <:>
-          Store8 <:>
+          local.get(ptrS) <:> i32.load8_u <:>
+          i32.store8 <:>
           // Increment pointers
           incr(ptrD) <:> incr(ptrS) <:>
           // Jump to loop
@@ -65,7 +64,7 @@ object String extends BuiltInModule {
         //
         Loop(label) <:>
         // Write 0
-        local.get(ptrD) <:> i32.const(0) <:> Store8 <:>
+        local.get(ptrD) <:> i32.const(0) <:> i32.store8 <:>
         // Check if multiple of 4
         local.get(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
         // If not
