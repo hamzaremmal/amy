@@ -36,7 +36,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     "(" ~>~ syntax ~<~ ")"
 
   inline def op(string: String): Syntax[Token] = elem(OperatorKind(string))
-  inline implicit def kw(inline kw: Keyword): Syntax[Token] = elem(KeywordKind(kw.toString))
+  inline implicit def kw(inline k: Keyword): Syntax[Token] = elem(KeywordKind(k.toString))
   inline implicit def delimiter(inline string: String): Syntax[Token] = elem(DelimiterKind(string))
 
   // ==============================================================================================
