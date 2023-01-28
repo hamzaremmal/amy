@@ -24,17 +24,17 @@ object Utils {
   // ==============================================================================================
 
   lazy val defaultFunTypes : Context ?=> List[String] =
-    s"(type ${mkFunTypeName(0)} (func (result i32)))"::
-    s"(type ${mkFunTypeName(1)} (func (param i32) (result i32)))" ::
-    s"(type ${mkFunTypeName(2)} (func (param i32 i32) (result i32)))" ::
-    s"(type ${mkFunTypeName(3)} (func (param i32 i32 i32) (result i32)))" ::
-    s"(type ${mkFunTypeName(4)} (func (param i32 i32 i32 i32) (result i32)))" ::
-    s"(type ${mkFunTypeName(5)} (func (param i32 i32 i32 i32 i32) (result i32)))" ::
+    s"(type $$${mkFunTypeName(0)} (func (result i32)))"::
+    s"(type $$${mkFunTypeName(1)} (func (param i32) (result i32)))" ::
+    s"(type $$${mkFunTypeName(2)} (func (param i32 i32) (result i32)))" ::
+    s"(type $$${mkFunTypeName(3)} (func (param i32 i32 i32) (result i32)))" ::
+    s"(type $$${mkFunTypeName(4)} (func (param i32 i32 i32 i32) (result i32)))" ::
+    s"(type $$${mkFunTypeName(5)} (func (param i32 i32 i32 i32 i32) (result i32)))" ::
     Nil
 
   def mkFunTypeName(params: Int)(using Context) : String =
     if(params <= maxParamsInFun)
-      s"$$fun_$params"
+      s"fun_$params"
     else
       reporter.fatal(s"WASM don't define function types for $params parameters")
 

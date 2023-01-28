@@ -115,7 +115,7 @@ object ModulePrinter {
       case _ : `return`.type => "ret"
       case _ : end.type => "end"
       case call(name) => s"call $name"
-      case call_indirect(tpe, idx) => s"call_indirect $idx ${mkTypeUse(tpe)}"
+      case call_indirect(tpe, idx) => Lined(List(s"call_indirect", s"$idx", mkTypeUse(tpe)), " ")
       case _ : unreachable.type => "unreachable"
       case local.get(index) => s"local.get $index"
       case local.set(index) => s"local.set $index"
