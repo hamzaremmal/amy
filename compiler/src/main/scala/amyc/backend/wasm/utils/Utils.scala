@@ -3,6 +3,7 @@ package amyc.backend.wasm.utils
 import amyc.ast.Identifier
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.indices.{globalidx, localidx}
 import amyc.backend.wasm.types.*
 import amyc.core.Context
 import amyc.core.Signatures.*
@@ -82,7 +83,7 @@ object Utils {
     }
 
   // Increment a local variable
-  inline def incr(l: Int) =
+  inline def incr(l: localidx) =
     local.get(l) <:> i32.const(1) <:> i32.add <:> local.set(l)
 
   inline def withComment(inline comment : String)(inline code: Code) : Code =
@@ -129,13 +130,13 @@ object Utils {
   inline def loadGlobal(inline idx: Int) : Code =
     global.get(idx) <:> i32.load
 
-  inline def setGlobal(inline code: Code, inline idx: Int): Code =
+  inline def setGlobal(inline code: Code, inline idx: globalidx): Code =
     code <:> global.set(idx)
 
-  inline def loadLocal(inline idx: Int) : Code =
+  inline def loadLocal(inline idx: localidx) : Code =
     local.get(idx) <:> i32.load
 
-  inline def setLocal(inline code: Code, inline idx: Int): Code =
+  inline def setLocal(inline code: Code, inline idx: localidx): Code =
     code <:> local.set(idx)
 
   inline def constructor(inline const: ConstrSig) : Code =

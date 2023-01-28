@@ -1,9 +1,12 @@
 package amyc.utils
 
+import scala.annotation.targetName
+
 // A structured document to be printed with nice indentation
 abstract class Document {
 
-  def <:>(other: Document) = Lined(List(this, other))
+  @targetName("concat")
+  def <:>(other: Document): Document = Lined(List(this, other))
 
   def print: String = {
     val sb = new StringBuffer()

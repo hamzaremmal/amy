@@ -28,7 +28,7 @@ class Reporter {
   }
 
   /** Used for an unrecoverable error: Issues a message, then exits the compiler */
-  def fatal(msg: Any, pos: Position = NoPosition): Nothing = {
+  def fatal[A](msg: Any, pos: Position = NoPosition): A = {
     report("[ Fatal ]", msg, pos)
     // Despite printing the message, we store it in the error for testing
     val errMsg = s"$pos: $msg"
@@ -39,7 +39,7 @@ class Reporter {
   def info(msg: Any, pos: Positioned): Unit = info(msg, pos.position)
   def warning(msg: Any, pos: Positioned): Unit = warning(msg, pos.position)
   def error(msg: Any, pos: Positioned): Unit = error(msg, pos.position)
-  def fatal(msg: Any, pos: Positioned): Nothing = fatal(msg, pos.position)
+  def fatal[A](msg: Any, pos: Positioned): A = fatal(msg, pos.position)
 
 
   /** Terminates the compiler if any errors have been detected. */
