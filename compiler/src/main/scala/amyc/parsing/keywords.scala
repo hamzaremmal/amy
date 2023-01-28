@@ -25,7 +25,7 @@ object keywords :
   case object end        extends Keyword
   // cannot use _ nor `_` as an identifier
   case object wildcard extends Keyword:
-    override def toString: String = "_"
+    override def toString() = "_"
 
   // ==============================================================================================
   // =================================== utility methods ==========================================
