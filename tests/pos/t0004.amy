@@ -1,6 +1,6 @@
-object t0004
+module t0004
 
-  fn testMatch(i : Int(32)) : Int(32) = {
+  fn testMatch(i : Int) : Int = {
   1 ;
   val a : Unit = ();
   if(true){2}else{3};

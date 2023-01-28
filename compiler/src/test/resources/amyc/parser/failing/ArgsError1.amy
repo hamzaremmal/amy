@@ -1,3 +1,3 @@
-object Args
+module Args
   foo(bar, )
 end Args

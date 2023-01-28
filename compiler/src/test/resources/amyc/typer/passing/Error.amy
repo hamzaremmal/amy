@@ -1,4 +1,4 @@
-object Error
+module Error
   fn test(): Unit = {
     error("") // Stub implementation
   }

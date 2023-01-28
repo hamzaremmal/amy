@@ -1,8 +1,8 @@
 package amyc
 
-import amyc.utils.printers.NominalTreePrinter
-import utils.{printers, *}
-import ast.{NominalTreeModule, *}
+import amyc.utils.printers.phases.NominalTreePrinter
+import utils.*
+import ast.*
 import parsing.*
 import org.junit.Test
 
@@ -74,9 +74,6 @@ class ParserTests extends TestSuite {
   @Test def testFunDefError5 = shouldFail("FunDefError5")
   @Test def testFunDefError6 = shouldFail("FunDefError6")
   @Test def testIfPrecedence = shouldFail("IfPrecedence")
-  @Test def testIntError1 = shouldFail("IntError1")
-  @Test def testIntError2 = shouldFail("IntError2")
-  @Test def testIntError3 = shouldFail("IntError3")
   @Test def testTypeWidth = shouldFail("TypeWidth")
   @Test def testMatchAsOperand = shouldFail("MatchAsOperand")
   @Test def testMissingOperand = shouldFail("MissingOperand")

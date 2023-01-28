@@ -1,4 +1,4 @@
-object Match2
+module Match2
   1 match {
     case x => x + 1
   }

@@ -1,4 +1,4 @@
-object NestedMatch
+module NestedMatch
   foo match {
     case bar => baz match {
       case 42 => ()

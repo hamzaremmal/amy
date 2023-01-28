@@ -5,7 +5,8 @@ import amyc.ast.{Identifier, SymbolicTreeModule}
 import amyc.ast.SymbolicTreeModule.Program
 import analyzer.{NameAnalyzer, SymbolTable}
 import amyc.utils.*
-import amyc.utils.printers.{SymbolicPrinter, SymbolicTreePrinter}
+import amyc.utils.printers.SymbolicPrinter
+import amyc.utils.printers.phases.SymbolicTreePrinter
 import org.junit.Test
 
 import scala.language.implicitConversions

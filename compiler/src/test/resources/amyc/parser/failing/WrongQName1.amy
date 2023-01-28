@@ -1,2 +1,2 @@
-object Foo.bar
+module Foo.bar
 end Foo.bar

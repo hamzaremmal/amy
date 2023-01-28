@@ -1,4 +1,4 @@
-object BasicConditions
+module BasicConditions
 
 	fn neverTrigger(): Boolean = {
 		Std.printString("should not happen");

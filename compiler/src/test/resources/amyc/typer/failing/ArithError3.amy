@@ -1,3 +1,3 @@
-object ArithError3
+module ArithError3
   "" * 42
 end ArithError3

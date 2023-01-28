@@ -1,3 +1,0 @@
-object Val
-  1 + val x: Int(32) = 42; x
-end Val

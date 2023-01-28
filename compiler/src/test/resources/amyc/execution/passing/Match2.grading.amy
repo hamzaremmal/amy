@@ -1,6 +1,6 @@
-object MatchError
+module MatchError
   abstract class Foo
-  case class Bar(i: Int(32), b: Boolean, u: Unit) extends Foo
+  case class Bar(i: Int, b: Boolean, u: Unit) : Foo
 
   Bar(10, true, ()) match { case Bar(10, true, ()) => () }
 end MatchError

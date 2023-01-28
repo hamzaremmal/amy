@@ -1,4 +1,4 @@
-object F
+module F
 
     fn test(s: String, f : (String) => String): String = {
         f(s)

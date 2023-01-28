@@ -1,7 +1,7 @@
-object MatchError
+module MatchError
   abstract class Foo
-  case class Bar() extends Foo
-  case class Baz(f: Foo) extends Foo
+  case class Bar() : Foo
+  case class Baz(f: Foo) : Foo
 
   Baz(Bar()) match { case Baz(Baz(_)) => () }
 end MatchError

@@ -1,9 +1,9 @@
-object BasicPatternMatching
+module BasicPatternMatching
   abstract class Letter
-  case class A() extends Letter
-  case class APrim(i: Int(32)) extends Letter
-  case class B() extends Letter
-  case class BPrim(i: Int(32)) extends Letter
+  case class A() : Letter
+  case class APrim(i: Int) : Letter
+  case class B() : Letter
+  case class BPrim(i: Int) : Letter
  
   fn isRegularLetter(l: Letter): Boolean = { 
   	l match {
@@ -14,7 +14,7 @@ object BasicPatternMatching
 	}
   }
 
-  fn getPrimNumber(l: Letter): Int(32) = {
+  fn getPrimNumber(l: Letter): Int = {
   	!isRegularLetter(l) match {
   		case false => 42
   		case true => l match {

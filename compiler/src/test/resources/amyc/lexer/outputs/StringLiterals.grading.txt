@@ -1,5 +1,0 @@
-StringLitToken(This is a string)(1:1)
-StringLitToken(Another with ^^ | # invalid chars)(2:1)
-StringLitToken(No escape \n characters \t)(3:1)
-StringLitToken( \\ No comments /* either )(4:1)
-EOFToken()(5:1)

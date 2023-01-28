@@ -1,4 +1,4 @@
-object DefNames
+module DefNames
   abstract class Foo
-  case class Foo() extends Foo
+  case class Foo() : Foo
 end DefNames

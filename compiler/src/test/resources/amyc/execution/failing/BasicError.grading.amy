@@ -1,4 +1,4 @@
-object BasicError
+module BasicError
 
 	fn throwError(msg: String): Unit = {
 		error(msg)

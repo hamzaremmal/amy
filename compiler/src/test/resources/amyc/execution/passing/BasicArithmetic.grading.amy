@@ -1,27 +1,27 @@
-object BasicArithmetic
+module BasicArithmetic
 
-	fn plus(a: Int(32), b: Int(32)): Int(32) = {
+	fn plus(a: Int, b: Int): Int = {
 		a + b
 	}
 
-	fn minus(a: Int(32), b: Int(32)): Int(32) = {
+	fn minus(a: Int, b: Int): Int = {
 		a - b
 	}
 
-	fn mul(a: Int(32), b: Int(32)): Int(32) = {
+	fn mul(a: Int, b: Int): Int = {
 		a * b
 	}
 
-	fn mod(a: Int(32), b: Int(32)): Int(32) = {
+	fn mod(a: Int, b: Int): Int = {
 		a % b
 	}
 
-	fn div(a: Int(32), b: Int(32)): Int(32) = {
+	fn div(a: Int, b: Int): Int = {
 		a / b
 	}
 
-	val a: Int(32) = 1;
-	val b: Int(32) = 2;
+	val a: Int = 1;
+	val b: Int = 2;
 
 	Std.printString(Std.intToString(plus(a, b)));
 	Std.printString(Std.intToString(mul(plus(a, b), b)));

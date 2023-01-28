@@ -1,11 +1,11 @@
-object SideEffect
+module SideEffect
 
-  fn firstI(): Int(32) = {
+  fn firstI(): Int = {
     Std.printInt(1);
     1
   }
 
-  fn secondI(): Int(32) = {
+  fn secondI(): Int = {
     Std.printInt(2);
     2
   }

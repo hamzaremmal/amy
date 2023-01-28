@@ -1,4 +1,4 @@
-object ShortCircuit
+module ShortCircuit
   true || error("");
   false && error("")
 end ShortCircuit

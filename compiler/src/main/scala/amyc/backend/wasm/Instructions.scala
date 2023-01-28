@@ -1,83 +1,210 @@
 package amyc.backend.wasm
 
+import amyc.backend.wasm.indices.*
+import amyc.backend.wasm.types.{numtype, result, typeuse}
+
+import scala.annotation.targetName
 import scala.language.implicitConversions
 
 // A subset of instructions defined by the WASM standard
 object Instructions {
-  sealed abstract class Instruction
+
+  sealed abstract class Instruction:
+    @targetName("concat")
+    def <:>(i: Instruction): Code = (this, i) match
+      case (Code(rhs), Code(lhs)) => Code(rhs ::: lhs)
+      case (Code(rhs), _) => Code(rhs :+ i)
+      case (_, Code(lhs)) => Code(this +: lhs)
+      case _ => Code(this :: i :: Nil)
 
   // Represents a sequence of instructions
-  case class Code(instructions: List[Instruction]) {
-    def <:>(i: Instruction) = Code(instructions :+ i)
+  case class Code(instructions: List[Instruction]) extends Instruction
 
-    def <:>(other: Code) = Code(this.instructions ++ other.instructions)
-  }
+  // Comment
+  case class Comment(msg: String) extends Instruction
 
-  // Useful implicit conversions to construct Code objects
-  implicit def i2c(i: Instruction): Code = Code(List(i))
+  // ==============================================================================================
+  // =================== Useful implicit conversions to construct Code objects ====================
+  // ==============================================================================================
 
-  implicit def is2c(is: List[Instruction]): Code = Code(is)
+  implicit def is2c(is: List[Instruction]): Code = is.foldRight(Code(Nil))(_ <:> _)
+  implicit def cs2c(cs: List[Code]): Code = cs.foldRight(Code(Nil))(_ <:> _)
+  implicit def i2c(i: Instruction): Code = i match
+    case c:Code => c
+    case _ => Code(List(i))
 
-  implicit def cs2c(cs: List[Code]): Code = Code(cs flatMap (_.instructions))
+  // id
+  opaque type id = String
+  // TODO HR : Should check for allowed characters (https://webassembly.github.io/spec/core/text/values.html#text-id)
+  implicit def id(str: String) : id = s"$$$str"
 
   // ==============================================================================================
   // ============================= ??? ============================================================
   // ==============================================================================================
 
-  // Load an int32 constant to the stack
-  case class Const(value: Int) extends Instruction
-
-  // Numeric/logical instructions (all take i32 operands)
-  case object Add  extends Instruction
-  case object Sub  extends Instruction
-  case object Mul  extends Instruction
-  case object Div  extends Instruction
-  case object Rem  extends Instruction
-  case object And  extends Instruction
-  case object Or   extends Instruction
-
-  case object Xor extends Instruction
-
-  case object Eqz  extends Instruction // Return 1 if operand is 0, 0 otherwise
-  case object Lt_s extends Instruction // Signed less-than
-  case object Le_s extends Instruction // Signed less-equals
-  case object Eq   extends Instruction
-  case object Drop extends Instruction // Drops the top value of the stack
-
   // Control instructions
-  case object If_void extends Instruction // Marks the beginning of an if-block (with implicit 'then').
-  case object If_i32  extends Instruction // Marks the beginning of an if-block (with implicit 'then'). Must leave an i32 on the stack
-  case object Else    extends Instruction // Marks the end of the implicit 'then' of an if-block
-  case object End     extends Instruction // Marks the end of an if-then-else or block
+  @deprecated
   case class Loop(label: String)  extends Instruction // A block of instructions with a label at the beginning
+  @deprecated
   case class Block(label: String) extends Instruction // A block of instructions with a label at the end
-  case class Br(label: String)    extends Instruction // Jump to "label", which MUST be the label of an enclosing structure
-  case class Call(name: String)   extends Instruction
 
-  case class CallIndirect(tpe: String) extends Instruction
-  case object Return              extends Instruction
-  case object Unreachable         extends Instruction // Always fails the program
+  // ==============================================================================================
+  //
+  // ==============================================================================================
 
-  // Locals (parameters, local variables)
-  case class GetLocal(index: Int) extends Instruction
-  case class SetLocal(index: Int) extends Instruction
+  /**
+    * https://webassembly.github.io/spec/core/text/instructions.html#variable-instructions
+    */
+  object global:
+    case class get(idx: globalidx) extends Instruction
+    case class set(idx: globalidx) extends Instruction
 
-  // Global variables
-  case class GetGlobal(index: Int) extends Instruction
-  case class SetGlobal(index: Int) extends Instruction
+  object local:
 
-  // Memory
-  // Stores an i32 to memory. Expects memory address, then stored value as operands
-  case object Store extends Instruction
-  // Loads an i32 to memory. Expects memory address as operand
-  case object Load  extends Instruction
-  // Stores a single byte to memory (the least significant byte of the operand)
-  // Operands expected are like Store
-  case object Store8 extends Instruction
-  // Load a byte from memory, then zero-extend it to fill an i32
-  case object Load8_u extends Instruction
+    case class get(idx: localidx) extends Instruction
+    case class set(idx: localidx) extends Instruction
+    case class tee(idx: localidx) extends Instruction
 
-    // Comment
-  case class Comment(msg: String) extends Instruction
+  /**
+    * https://webassembly.github.io/spec/core/text/instructions.html#table-instructions
+    */
+  object table:
+    case class get(idx: tableidx = 0) extends Instruction
+    case class set(idx: tableidx = 0) extends Instruction
+    case class size(idx: tableidx = 0) extends Instruction
+    case class grow(idx: tableidx = 0) extends Instruction
+    case class fill(idx: tableidx = 0) extends Instruction
+    case class copy(x: tableidx = 0, y: tableidx = 0) extends Instruction
+    case class init(x: tableidx = 0, y: elemidx) extends Instruction
+
+  object elem:
+    case class drop(x: elemidx) extends Instruction
+
+
+  /**
+    * https://webassembly.github.io/spec/core/text/instructions.html#reference-instructions
+    */
+  object ref:
+    // TODO HR : Fix parameter type
+    case class `null`(t: Any) extends Instruction
+    case object is_null extends Instruction
+    case class func(idx: funcidx) extends Instruction
+
+  /**
+    * https://webassembly.github.io/spec/core/text/instructions.html#parametric-instructions
+    */
+
+  case object drop extends Instruction
+
+  // TODO HR : Add select instructions
+
+  /**
+    * https://webassembly.github.io/spec/core/text/instructions.html#memory-instructions
+    */
+
+  object memory:
+    case object size extends Instruction
+    case object grow extends Instruction
+    case object fill extends Instruction
+    case object copy extends Instruction
+    case class init(x: dataidx) extends Instruction
+
+  object data:
+    case class drop(x: dataidx) extends Instruction
+
+  /**
+    * https://webassembly.github.io/spec/core/text/instructions.html#control-instructions
+    */
+
+  // ================================================================================================
+  // ================================ PLAIN INSTRUCTIONS ============================================
+  // ================================================================================================
+
+  case object unreachable extends Instruction
+  case object nop extends Instruction
+  case class br(l: labelidx) extends Instruction
+  case class br_if(l: labelidx) extends Instruction
+  case class br_table(l: List[labelidx], ln: labelidx) extends Instruction
+  case object `return` extends Instruction
+  case class call(x: funcidx) extends Instruction
+  case class call_indirect(tpe: typeuse, x: tableidx = 0) extends Instruction
+  case object end extends Instruction
+
+  // ================================================================================================
+  // =================================== BLOCK INSTRUCTIONS =========================================
+  // ================================================================================================
+
+  case class `if`(label: Option[id] = None, blocktype: Option[result] = None) extends Instruction
+  case class `else`(l: Option[id] = None) extends Instruction
+
+  /**
+    * For Numeric Instructions : https://webassembly.github.io/spec/core/text/instructions.html#numeric-instructions
+    * For Memory Instructions : https://webassembly.github.io/spec/core/text/instructions.html#memory-instructions
+    */
+  case object i32 extends numtype:
+    // === NUMERIC INSTRUCTIONS ===
+    case class const(value: Int) extends Instruction
+    case object add extends Instruction
+    case object sub extends Instruction
+    case object mul extends Instruction
+    case object div_u extends Instruction
+    case object div_s extends Instruction
+    case object rem_u extends Instruction
+    case object rem_s extends Instruction
+    case object and extends Instruction
+    case object or extends Instruction
+    case object xor extends Instruction
+    case object shl extends Instruction
+    case object shr_u extends Instruction
+    case object shr_s extends Instruction
+    case object rotl extends Instruction
+    case object rotr extends Instruction
+    case object eq extends Instruction
+    case object eqz extends Instruction
+    case object ne extends Instruction
+    case object ge_s extends Instruction
+    case object ge_u extends Instruction
+    case object gt_s extends Instruction
+    case object gt_u extends Instruction
+    case object le_s extends Instruction
+    case object le_u extends Instruction
+    case object lt_s extends Instruction
+    case object lt_u extends Instruction
+    case object clz extends Instruction
+    case object ctz extends Instruction
+    case object popcnt extends Instruction
+    case object extend8_s extends Instruction
+    case object extend16_s extends Instruction
+    case object wrap_i64 extends Instruction
+    case object trunc_f32_s extends Instruction
+    case object trunc_f32_u extends Instruction
+    case object trunc_f64_s extends Instruction
+    case object trunc_f64_u extends Instruction
+    case object trunc_sat_f32_s extends Instruction
+    case object trunc_sat_f32_u extends Instruction
+    case object trunc_sat_f64_s extends Instruction
+    case object trunc_sat_f64_u extends Instruction
+    case object reinterpret_f32 extends Instruction
+    // === MEMORY INSTRUCTIONS ===
+    case object load extends Instruction
+    case object load8_s extends Instruction
+    case object load8_u extends Instruction
+    case object load16_s extends Instruction
+    case object load16_u extends Instruction
+    case object store extends Instruction
+    case object store8 extends Instruction
+    case object store16 extends Instruction
+
+  case object i64 extends numtype:
+    // TODO HR : Add missing instructions
+    ???
+
+  case object f32 extends numtype:
+    // TODO HR : Add missing instructions
+    ???
+
+  case object f64 extends numtype:
+    // TODO HR : Add missing instructions
+    ???
 
 }

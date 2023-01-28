@@ -1,4 +1,4 @@
-object highOrderFunction
+module highOrderFunction
 
     fn test(f: () => String): Unit = {
         ()
