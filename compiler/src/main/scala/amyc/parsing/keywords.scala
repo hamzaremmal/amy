@@ -2,6 +2,12 @@ package amyc.parsing
 
 import scala.collection.mutable.ListBuffer
 
+/**
+  * Defines all the keywords of Amy
+  * To add a new keyword, only override Keyword
+  *
+  * `case object <name> extends Keyword`
+  */
 object keywords :
 
   private val kw: ListBuffer[Keyword] = ListBuffer.empty
@@ -35,15 +41,15 @@ object keywords :
   def map[A](f: Keyword => A): List[A] =
     kw.toList.map(f)
 
-  /* Generate components for all the keyword*/
+  /* Generate components for all the keyword */
   def flatMap[A](f: Keyword => IterableOnce[A]): List[A] =
     kw.toList.flatMap(f)
 
-  /* Check if a given string is a keyword*/
+  /* Check if a given string is a keyword */
   def isKeyword(str: String) : Boolean =
     map(_.toString).contains(str)
 
+  /* fetch the corresponding Keyword object */
   def of(str: String) : Option[Keyword] = ???
 
 end keywords
-
