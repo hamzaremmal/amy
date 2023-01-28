@@ -9,6 +9,7 @@ import TokenKinds.*
 import amyc.ast.NominalTreeModule
 import amyc.{core, parsing}
 import amyc.parsing.Parser.literal
+import amyc.parsing.keywords.Keyword
 import scallion.{~, *}
 
 import scala.annotation.targetName
@@ -20,6 +21,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
   type Kind = amyc.parsing.TokenKind
 
   import Implicits._
+  import keywords.*
 
   override def getKind(token: Token): TokenKind = TokenKind.of(token)
 
@@ -27,40 +29,21 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
   // ================================== HELPER FUNCTIONS ==========================================
   // ==============================================================================================
 
-  def inBrace[A](syntax : => Syntax[A]) : Syntax[A] =
+  inline def inBrace[A](inline syntax : Syntax[A]) : Syntax[A] =
     "{" ~>~ syntax ~<~ "}"
 
-  def inParenthesis[A](syntax : => Syntax[A]) : Syntax[A] =
+  inline def inParenthesis[A](inline syntax : Syntax[A]) : Syntax[A] =
     "(" ~>~ syntax ~<~ ")"
 
-  def op(string: String): Syntax[Token] = elem(OperatorKind(string))
-  def kw(string: String): Syntax[Token] = elem(KeywordKind(string))
-
-  implicit def delimiter(string: String): Syntax[Token] = elem(DelimiterKind(string))
+  inline def op(string: String): Syntax[Token] = elem(OperatorKind(string))
+  inline implicit def kw(inline kw: Keyword): Syntax[Token] = elem(KeywordKind(kw.toString))
+  inline implicit def delimiter(inline string: String): Syntax[Token] = elem(DelimiterKind(string))
 
   // ==============================================================================================
   // ========================================== EOF ===============================================
   // ==============================================================================================
 
   lazy val eof: Syntax[Token] = elem(EOFKind)
-
-  // ==============================================================================================
-  // ====================================== KEYWORDS ==============================================
-  // ==============================================================================================
-
-  // To distinguish keywords parser and other parsers, we will define them using `...`
-  lazy val `class`    : Syntax[Token] = kw("class")
-  lazy val `abstract` : Syntax[Token] = kw("abstract")
-  lazy val `case`     : Syntax[Token] = kw("case")
-  lazy val `modulekw` : Syntax[Token] = kw("module")
-  lazy val `fn`       : Syntax[Token] = kw("fn")
-  lazy val `end`      : Syntax[Token] = kw("end")
-  lazy val `kw_`      : Syntax[Token] = kw("_")
-  lazy val `val`      : Syntax[Token] = kw("val")
-  lazy val `if`       : Syntax[Token] = kw("if")
-  lazy val `else`     : Syntax[Token] = kw("else")
-  lazy val `error`    : Syntax[Token] = kw("error")
-  lazy val `match`    : Syntax[Token] = kw("match")
 
   // ==============================================================================================
   // ====================================== OPERATORS =============================================
@@ -89,7 +72,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     *
     */
   lazy val program: Syntax[Program] =
-    many1(many1(module) ~<~ eof) map(ms => Program(ms.flatten.toList).setPos(ms.head.head))
+    many1(many1(module_def) ~<~ eof) map(ms => Program(ms.flatten.toList).setPos(ms.head.head))
 
   // ==============================================================================================
   // ====================================== AMY MODULE ============================================
@@ -99,8 +82,8 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
   /**
     *
     */
-  lazy val module: Syntax[ModuleDef] =
-    (`modulekw` ~ identifier ~
+  lazy val module_def: Syntax[ModuleDef] =
+    (`module` ~ identifier ~
       many(definition) ~
       opt(expr) ~
       `end` ~ identifier) map {
@@ -242,7 +225,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     ("(" ~ ")") map (_ => LiteralPattern(new UnitLiteral))
 
   lazy val wildPattern: Syntax[WildcardPattern] =
-    `kw_` map (_ => WildcardPattern())
+    wildcard map (_ => WildcardPattern())
 
   lazy val idOrCaseClassPattern : Syntax[IdPattern | CaseClassPattern] =
     (qualifiedName ~ opt(inParenthesis(patterns))) map {

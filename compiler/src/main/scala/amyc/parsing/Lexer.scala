@@ -62,10 +62,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
   import Tokens._
 
   lazy val keywords : P =
-    word("abstract") | word("case") | word("class") |
-    word("fn") | word("else") | word("if") | word("match") |
-    word("module") | word("val") | word("error") | word("_") |
-    word("end")
+    parsing.keywords.map(kw => word(kw.toString)).reduce(_ | _)
     |> { (cs, range) =>
       withPosition(range._1) {
         KeywordToken(cs.mkString)
