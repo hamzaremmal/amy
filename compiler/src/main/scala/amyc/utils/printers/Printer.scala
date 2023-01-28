@@ -2,9 +2,11 @@ package amyc.utils.printers
 
 import amyc.ast.*
 import amyc.utils.*
+import amyc.utils.printers.highlight.{Highlighter, NoHighlight}
 
 // A printer for Amy trees
-trait Printer {
+trait Printer(highlighter: Highlighter) {
+  import highlighter.*
 
   val treeModule: TreeModule
   import treeModule.*
@@ -25,15 +27,15 @@ trait Printer {
 
       case ModuleDef(name, defs, optExpr) =>
         Stacked(
-          "module " <:> name,
+          Lined(List(highlightKeyword("module"), name), " "),
           "",
           Indented(Stacked(defs ++ optExpr.toList map (rec(_, false)), emptyLines = true)),
-          "end " <:> name,
+          Lined(List(highlightKeyword("end"), name), " "),
           ""
         )
 
       case AbstractClassDef(name) =>
-        "abstract class " <:> printName(name)
+        Lined(List(highlightKeyword("abstract"), highlightKeyword("class"), printName(name)), " ")
 
       case CaseClassDef(name, fields, parent) =>
         def printField(f: TypeTree) = "v: " <:> rec(f)
@@ -53,13 +55,13 @@ trait Printer {
       case Variable(name) =>
         name
       case IntLiteral(value) =>
-        value.toString
+        highlightLiteral(value.toString)
       case BooleanLiteral(value) =>
-        value.toString
+        highlightLiteral(value.toString)
       case StringLiteral(value) =>
-        "\"" + value + '"'
+        highlightLiteral(s"\"$value\"")
       case UnitLiteral() =>
-        "()"
+        highlightLiteral("()")
       case InfixCall(lhs, op, rhs) =>
         binOp(lhs, op.toString, rhs)
       case Not(e) =>
@@ -145,41 +147,3 @@ trait Printer {
     rec(t).print
   }
 }
-
-object NominalPrinter extends Printer {
-  import amyc.ast.NominalTreeModule.*
-  val treeModule: NominalTreeModule.type = NominalTreeModule
-
-  implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document = Raw(name)
-
-  implicit def printQName(name: QualifiedName)(implicit printUniqueIds: Boolean): Document = {
-    Raw(name match {
-      case QualifiedName(Some(module), name) =>
-        s"$module.$name"
-      case QualifiedName(None, name) =>
-        name
-    })
-  }
-}
-
-object SymbolicPrinter extends SymbolicPrinter
-
-trait SymbolicPrinter extends Printer {
-
-  import amyc.ast.SymbolicTreeModule.*
-
-  val treeModule: SymbolicTreeModule.type = SymbolicTreeModule
-
-  implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document = {
-    if (printUniqueIds) {
-      name.fullName
-    } else {
-      name.name
-    }
-  }
-
-  @inline implicit def printQName(name: QualifiedName)(implicit printUniqueIds: Boolean): Document = {
-    printName(name)
-  }
-}
-

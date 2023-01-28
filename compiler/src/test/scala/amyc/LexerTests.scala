@@ -1,7 +1,7 @@
 package amyc
 
+import amyc.utils.printers.phases.DisplayTokens
 import parsing._
-import amyc.utils.printers.DisplayTokens
 import org.junit.Test
 
 class LexerTests extends TestSuite {

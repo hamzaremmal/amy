@@ -1,4 +1,4 @@
-package amyc.utils.printers
+package amyc.utils.printers.phases
 
 import amyc.core.Context
 import amyc.parsing.Token

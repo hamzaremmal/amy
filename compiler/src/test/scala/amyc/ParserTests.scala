@@ -1,8 +1,8 @@
 package amyc
 
-import amyc.utils.printers.NominalTreePrinter
-import utils.{printers, *}
-import ast.{NominalTreeModule, *}
+import amyc.utils.printers.phases.NominalTreePrinter
+import utils.*
+import ast.*
 import parsing.*
 import org.junit.Test
 
