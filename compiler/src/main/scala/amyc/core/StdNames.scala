@@ -10,7 +10,7 @@ object StdNames {
 
   private type I = Identifier
 
-  private implicit def string2identifier(s: String): I =
+  private implicit def str2id(s: String): I =
     Identifier.fresh(s)
 
   // ==============================================================================================

@@ -23,7 +23,7 @@ object unnamed extends BuiltInModule {
   // Pointer to a null function
   lazy val null_fn: BuiltIn =
     builtInForSym("null"){
-      error(cgExpr(StringLiteral("Null function"))(using Map.empty))
+      error(cgExpr(StringLiteral("Null function")))
     }
 
 }

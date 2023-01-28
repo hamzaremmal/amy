@@ -2,8 +2,12 @@ package amyc.backend.wasm
 
 import amyc.utils.Preconditions.*
 import Instructions.Code
-import amyc.backend.wasm.utils.LocalsHandler
+import amyc.ast.Identifier
+import amyc.backend.wasm.utils.{LocalsHandler, lh}
+import amyc.backend.wasm.utils.Utils.*
 import amyc.core.Context
+import amyc.ast.SymbolicTreeModule.FunDef
+import amyc.symbols
 
 import scala.annotation.constructorOnly
 
@@ -28,11 +32,17 @@ case class Function private (name: String, args: Int, isMain: Boolean, locals: I
 
 object Function {
 
-  def apply(name: String, args: Int, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
-    given lh : LocalsHandler = new LocalsHandler(args)
+  def apply(fd: FunDef, owner: Identifier, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
+    given LocalsHandler = new LocalsHandler(fd.params.map(_.name))
     // Make code first, as it may increment the locals in lh
     val code = codeGen
-    new Function(name, args, isMain, lh.locals, code, idx)
+    new Function(fullName(owner, fd.name), lh.params, isMain, lh.locals, code, idx)
+
+  def apply(name: String, args: Int, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
+    given lh: LocalsHandler = new LocalsHandler(args)
+    // Make code first, as it may increment the locals in lh
+    val code = codeGen
+    new Function(name, lh.params, isMain, lh.locals, code, idx)
 
 }
 
