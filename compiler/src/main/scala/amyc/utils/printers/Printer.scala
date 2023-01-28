@@ -26,7 +26,7 @@ trait Printer(highlighter: Highlighter) {
         Stacked(
           doc"$module $name",
           "",
-          Indented(Stacked(defs ++ optExpr.toList map (rec(_, false)), emptyLines = true)),
+          iden"${Stacked(defs ++ optExpr.toList map (rec(_, false)), emptyLines = true)}",
           doc"$end $name",
           ""
         )
@@ -41,7 +41,7 @@ trait Printer(highlighter: Highlighter) {
       case FunDef(name, params, retType, body) =>
         Stacked(
           doc"$fn $name(${params.map(rec(_)).mkDoc(", ")}): ${rec(retType)} = {",
-          Indented(rec(body, false)),
+          iden"${rec(body, false)}",
           "}"
         )
       case ParamDef(name, tpe) =>
@@ -57,7 +57,7 @@ trait Printer(highlighter: Highlighter) {
       case UnitLiteral() =>
         "()"
       case InfixCall(lhs, op, rhs) =>
-        doc"(${rec(lhs)} $op ${rec(rhs)})"
+        doc"(${rec(lhs)} ${op.toString} ${rec(rhs)})"
       case Not(e) =>
         doc"!(${rec(e)})"
       case Neg(e) =>
@@ -72,7 +72,7 @@ trait Printer(highlighter: Highlighter) {
         if (parens) {
           Stacked(
             "(",
-            Indented(main),
+            iden"${main}",
             ")"
           )
         } else {
@@ -81,13 +81,13 @@ trait Printer(highlighter: Highlighter) {
       case Let(df, value, body) =>
         val main = Stacked(
           doc"${`val`} ${rec(df)} =",
-          doc"${Indented(rec(value))};",
+          iden"${rec(value)};",
           rec(body, false) // For demonstration purposes, the scope or df is indented
         )
         if (parens) {
           Stacked(
             "(",
-            Indented(main),
+            iden"${main}",
             ")"
           )
         } else {
@@ -96,15 +96,15 @@ trait Printer(highlighter: Highlighter) {
       case Ite(cond, thenn, elze) =>
         Stacked(
           doc"(${`if`}(${rec(cond)}) {",
-          Indented(rec(thenn)),
+          iden"${rec(thenn)}",
           doc"} ${`else`} {",
-          Indented(rec(elze)),
+          iden"${rec(elze)}",
           "})"
         )
       case Match(scrut, cases) =>
         Stacked(
           doc"${rec(scrut)} ${`match`}{",
-          Indented(Stacked(cases map (rec(_)))),
+          iden"${Stacked(cases map (rec(_)))}",
           "}"
         )
       case Error(msg) =>
@@ -113,7 +113,7 @@ trait Printer(highlighter: Highlighter) {
       case MatchCase(pat, expr) =>
         Stacked(
           doc"${`case`} ${rec(pat)} =>",
-          Indented(rec(expr))
+          iden"${rec(expr)}"
         )
       case WildcardPattern() =>
         "_"
