@@ -1,8 +1,10 @@
 package amyc.utils.printers
 
 import amyc.ast.*
-import amyc.utils.*
+import amyc.utils.{Document, Indented, Lined, Stacked}
+import amyc.utils.Document.*
 import amyc.utils.printers.highlight.{Highlighter, NoHighlight}
+import amyc.parsing.keywords.*
 
 // A printer for Amy trees
 trait Printer(highlighter: Highlighter) {
@@ -13,8 +15,6 @@ trait Printer(highlighter: Highlighter) {
 
   implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document
   implicit def printQName(name: QualifiedName)(implicit printUniqueIds: Boolean): Document
-
-  protected implicit def stringToDoc(s: String): Raw = Raw(s)
 
   def apply(t: Tree)(implicit printUniqueIDs: Boolean = false): String = {
 
@@ -27,19 +27,19 @@ trait Printer(highlighter: Highlighter) {
 
       case ModuleDef(name, defs, optExpr) =>
         Stacked(
-          Lined(List(highlightKeyword("module"), name), " "),
+          doc"$module $name",
           "",
           Indented(Stacked(defs ++ optExpr.toList map (rec(_, false)), emptyLines = true)),
-          Lined(List(highlightKeyword("end"), name), " "),
+          doc"$end $name",
           ""
         )
 
       case AbstractClassDef(name) =>
-        Lined(List(highlightKeyword("abstract"), highlightKeyword("class"), printName(name)), " ")
+        doc"${`abstract`} ${`class`} ${printName(name)}"
 
       case CaseClassDef(name, fields, parent) =>
-        def printField(f: TypeTree) = "v: " <:> rec(f)
-        "case class " <:> name <:> "(" <:> Lined(fields map printField, ", ") <:> ") : " <:> parent
+        def printField(f: TypeTree) = doc"v: ${rec(f)}"
+        doc"${`case`} ${`class`} $name(${fields.map(printField).mkDoc(", ")}) : $parent"
 
       case FunDef(name, params, retType, body) =>
         Stacked(
@@ -47,21 +47,18 @@ trait Printer(highlighter: Highlighter) {
           Indented(rec(body, false)),
           "}"
         )
-
       case ParamDef(name, tpe) =>
         name <:> ": " <:> rec(tpe)
-
-      /* Expressions */
       case Variable(name) =>
         name
       case IntLiteral(value) =>
-        highlightLiteral(value.toString)
+        value.toString
       case BooleanLiteral(value) =>
-        highlightLiteral(value.toString)
+        value.toString
       case StringLiteral(value) =>
-        highlightLiteral(s"\"$value\"")
+        s"\"$value\""
       case UnitLiteral() =>
-        highlightLiteral("()")
+        "()"
       case InfixCall(lhs, op, rhs) =>
         binOp(lhs, op.toString, rhs)
       case Not(e) =>
@@ -114,12 +111,12 @@ trait Printer(highlighter: Highlighter) {
           "}"
         )
       case Error(msg) =>
-        "error(" <:> rec(msg) <:> ")"
+        error <:> "(" <:> rec(msg) <:> ")"
 
       /* cases and patterns */
       case MatchCase(pat, expr) =>
         Stacked(
-          "case " <:> rec(pat) <:> " =>",
+          `case` <:> " " <:> rec(pat) <:> " =>",
           Indented(rec(expr))
         )
       case WildcardPattern() =>
@@ -129,7 +126,7 @@ trait Printer(highlighter: Highlighter) {
       case LiteralPattern(lit) =>
         rec(lit)
       case CaseClassPattern(name, args) =>
-        name <:> "(" <:> Lined(args map (rec(_)), ", ") <:> ")"
+        name <:> "(" <:> args.map(rec(_)).mkDoc(", ") <:> ")"
 
       /* Types */
       case TypeTree(tp) =>

@@ -1,9 +1,35 @@
 package amyc.utils
 
 import scala.annotation.targetName
+import scala.collection.mutable.ListBuffer
 
 // A structured document to be printed with nice indentation
-abstract class Document {
+
+object Document:
+
+  /* convert a String to a Document */
+  final implicit inline def str2doc(str: String): Document = Raw(str)
+
+  /* convert a Document to a String */
+  final implicit inline def doc2str(doc : Document) : String = doc.print
+
+  // TODO HR : Implement Interpolator
+  extension (sc: StringContext)
+    def doc(args: Document*): Document =
+      val strings = sc.parts.iterator
+      val expressions = args.iterator
+      val l = ListBuffer.empty[Document]
+      l.append(strings.next())
+      while strings.hasNext do
+        l.append(expressions.next())
+        l.append(strings.next())
+      Raw(l.toList.mkDoc())
+
+  extension (it: List[Document])
+    implicit def mkDoc(sep : Document = "") : Document =
+      Lined(it, sep)
+
+sealed abstract class Document {
 
   @targetName("concat")
   def <:>(other: Document): Document = Lined(List(this, other))
@@ -41,10 +67,11 @@ abstract class Document {
     sb.toString
   }
 }
+
 case class Indented(content: Document) extends Document
 case class Unindented(content: Document) extends Document
 case class Stacked(docs: List[Document], emptyLines: Boolean = false) extends Document
-case class Lined(docs: List[Document], separator: Document = Raw("")) extends Document
+case class Lined(docs: List[Document], separator: Document = "") extends Document
 case class Raw(s: String) extends Document
 
 object Stacked {
