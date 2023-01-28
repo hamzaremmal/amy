@@ -15,7 +15,7 @@ import scallion.{~, *}
 import scala.annotation.targetName
 
 // The parser for Amy
-object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
+object Parser extends Pipeline[Iterator[Token], Program] with Parsers :
 
   type Token = amyc.parsing.Token
   type Kind = amyc.parsing.TokenKind
@@ -31,7 +31,6 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
 
   inline def inBrace[A](inline syntax : Syntax[A]) : Syntax[A] =
     "{" ~>~ syntax ~<~ "}"
-
   inline def inParenthesis[A](inline syntax : Syntax[A]) : Syntax[A] =
     "(" ~>~ syntax ~<~ ")"
 
@@ -72,16 +71,15 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
     *
     */
   lazy val program: Syntax[Program] =
-    many1(many1(module_def) ~<~ eof) map(ms => Program(ms.flatten.toList).setPos(ms.head.head))
+    many1(many1(module_def) ~<~ eof) map {
+      ms => Program(ms.flatten.toList).setPos(ms.head.head)
+    }
 
   // ==============================================================================================
   // ====================================== AMY MODULE ============================================
   // ==============================================================================================
 
   // A module (i.e., a collection of definitions and an initializer expression)
-  /**
-    *
-    */
   lazy val module_def: Syntax[ModuleDef] =
     (`module` ~ identifier ~
       many(definition) ~
@@ -353,34 +351,11 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers {
         )
     }
 
-  // ==============================================================================================
-
-  // Ensures the grammar is in LL(1)
-  lazy val checkLL1: Boolean = {
-    if (program.isLL1) {
-      true
-    } else {
-      // Set `showTrails` to true to make Scallion generate some counterexamples for you.
-      // Depending on your grammar, this may be very slow.
-      val showTrails = false
-      debug(program, showTrails)
-      false
-    }
-  }
-
   override val name = "Parser"
 
-  override def run(tokens: Iterator[Token])(using core.Context): Program = {
-    if (!checkLL1) {
-      ctx.reporter.fatal("Program grammar is not LL1!")
-    }
-
+  override def run(tokens: Iterator[Token])(using core.Context): Program =
     val parser = Parser(program)
-
-    parser(tokens) match {
+    parser(tokens) match
       case Parsed(result, _) => result
       case UnexpectedEnd(_) => ctx.reporter.fatal("Unexpected end of input.")
       case UnexpectedToken(token, rest) => ctx.reporter.fatal(s"Unexpected token: $token, possible kinds: ${rest.first.map(_.toString).mkString(", ")}")
-    }
-  }
-}
