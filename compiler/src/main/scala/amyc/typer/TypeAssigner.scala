@@ -50,7 +50,7 @@ object TypeAssigner extends Pipeline[Program, Program]{
         reporter.fatal(
           s"""
              |NoType was found at the TypeAssigner. This should not happen
-             |Tree ${tree.getClass.getTypeName}
+             |Tree $tree
              |""".stripMargin)
       case _ => tree
 

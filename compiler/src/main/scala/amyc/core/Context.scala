@@ -1,5 +1,6 @@
 package amyc.core
 
+import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.{NameAnalyzer, SymbolTable}
 import amyc.ast.Identifier
 import amyc.core.Types.*
@@ -11,11 +12,24 @@ import scala.collection.mutable.HashMap
 // Contains a reporter and configuration for the compiler
 case class Context private (reporter: Reporter){
 
-  val tv : HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
-  
-  val _types : mutable.HashMap[Identifier, Type] = mutable.HashMap.empty
+  val tv : mutable.HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
+  val _types : mutable.HashMap[Identifier, Type] =
+    mutable.HashMap(
+      StdNames.IIntType -> IntType,
+      StdNames.IStringType -> StringType,
+      StdNames.IBooleanType -> BooleanType,
+      StdNames.IUnitType -> UnitType
+  )
+
   private var _symtable: Option[SymbolTable] = None
   private var _pipeline : String = compiletime.uninitialized
+
+  def tpe(tree : TypeTree) : Type =
+    tree match
+      case ClassTypeTree(id) => _types(id)
+      case FunctionTypeTree(args, rte) =>
+        val id = Identifier.fresh(s"(${args.map(tpe).mkString(";")}:${tpe(rte)})")
+        _types.getOrElseUpdate(id, FunctionType(args.map(tpe), tpe(rte)))
 
 
   // ==============================================================================================

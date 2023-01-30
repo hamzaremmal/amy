@@ -7,7 +7,7 @@ import amyc.core.{Context, StdNames}
 import amyc.core.Types.*
 import amyc.core.Signatures.*
 import amyc.core.StdNames.*
-import amyc.{reporter, symbols}
+import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
 object TypeChecker extends Pipeline[Program, Program]{
@@ -144,7 +144,7 @@ object TypeChecker extends Pipeline[Program, Program]{
       cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
     do
       args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
-      =:=(expr, cs.retType.tpe)
+      =:=(expr, ctx.tpe(cs.retType))
 
     expr
 
