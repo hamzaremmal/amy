@@ -1,0 +1,25 @@
+// Module that should be included every time
+// This is a draft of a module that should exist in the Context and every file should have access to it
+// This can be implemented after the `use`-statement feature
+module <unnamed>
+
+    // All builtin types
+    abstract class Boolean
+    abstract class Int
+    abstract class String
+    abstract class Unit
+
+    // All builtin operators
+    fn + (lhs : Int, rhs : Int) : Int
+    fn - (lhs : Int, rhs : Int) : Int
+    fn * (lhs : Int, rhs : Int) : Int
+    fn / (lhs : Int, rhs : Int) : Int
+    fn % (lhs : Int, rhs : Int) : Int
+    fn < (lhs : Int, rhs : Int) : Boolean
+    fn <= (lhs : Int, rhs : Int) : Boolean
+    fn && (lhs : Boolean, rhs : Boolean) : Boolean
+    fn || (lhs : Boolean, rhs : Boolean) : Boolean
+    fn == (lhs : Any, rhs : Any) : Boolean
+    fn ++ (lhs : String, rhs : String) : String
+
+end <unnamed>
