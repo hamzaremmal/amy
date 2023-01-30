@@ -2,10 +2,9 @@ package amyc.backend.wasm
 
 import amyc.utils.Preconditions.*
 import Instructions.Code
-import amyc.ast.Identifier
 import amyc.backend.wasm.utils.{LocalsHandler, lh}
 import amyc.backend.wasm.utils.Utils.*
-import amyc.core.Context
+import amyc.core.{Context, Identifier}
 import amyc.ast.SymbolicTreeModule.FunDef
 import amyc.symbols
 

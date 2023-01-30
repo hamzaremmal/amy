@@ -1,9 +1,8 @@
 package amyc.backend.wasm.utils
 
-import amyc.ast.Identifier
 import amyc.backend.wasm.Instructions.id
 import amyc.backend.wasm.indices.localidx
-import amyc.core.Context
+import amyc.core.{Context, Identifier}
 import amyc.reporter
 
 import scala.collection.mutable

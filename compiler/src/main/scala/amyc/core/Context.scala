@@ -2,7 +2,6 @@ package amyc.core
 
 import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.{NameAnalyzer, SymbolTable, Scope, EmptyScope}
-import amyc.ast.Identifier
 import amyc.core.Types.*
 import amyc.utils.{Pipeline, Reporter}
 

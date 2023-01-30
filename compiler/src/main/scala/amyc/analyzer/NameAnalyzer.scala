@@ -4,7 +4,7 @@ package analyzer
 import amyc.*
 import amyc.core.*
 import amyc.utils.*
-import amyc.ast.{Identifier, NominalTreeModule as N, SymbolicTreeModule as S}
+import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 import amyc.analyzer.Transformer.*
 import amyc.core.Types.ClassType
 

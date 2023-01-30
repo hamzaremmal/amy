@@ -1,7 +1,7 @@
 package amyc.ast
 
-import amyc.core.Context
-import amyc.core.Types.{Type, NoType}
+import amyc.core.{Context, Identifier}
+import amyc.core.Types.{NoType, Type}
 import amyc.utils.printers.{NominalPrinter, Printer, SymbolicPrinter}
 import amyc.utils.{Positioned, UniqueCounter}
 

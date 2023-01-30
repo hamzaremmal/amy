@@ -1,11 +1,10 @@
 package amyc.backend.wasm.utils
 
-import amyc.ast.Identifier
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.indices.{globalidx, localidx}
 import amyc.backend.wasm.types.*
-import amyc.core.Context
+import amyc.core.{Context, Identifier}
 import amyc.core.Signatures.*
 import amyc.reporter
 

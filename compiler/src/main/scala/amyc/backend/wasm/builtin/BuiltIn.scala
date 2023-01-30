@@ -1,7 +1,6 @@
 package amyc.backend.wasm.builtin
 
 import amyc.*
-import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.StringLiteral
 import amyc.backend.wasm.*
 import amyc.backend.wasm.utils.Utils.*
@@ -9,7 +8,7 @@ import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.builtin.amy.Std
 import Instructions.*
 import amyc.backend.wasm.utils.*
-import amyc.core.Context
+import amyc.core.{Context, Identifier}
 import amyc.core.Signatures.FunSig
 
 object BuiltIn :

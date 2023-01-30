@@ -4,7 +4,7 @@ import amyc.*
 import amyc.core.*
 import amyc.core.Signatures.*
 import amyc.core.StdNames.binOp
-import amyc.ast.{Identifier, NominalTreeModule as N, SymbolicTreeModule as S}
+import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 
 object Transformer {
 

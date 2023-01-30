@@ -1,8 +1,9 @@
 package amyc
 
 import parsing.*
-import amyc.ast.{Identifier, SymbolicTreeModule}
+import amyc.ast.SymbolicTreeModule
 import amyc.ast.SymbolicTreeModule.Program
+import amyc.core.Identifier
 import analyzer.{NameAnalyzer, SymbolTable}
 import amyc.utils.*
 import amyc.utils.printers.SymbolicPrinter
