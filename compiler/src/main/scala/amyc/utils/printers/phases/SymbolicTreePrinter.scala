@@ -1,7 +1,7 @@
 package amyc.utils.printers.phases
 
-import amyc.ast.{Identifier, SymbolicTreeModule as S}
-import amyc.core.Context
+import amyc.ast.SymbolicTreeModule as S
+import amyc.core.{Context, Identifier}
 import amyc.utils.printers.Printer
 import amyc.utils.printers.SymbolicPrinter.printName
 import amyc.utils.printers.highlight.NoHighlight

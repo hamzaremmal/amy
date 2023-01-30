@@ -1,7 +1,6 @@
 package amyc.core
 
 import amyc.ast.SymbolicTreeModule.*
-import amyc.ast.Identifier
 
 import scala.collection.immutable.List
 

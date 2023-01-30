@@ -1,9 +1,8 @@
 package amyc.interpreter
 
-import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.Expr
 import amyc.*
-import amyc.core.Context
+import amyc.core.{Context, Identifier}
 
 import scala.annotation.targetName
 import scala.language.implicitConversions

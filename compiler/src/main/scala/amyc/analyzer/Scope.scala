@@ -1,7 +1,6 @@
 package amyc.analyzer
 
-import amyc.ast.Identifier
-import amyc.core.Context
+import amyc.core.{Context, Identifier}
 import amyc.reporter
 
 /* alias to write Scope definition */

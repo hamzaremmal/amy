@@ -1,7 +1,7 @@
 package amyc.analyzer
 
-import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.TypeTree
+import amyc.core.Identifier
 import amyc.utils.UniqueCounter
 import amyc.core.Signatures.*
 

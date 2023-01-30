@@ -3,8 +3,8 @@ package amyc.typer
 import amyc.analyzer.SymbolTable
 import amyc.core.Signatures.*
 import amyc.core.Types.*
-import amyc.core.Context
-import amyc.ast.{Identifier, SymbolicTreeModule}
+import amyc.core.{Context, Identifier}
+import amyc.ast.SymbolicTreeModule
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.StdNames

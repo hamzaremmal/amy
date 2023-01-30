@@ -1,6 +1,5 @@
 package amyc.core
 
-import amyc.ast.Identifier
 import amyc.utils.UniqueCounter
 
 /**

@@ -4,9 +4,8 @@ import amyc.*
 import amyc.utils.*
 import amyc.core.Signatures.*
 import amyc.ast.SymbolicTreeModule.*
-import amyc.ast.Identifier
 import amyc.analyzer.SymbolTable
-import amyc.core.{Context, StdNames}
+import amyc.core.{Context, Identifier, StdNames}
 import amyc.core.StdNames.*
 import amyc.interpreter.*
 import amyc.interpreter.Value.*

@@ -1,9 +1,9 @@
 package amyc
 
 import parsing.*
-import amyc.ast.Identifier
 import amyc.utils.UnitPipeline
 import amyc.ast.SymbolicTreeModule.Program
+import amyc.core.Identifier
 import analyzer.NameAnalyzer
 import typer.Typer
 import amyc.utils.*
