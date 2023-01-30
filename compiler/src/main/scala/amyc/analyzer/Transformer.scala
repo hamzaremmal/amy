@@ -31,7 +31,7 @@ object Transformer {
       reporter.fatal(s"Cannot find symbol for module $name")
     }
     val symDefs = for d <- defs yield transformDef(d, name)
-    val symExpr = optExpr.map(transformExpr(_)(name, (Map(), Map()), ctx))
+    val symExpr = optExpr.map(transformExpr(_)(name, Scope.fresh, ctx))
     S.ModuleDef(symName, symDefs, symExpr)
 
   /**
@@ -92,7 +92,7 @@ object Transformer {
       sym,
       newParams,
       S.TypeTree(sig.retType).setPos(retType),
-      transformExpr(body)(module, (paramsMap, Map()), ctx)
+      transformExpr(body)(module, Scope.fresh.withParams(paramsMap), ctx)
     ).setPos(fd)
   }
 
@@ -128,16 +128,11 @@ object Transformer {
     * @return
     */
   def transformExpr(expr: N.Expr)
-                   (implicit module: String, names: (Map[String, Identifier], Map[String, Identifier]), context: Context): S.Expr = {
-    val (params, locals) = names
+                   (implicit module: String, scope : Scope, context: Context): S.Expr = {
     val res = expr match {
       case N.Variable(name) =>
-        // Local variables shadow parameters!
-        val sym = locals.get(name) orElse {
-          params.get(name)
-        }
-        sym match
-          case Some(id: Identifier) => S.Variable(id)
+        scope.resolve(name) match
+          case Some(id) => S.Variable(id)
           case _ => reporter.fatal(s"Variable $name not found", expr)
       case N.FunRef(N.QualifiedName(module, name)) =>
         // TODO HR : get won't throw an exception; operation guaranteed to work
@@ -163,11 +158,9 @@ object Transformer {
         val owner = qname.module.getOrElse(module)
         val name = qname.name
         val entry =
-          locals.get(qname.name).orElse {
-            params.get(qname.name)
-          }.orElse {
+          scope.resolve(qname.name) orElse {
             symbols.getConstructor(owner, name)
-          }.orElse {
+          } orElse {
             symbols.getFunction(owner, name)
           }
         entry match {
@@ -186,10 +179,10 @@ object Transformer {
       case N.Sequence(e1, e2) =>
         S.Sequence(transformExpr(e1), transformExpr(e2))
       case N.Let(vd, value, body) =>
-        if (locals.contains(vd.name)) {
+        if (scope.isLocal(vd.name)) {
           reporter.fatal(s"Variable redefinition: ${vd.name}", vd)
         }
-        if (params.contains(vd.name)) {
+        if (scope.isParam(vd.name)) {
           reporter.warning(s"Local variable ${vd.name} shadows function parameter", vd)
         }
         val sym = Identifier.fresh(vd.name)
@@ -197,26 +190,26 @@ object Transformer {
         S.Let(
           S.ParamDef(sym, S.TypeTree(tpe)).setPos(vd),
           transformExpr(value),
-          transformExpr(body)(module, (params, locals + (vd.name -> sym)), ctx)
+          transformExpr(body)(module, scope.withLocal(vd.name, sym), ctx)
         )
       case N.Ite(cond, thenn, elze) =>
         S.Ite(transformExpr(cond), transformExpr(thenn), transformExpr(elze))
       case N.Match(scrut, cases) =>
         def transformCase(cse: N.MatchCase) = {
           val N.MatchCase(pat, rhs) = cse
-          val (newPat, moreLocals) = transformPattern(pat)
-          S.MatchCase(newPat, transformExpr(rhs)(module, (params, locals ++ moreLocals), ctx).setPos(rhs)).setPos(cse)
+          val (newPat, caseScope) = transformPattern(pat)
+          S.MatchCase(newPat, transformExpr(rhs)(module, caseScope, ctx).setPos(rhs)).setPos(cse)
         }
 
-        def transformPattern(pat: N.Pattern): (S.Pattern, List[(String, Identifier)]) = {
-          val (newPat, newNames): (S.Pattern, List[(String, Identifier)]) = pat match {
+        def transformPattern(pat: N.Pattern): (S.Pattern, Scope) = {
+          val (newPat, newScope): (S.Pattern, Scope) = pat match {
             case N.WildcardPattern() =>
-              (S.WildcardPattern(), List())
+              (S.WildcardPattern(), scope)
             case N.IdPattern(name) =>
-              if (locals.contains(name)) {
+              if (scope.isLocal(name)) {
                 reporter.fatal(s"Pattern identifier $name already defined", pat)
               }
-              if (params.contains(name)) {
+              if (scope.isParam(name)) {
                 reporter.warning("Suspicious shadowing by an Id Pattern", pat)
               }
               symbols.getConstructor(module, name) match {
@@ -225,9 +218,9 @@ object Transformer {
                 case _ =>
               }
               val sym = Identifier.fresh(name)
-              (S.IdPattern(sym), List(name -> sym))
+              (S.IdPattern(sym), scope.withLocal(name, sym))
             case N.LiteralPattern(lit) =>
-              (S.LiteralPattern(transformExpr(lit).asInstanceOf[S.Literal[_]]), List())
+              (S.LiteralPattern(transformExpr(lit).asInstanceOf[S.Literal[_]]), scope)
             case N.CaseClassPattern(constr, args) =>
               val (sym, sig) = symbols
                 .getConstructor(constr.module.getOrElse(module), constr.name)
@@ -238,19 +231,22 @@ object Transformer {
                 reporter.fatal(s"Wrong number of args for constructor $constr", pat)
               }
               val (newPatts, moreLocals0) = (args map transformPattern).unzip
-              val moreLocals = moreLocals0.flatten
-              moreLocals.groupBy(_._1).foreach { case (name, pairs) =>
-                if (pairs.size > 1) {
-                  reporter.fatal(s"Multiple definitions of $name in pattern", pat)
+              val moreLocals = if moreLocals0.nonEmpty then
+                // TODO HR : This check here should be refactored (inefficient)
+                moreLocals0.toSet.flatMap(_.locals.map(identity)).groupBy(_._1).foreach { case (name, pairs) =>
+                  if (pairs.size > 1) {
+                    reporter.fatal(s"Multiple definitions of $name in pattern", pat)
+                  }
                 }
-              }
+                moreLocals0.reduce(Scope.combine)
+              else
+                scope
               (S.CaseClassPattern(sym, newPatts), moreLocals)
           }
-          (newPat.setPos(pat), newNames)
+          (newPat.setPos(pat), newScope)
         }
 
         S.Match(transformExpr(scrut), cases map transformCase)
-
       case N.Error(msg) =>
         S.Error(transformExpr(msg))
     }
