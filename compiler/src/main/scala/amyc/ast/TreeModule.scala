@@ -1,7 +1,7 @@
 package amyc.ast
 
 import amyc.core.Context
-import amyc.core.Types.Type
+import amyc.core.Types.{Type, NoType}
 import amyc.utils.printers.{NominalPrinter, Printer, SymbolicPrinter}
 import amyc.utils.{Positioned, UniqueCounter}
 
@@ -100,10 +100,10 @@ trait TreeModule { self =>
   trait TypeTree extends Tree
 
   /* */
-  case class ClassType(qname: QualifiedName) extends TypeTree
+  case class ClassTypeTree(qname: QualifiedName) extends TypeTree
 
   /* */
-  case class FunctionType(args: List[TypeTree], rte: TypeTree) extends TypeTree
+  case class FunctionTypeTree(args: List[TypeTree], rte: TypeTree) extends TypeTree
 
 
 

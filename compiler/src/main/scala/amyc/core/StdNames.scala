@@ -50,5 +50,12 @@ object StdNames {
       case _ =>
         reporter.fatal(s"TODO: ADD THE ERROR MESSAGE HERE")
 
+  // ==============================================================================================
+  // TYPES
+  // ==============================================================================================
+
+  lazy val IStringType : I = "String"
+  lazy val IIntType    : I = "Int"
+
 
 }

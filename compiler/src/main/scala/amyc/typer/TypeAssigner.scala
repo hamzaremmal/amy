@@ -2,6 +2,7 @@ package amyc.typer
 
 import amyc.analyzer.SymbolTable
 import amyc.ast.SymbolicTreeModule.*
+import amyc.core.Types.*
 import amyc.core.Context
 import amyc.{ctx, reporter}
 import amyc.utils.Pipeline

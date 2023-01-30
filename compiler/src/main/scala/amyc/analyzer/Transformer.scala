@@ -41,25 +41,16 @@ object Transformer {
     * @param core.Context
     * @return
     */
-  def transformType(tt: N.TypeTree, inModule: String)(using Context): S.Type = {
-    tt.tpe match {
-      case N.NoType =>
-        reporter.fatal(s"Type tree $tt has a type of NoType")
-      case N.IntType => S.IntType
-      case N.BooleanType => S.BooleanType
-      case N.StringType => S.StringType
-      case N.UnitType => S.UnitType
-      case N.ClassType(qn@N.QualifiedName(module, name)) =>
-        symbols.getType(module getOrElse inModule, name) match {
-          case Some(symbol) =>
-            S.ClassType(symbol)
-          case None =>
-            reporter.fatal(s"Could not find type $qn", tt)
+  def transformType(tt: N.TypeTree, inModule: String)(using Context): S.TypeTree = {
+    tt match
+      case N.FunctionTypeTree(params, rte) =>
+        S.FunctionType(params.map(_, inModule), transformType(rte, inModule))
+      case N.ClassTypeTree(N.QualifiedName(None, _)) =>
+        ??? // TODO HR : Check for primitive types
+      case N.ClassTypeTree(N.QualifiedName(pre, name)) =>
+        symbols.getType(pre getOrElse inModule, name) map S.ClassTypeTree getOrElse{
+          reporter.fatal(s"Could not find type $qn", tt)
         }
-
-      case N.FunctionType(params, rte) =>
-        S.FunctionType(params.map(tt => S.TypeTree(transformType(tt, inModule))), S.TypeTree(transformType(rte, inModule)))
-    }
   }
 
   /**

@@ -1,7 +1,7 @@
 package amyc.core
 
 import amyc.analyzer.{NameAnalyzer, SymbolTable}
-import amyc.ast.SymbolicTreeModule.*
+import amyc.core.Types.*
 import amyc.utils.{Pipeline, Reporter}
 
 import scala.collection.mutable

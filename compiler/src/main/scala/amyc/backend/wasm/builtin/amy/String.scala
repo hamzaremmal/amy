@@ -1,6 +1,6 @@
 package amyc.backend.wasm.builtin.amy
 
-import amyc.ast.SymbolicTreeModule.*
+import amyc.core.Types.StringType
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.Utils.{getFreshLabel, incr, memoryBoundary}

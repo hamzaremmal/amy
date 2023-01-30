@@ -2,6 +2,7 @@ package amyc.typer
 
 import amyc.analyzer.SymbolTable
 import amyc.core.Signatures.*
+import amyc.core.Types.*
 import amyc.ast.Identifier
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
@@ -88,7 +89,7 @@ object TypeInferer extends Pipeline[Program, Program]{
         }
       case FunRef(id) =>
         val FunSig(argTypes, retType,_, _) = symbols.getFunction(id).get
-        e.withType(FunctionType(argTypes.map(TypeTree), TypeTree(retType)))
+        e.withType(FunctionType(argTypes, retType))
         Nil
       // ===================== Type Check Literals ==============================
       case IntLiteral(_) =>
@@ -152,7 +153,7 @@ object TypeInferer extends Pipeline[Program, Program]{
             }
             e.withType(rte_tpe)
             topLevelConstraint(rte_tpe) ::: argsConstraint
-          case Some(FunctionType(args_tpe, rte_tpe)) =>
+          case Some(FunctionTypeTree(args_tpe, rte_tpe)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
               (expr, tpe) => expr.withType(tpe.tpe); genConstraints(expr, tpe.tpe)
             }

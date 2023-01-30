@@ -4,7 +4,8 @@ import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.utils.Utils.error
 import amyc.{ctx, symbols}
 import amyc.core.Context
-import amyc.ast.SymbolicTreeModule.*
+import amyc.core.Types.StringType
+import amyc.ast.SymbolicTreeModule.StringLiteral
 
 
 /**

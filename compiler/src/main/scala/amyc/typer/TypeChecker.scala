@@ -4,6 +4,7 @@ import amyc.analyzer.SymbolTable
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.{Context, StdNames}
+import amyc.core.Types.*
 import amyc.core.Signatures.*
 import amyc.core.StdNames.*
 import amyc.{reporter, symbols}
@@ -217,7 +218,7 @@ object TypeChecker extends Pipeline[Program, Program]{
     val CaseClassPattern(constr, args) = expr
     symbols.getConstructor(constr) match
       case Some(ConstrSig(argTypes, parent, _)) =>
-        if ClassType(constr) =:= scrut || ClassType(parent) =:= scrut then
+        if ClassTypeTree(constr) =:= scrut || ClassTypeTree(parent) =:= scrut then
           // TODO HR : Need to have a symbol as the type not a qualified name
           (args zip argTypes) foreach ((p, t) => checkPattern(p, t))
         else
