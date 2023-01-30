@@ -165,12 +165,12 @@ object TypeInferer extends Pipeline[Program, Program]{
             }
             e.withType(ctx.tpe(rte_tpe))
             topLevelConstraint(e.tpe) ::: argsConstraint
-          case Some(FunctionTypeTree(args_tpe, rte_tpe)) =>
+          case Some(FunctionType(args_tpe, rte_tpe)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
-              (expr, tpe) => expr.withType(ctx.tpe(tpe)); genConstraints(expr, expr.tpe)
+              (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
             }
-            e.withType(ctx.tpe(rte_tpe))
-            topLevelConstraint(e.tpe) ::: argsConstraint
+            e.withType(rte_tpe)
+            topLevelConstraint(rte_tpe) ::: argsConstraint
           case None =>
             e.withType(ErrorType)
             reporter.error(s"unknown symbol $qname")
