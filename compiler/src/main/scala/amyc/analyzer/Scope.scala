@@ -22,7 +22,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param id (Identifier) -
     * @return
     */
-  final def withLocal(name : String, id : Identifier) =
+  final def withLocal(name : String, id : Identifier) : Scope =
     Scope(Some(this), params, locals + (name -> id))
 
   /**
@@ -30,7 +30,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param locals
     * @return
     */
-  final def withLocals(locals : Bag) =
+  final def withLocals(locals : Bag) : Scope =
     Scope(Some(this), params, locals)
 
   /**
@@ -40,7 +40,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param id
     * @return
     */
-  final def withParam(name : String, id : Identifier) =
+  final def withParam(name : String, id : Identifier) : Scope =
     Scope(Some(this), params + (name -> id), locals)
 
   /**
@@ -48,7 +48,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param params
     * @return
     */
-  final def withParams(params : Bag) =
+  final def withParams(params : Bag): Scope =
     Scope(Some(this), params, locals)
 
   /**
@@ -92,13 +92,22 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
   *
   */
 object Scope :
+
+  /**
+    * Create a fresh Scope
+    * @return
+    */
   def fresh: Scope = EmptyScope
 
-  /* Cannot combine different parents */
-  def combine(lhs : Scope, rhs : Scope)(implicit parent : Scope) : Scope =
+  /**
+    *
+    * @param lhs
+    * @param rhs
+    * @param parent
+    * @return
+    */
+  def combine(lhs : Scope, rhs : Scope)(using parent : Scope) : Scope =
     Scope(Some(parent), lhs.params ++ rhs.params, lhs.locals ++ rhs.locals)
-
-
 
 
 /**
