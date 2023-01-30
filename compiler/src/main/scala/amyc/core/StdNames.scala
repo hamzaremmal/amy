@@ -54,8 +54,10 @@ object StdNames {
   // TYPES
   // ==============================================================================================
 
-  lazy val IStringType : I = "String"
-  lazy val IIntType    : I = "Int"
+  lazy val IStringType  : I = "String"
+  lazy val IUnitType    : I = "Unit"
+  lazy val IIntType     : I = "Int"
+  lazy val IBooleanType : I = "Boolean"
 
 
 }

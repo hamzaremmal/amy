@@ -45,8 +45,16 @@ object Transformer {
     tt match
       case N.FunctionTypeTree(params, rte) =>
         S.FunctionTypeTree(params.map(transformType(_, inModule)), transformType(rte, inModule))
-      case N.ClassTypeTree(N.QualifiedName(None, _)) =>
-        ??? // TODO HR : Check for primitive types
+      case N.ClassTypeTree(N.QualifiedName(None, name)) =>
+        name match
+          case "Unit" => S.ClassTypeTree(StdNames.IUnitType)
+          case "Boolean" => S.ClassTypeTree(StdNames.IBooleanType)
+          case "Int" => S.ClassTypeTree(StdNames.IIntType)
+          case "String" => S.ClassTypeTree(StdNames.IStringType)
+          case _ =>
+            symbols.getType(inModule, name) map S.ClassTypeTree.apply getOrElse {
+              reporter.fatal(s"Could not find type $name", tt)
+            }
       case N.ClassTypeTree(qn@N.QualifiedName(pre, name)) =>
         symbols.getType(pre getOrElse inModule, name) map S.ClassTypeTree.apply getOrElse{
           reporter.fatal(s"Could not find type $qn", tt)
