@@ -50,12 +50,22 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
   // ===================================== REGISTER FUCTIONS ======================================
   // ==============================================================================================
 
+  /**
+    *
+    * @param mod
+    * @param Context
+    */
   def registerFunctions(mod: N.ModuleDef)(using Context) =
     for N.FunDef(name, params, retType1, _) <- mod.defs do
       val argTypes = params map (p => transformType(p.tt, mod.name))
       val retType2 = transformType(retType1, mod.name)
       symbols.addFunction(mod.name, name, argTypes, retType2)
 
+  /**
+    *
+    * @param mod
+    * @param Context
+    */
   def registerConstructors(mod: N.ModuleDef)(using Context) =
     for cc@N.CaseClassDef(name, fields, parent) <- mod.defs do
       val argTypes = fields map (tt => transformType(tt, mod.name))
@@ -64,20 +74,35 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       }
       symbols.addConstructor(mod.name, name, argTypes, retType)
 
+  /**
+    *
+    * @param prog
+    * @param Context
+    */
   def registerModules(prog: N.Program)(using Context) =
     val modNames = prog.modules.groupBy(_.name)
     for (name, modules) <- modNames do
-      if (modules.size > 1) {
+      if modules.size > 1 then
         reporter.fatal(s"Two modules named $name in program", modules.head.position)
-      }
     for mod <- modNames.keys.toList do
-      symbols.addModule(mod)
+      val id = symbols.addModule(mod)
+      ctx.withScope(id)
 
+  /**
+    *
+    * @param mod
+    * @param Context
+    */
   def registerTypes(mod: N.ModuleDef)(using Context) =
      for N.AbstractClassDef(name) <- mod.defs do
        val id = symbols.addType(mod.name, name)
        ctx._types += (id -> ClassType(id))
 
+  /**
+    *
+    * @param mod
+    * @param Context
+    */
   def checkModuleConsistency(mod: N.ModuleDef)(using Context) =
      val names = mod.defs.groupBy(_.name)
      for (name, defs) <- names do

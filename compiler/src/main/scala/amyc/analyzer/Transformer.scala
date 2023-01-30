@@ -31,7 +31,7 @@ object Transformer {
       reporter.fatal(s"Cannot find symbol for module $name")
     }
     val symDefs = for d <- defs yield transformDef(d, name)
-    val symExpr = optExpr.map(transformExpr(_)(name, Scope.fresh, ctx))
+    val symExpr = optExpr.map(transformExpr(_)(name, ctx.scope(symName), ctx))
     S.ModuleDef(symName, symDefs, symExpr)
 
   /**

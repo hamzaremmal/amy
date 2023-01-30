@@ -1,7 +1,7 @@
 package amyc.core
 
 import amyc.ast.SymbolicTreeModule.*
-import amyc.analyzer.{NameAnalyzer, SymbolTable}
+import amyc.analyzer.{NameAnalyzer, SymbolTable, Scope, EmptyScope}
 import amyc.ast.Identifier
 import amyc.core.Types.*
 import amyc.utils.{Pipeline, Reporter}
@@ -13,6 +13,7 @@ import scala.collection.mutable.HashMap
 case class Context private (reporter: Reporter){
 
   val tv : mutable.HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
+
   val _types : mutable.HashMap[Identifier, Type] =
     mutable.HashMap(
       StdNames.IIntType -> IntType,
@@ -21,7 +22,9 @@ case class Context private (reporter: Reporter){
       StdNames.IUnitType -> UnitType
   )
 
-  private var _symtable: Option[SymbolTable] = None
+  // Store Scopes of each module
+  private var _scopes : mutable.HashMap[Identifier, Scope] = mutable.HashMap.empty
+  private var _symtable : Option[SymbolTable] = None
   private var _pipeline : String = compiletime.uninitialized
 
   def tpe(tree : TypeTree) : Type =
@@ -54,6 +57,23 @@ case class Context private (reporter: Reporter){
 
   def phase : String =
     _pipeline
+
+  // ==============================================================================================
+  // ================================= SCOPE MANAGEMENT ===========================================
+  // ==============================================================================================
+
+  /**
+    * Index the Scope of each module
+    * @param id
+    * @param scope
+    * @return
+    */
+  def withScope(id: Identifier, scope : Scope = EmptyScope) =
+    _scopes.put(id, scope)
+
+  /* TODO : This method is unsafe, fix it */
+  def scope(id: Identifier) : Scope =
+    _scopes(id)
 
 }
 
