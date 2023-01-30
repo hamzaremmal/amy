@@ -4,9 +4,10 @@ import amyc.analyzer.SymbolTable
 import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.{Context, StdNames}
+import amyc.core.Types.*
 import amyc.core.Signatures.*
 import amyc.core.StdNames.*
-import amyc.{reporter, symbols}
+import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
 object TypeChecker extends Pipeline[Program, Program]{
@@ -136,14 +137,14 @@ object TypeChecker extends Pipeline[Program, Program]{
     for
       FunSig(argTypes, retType, _, _) <- symbols.getFunction(qname)
     do
-      args zip argTypes map ((arg, tpe) => =:=(arg, tpe))
-      =:=(expr, retType)
+      args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
+      =:=(expr, retType.tpe)
     // In case of a constructor application
     for
       cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
     do
-      args zip argTypes map ((arg, tpe) => =:=(arg, tpe))
-      =:=(expr, cs.retType)
+      args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
+      =:=(expr, ctx.tpe(cs.retType))
 
     expr
 
@@ -219,7 +220,7 @@ object TypeChecker extends Pipeline[Program, Program]{
       case Some(ConstrSig(argTypes, parent, _)) =>
         if ClassType(constr) =:= scrut || ClassType(parent) =:= scrut then
           // TODO HR : Need to have a symbol as the type not a qualified name
-          (args zip argTypes) foreach ((p, t) => checkPattern(p, t))
+          (args zip argTypes) foreach ((p, t) => checkPattern(p, t.tpe))
         else
           reporter.error(s"found $constr instead of $scrut")
       case None => reporter.error(s"Constructor not found")

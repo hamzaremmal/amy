@@ -1,7 +1,7 @@
 module Classes_0
   abstract class Foo_0
   case class Bar_0() : Foo_0
-  case class Baz_0(v: Int, v: Foo_0) : Foo_0
+  case class Baz_0(v: Int_0, v: Foo_0) : Foo_0
   fn foo_0(f_0: Foo_0): Foo_0 = {
     f_0 match {
       case Bar_0() =>

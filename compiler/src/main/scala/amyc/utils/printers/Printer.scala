@@ -132,16 +132,9 @@ trait Printer(highlighter: Highlighter) {
         name <:> "(" <:> Lined(args map (rec(_)), ", ") <:> ")"
 
       /* Types */
-      case TypeTree(tp) =>
-        tp match {
-          case IntType => "Int"
-          case BooleanType => "Boolean"
-          case StringType => "String"
-          case UnitType => "Unit"
-          case ClassType(name) => name
-          case FunctionType(args, rte) => s"(${args.map(apply).mkString(", ")}) => ${apply(rte)}"
-        }
-
+      case FunctionTypeTree(args, rte) =>
+        s"(${args.map(apply).mkString(", ")}) => ${apply(rte)}"
+      case ClassTypeTree(name) => name
     }
 
     rec(t).print

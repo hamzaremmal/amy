@@ -2,40 +2,54 @@ package amyc.typer
 
 import amyc.analyzer.SymbolTable
 import amyc.core.Signatures.*
-import amyc.ast.Identifier
+import amyc.core.Types.*
+import amyc.core.Context
+import amyc.ast.{Identifier, SymbolicTreeModule}
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.StdNames
-import amyc.{core, ctx, reporter, symbols}
+import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
 object TypeInferer extends Pipeline[Program, Program]{
 
   override val name = "TypeInferer"
 
-  override def run(program: Program)(using core.Context) = {
+  def constraintsFunDef(fd : FunDef)(using Context) : List[(Type, Type)] =
+    val FunDef(_, params, rte_tpe, body) = fd
+    rte_tpe.withType(ctx.tpe(rte_tpe))
+    val env = params.map {
+      case df@ParamDef(name, tt) =>
+        tt.withType(ctx.tpe(tt))
+        name -> df.withType(ctx.tpe(tt)).tpe
+    }.toMap
+    // we will need to infer the type of the result. If we assume that the type is correct
+    // This will always type check.
+    solveConstraints(genConstraints(body, TypeVariable.fresh())(env, ctx))
+
+  def constraintsExpr(expr : Expr)(using Context) : List[(Type, Type)] =
+    solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), ctx))
+
+  override def run(program: Program)(using Context): Program = {
     // We will first type check each function defined in a module
+    for mod <- program.modules
+        CaseClassDef(_, args, _) <- mod.defs
+    do
+      args.foreach(t => t.withType(ctx.tpe(t)))
+
     val inferred1 = for
       mod <- program.modules
-      FunDef(_, params, _, body) <- mod.defs
-    yield
-      val env = params.map {
-        case df@ParamDef(name, tt) =>
-          df.withType(tt.tpe)
-          name -> tt.tpe
-      }.toMap
-      // we will need to infer the type of the result. If we assume that the type is correct
-      // This will always type check.
-      solveConstraints(genConstraints(body, TypeVariable.fresh())(env, ctx))
+      fd@FunDef(_, _, _, _) <- mod.defs
+    yield constraintsFunDef(fd)
 
     // Type-check expression if present. We allow the result to be of an arbitrary type by
     // passing a fresh (and therefore unconstrained) type variable as the expected type.
     val inferred2 = for
       mod <- program.modules
       expr <- mod.optExpr
-    yield
-      solveConstraints(genConstraints(expr, TypeVariable.fresh())(Map(), ctx))
+    yield constraintsExpr(expr)
 
+    // Add all type variables binding to the context to be solved in the next phase
     ctx.tv.addAll(inferred1.flatten.toMap)
     ctx.tv.addAll(inferred2.flatten.toMap)
 
@@ -47,26 +61,25 @@ object TypeInferer extends Pipeline[Program, Program]{
 
   // Given a list of constraints `constraints`, replace every occurence of type variable
   //  with id `from` by type `to`.
-  private def subst_*(constraints: List[Constraint], from: Int, to: Type): List[Constraint] = {
+  private def subst_*(constraints: List[Constraint], from: Int, to: Type): List[Constraint] =
     // Do a single substitution.
-    def subst(tpe: Type, from: Int, to: Type): Type = {
-      tpe match {
+    def subst(tpe: Type, from: Int, to: Type): Type =
+      tpe match
         case TypeVariable(`from`) => to
         case other => other
-      }
+
+    constraints map {
+      case Constraint(found, expected, pos) =>
+        Constraint(subst(found, from, to), subst(expected, from, to), pos)
     }
 
-    constraints map { case Constraint(found, expected, pos) =>
-      Constraint(subst(found, from, to), subst(expected, from, to), pos)
-    }
-  }
 
   // Generates typing constraints for an expression `e` with a given expected type.
   // The environment `env` contains all currently available bindings (you will have to
   //  extend these, e.g., to account for local variables).
   // Returns a list of constraints among types. These will later be solved via unification.
   private def genConstraints(e: Expr, expected: Type)
-                            (implicit env: Map[Identifier, Type], ctx: core.Context): List[Constraint] = {
+                            (implicit env: Map[Identifier, Type], ctx: Context): List[Constraint] = {
 
     // This helper returns a list of a single constraint recording the type
     //  that we found (or generated) for the current expression `e`
@@ -77,18 +90,17 @@ object TypeInferer extends Pipeline[Program, Program]{
       // ===================== Type Check Variables =============================
       case Variable(name) =>
         val symbol = env.get(name)
-        symbol match {
+        symbol match
           case Some(tpe: Type) =>
             e.withType(tpe)
             topLevelConstraint(tpe)
           case _ =>
             e.withType(ErrorType)
-            ctx.reporter.error(s"Cannot find symbol $name")
+            reporter.error(s"Cannot find symbol $name")
             Nil
-        }
       case FunRef(id) =>
         val FunSig(argTypes, retType,_, _) = symbols.getFunction(id).get
-        e.withType(FunctionType(argTypes.map(TypeTree), TypeTree(retType)))
+        e.withType(ctx.tpe(FunctionTypeTree(argTypes, retType)))
         Nil
       // ===================== Type Check Literals ==============================
       case IntLiteral(_) =>
@@ -121,6 +133,7 @@ object TypeInferer extends Pipeline[Program, Program]{
         e.withType(StringType)
         topLevelConstraint(StringType) ::: genConstraints(lhs, StringType) ::: genConstraints(rhs, StringType)
       case InfixCall(_, op, _) =>
+        e.withType(ErrorType)
         reporter.error(s"Cannot infer type of operator $op")
         Nil
       // ============================== Type Check Unary Operators ==============================
@@ -142,24 +155,25 @@ object TypeInferer extends Pipeline[Program, Program]{
         application match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
-              (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
+              (expr, tpe) => expr.withType(ctx.tpe(tpe)); genConstraints(expr, ctx.tpe(tpe))
             }
-            e.withType(constr.retType)
-            topLevelConstraint(constr.retType) ::: argsConstraint
+            e.withType(ctx.tpe(constr.retType))
+            topLevelConstraint(e.tpe) ::: argsConstraint
           case Some(FunSig(args_tpe, rte_tpe, _, _)) =>
+            val argsConstraint = (args zip args_tpe) flatMap {
+              (expr, tpe) => expr.withType(ctx.tpe(tpe)); genConstraints(expr, expr.tpe)
+            }
+            e.withType(ctx.tpe(rte_tpe))
+            topLevelConstraint(e.tpe) ::: argsConstraint
+          case Some(FunctionType(args_tpe, rte_tpe)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
               (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
             }
             e.withType(rte_tpe)
             topLevelConstraint(rte_tpe) ::: argsConstraint
-          case Some(FunctionType(args_tpe, rte_tpe)) =>
-            val argsConstraint = (args zip args_tpe) flatMap {
-              (expr, tpe) => expr.withType(tpe.tpe); genConstraints(expr, tpe.tpe)
-            }
-            e.withType(rte_tpe.tpe)
-            topLevelConstraint(rte_tpe.tpe) ::: argsConstraint
           case None =>
-            ctx.reporter.error(s"unknown symbol $qname")
+            e.withType(ErrorType)
+            reporter.error(s"unknown symbol $qname")
             Nil
           case _ =>
             reporter.fatal(s"Match case is missing in TypeInferer ($application)")
@@ -170,6 +184,7 @@ object TypeInferer extends Pipeline[Program, Program]{
       //  ========================== Type Check Variable Definitions ============================
       case Let(df, value, body) =>
         val tv = TypeVariable.fresh()
+        df.tt.withType(ctx.tpe(df.tt))
         e.withType(expected)
         df.withType(df.tt.tpe)
         genConstraints(value, tv) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), ctx)
@@ -201,13 +216,13 @@ object TypeInferer extends Pipeline[Program, Program]{
                 case Some(c) => c
                 case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
               val pat_tpe = args zip constructor.argTypes
-              for (p, t) <- pat_tpe do p.withType(t)
+              for (p, t) <- pat_tpe do p.withType(ctx.tpe(t))
               val a = pat_tpe.foldLeft((List[Constraint](), Map.empty[Identifier, Type])) {
                 case (acc, (pat, tpe)) =>
-                  val handle = handlePattern(pat, tpe)
+                  val handle = handlePattern(pat, ctx.tpe(tpe))
                   (acc._1 ::: handle._1, acc._2 ++ handle._2)
               }
-              (Constraint(constructor.retType, scrutExpected, pat.position) :: a._1, a._2)
+              (Constraint(ctx.tpe(constructor.retType), scrutExpected, pat.position) :: a._1, a._2)
         }
 
         def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {
@@ -242,7 +257,7 @@ object TypeInferer extends Pipeline[Program, Program]{
   // We consider a set of constraints to be satisfiable exactly if they unify.
 
 
-    private def solveConstraints(constraints: List[Constraint])(using core.Context): List[(Type, Type)] = {
+    private def solveConstraints(constraints: List[Constraint])(using Context): List[(Type, Type)] = {
       constraints match {
         case Nil => Nil
         case Constraint(found, expected, pos) :: more =>

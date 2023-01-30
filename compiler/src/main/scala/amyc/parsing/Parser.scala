@@ -155,11 +155,11 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers :
 
   // A built-in type (such as `Int`).
   val primitiveType: Syntax[TypeTree] = accept(PrimTypeKind) {
-    case tk@PrimTypeToken(name) => TypeTree(name match {
-      case "Unit" => UnitType
-      case "Boolean" => BooleanType
-      case "Int" => IntType
-      case "String" => StringType
+    case tk@PrimTypeToken(name) => (name match {
+      case "Unit" => ClassTypeTree(QualifiedName(None, "Unit"))
+      case "Boolean" => ClassTypeTree(QualifiedName(None, "Boolean"))
+      case "Int" => ClassTypeTree(QualifiedName(None, "Int"))
+      case "String" => ClassTypeTree(QualifiedName(None, "String"))
       case _ => throw new java.lang.Error("Unexpected primitive type name: " + name)
     }).setPos(tk)
   }
@@ -167,13 +167,13 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers :
   // A user-defined type (such as `List`).
   lazy val identifierType: Syntax[TypeTree] =
     qualifiedName map {
-      case qn: QualifiedName => TypeTree(ClassType(qn))
-      case id: Name => TypeTree(ClassType(QualifiedName(None, id)))
+      case qn: QualifiedName => ClassTypeTree(qn)
+      case id: Name => ClassTypeTree(QualifiedName(None, id))
     }
 
   lazy val functionType: Syntax[TypeTree] =
     ("(" ~>~ repsep(typeTree, ",") ~<~ ")" ~<~ "=>" ~ typeTree) map {
-      case params ~ rte => TypeTree(FunctionType(params.toList, rte))
+      case params ~ rte => FunctionTypeTree(params.toList, rte)
     }
 
   // ==============================================================================================
