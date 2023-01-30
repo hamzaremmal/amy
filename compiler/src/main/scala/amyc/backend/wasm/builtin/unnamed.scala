@@ -3,8 +3,8 @@ package amyc.backend.wasm.builtin
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.utils.Utils.error
 import amyc.{ctx, symbols}
-import amyc.core.Context
-import amyc.ast.SymbolicTreeModule.*
+import amyc.core.{Context, StdNames}
+import amyc.ast.SymbolicTreeModule.{ClassTypeTree, StringLiteral}
 
 
 /**
@@ -14,11 +14,15 @@ object unnamed extends BuiltInModule {
 
   override val owner = "<unnamed>"
   
-  override lazy val onLoad: ContextFunction1[Context, Unit] =
+  override lazy val onLoad: Context ?=> Unit =
     // TODO HR : This patch should be remove when introducing native functions and this method should
     // TODO HR : Should be registered as a native method instead of adding it here
     symbols.addModule(owner) // This garanties not to fail since String is considered as a Keyword
-    symbols.addFunction(owner, "null", Nil, StringType)
+    symbols.addFunction(owner,
+      "null",
+      Nil,
+      ClassTypeTree(StdNames.IStringType)
+    )
 
   // Pointer to a null function
   lazy val null_fn: BuiltIn =

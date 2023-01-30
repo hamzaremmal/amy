@@ -1,18 +1,18 @@
 package amyc.core
 
+import amyc.ast.SymbolicTreeModule.*
 import amyc.ast.Identifier
-import amyc.ast.SymbolicTreeModule.{Type, ClassType}
 
 import scala.collection.immutable.List
 
 object Signatures{
 
-  trait Signature[RT <: Type]() {
-    val argTypes: List[Type]
+  trait Signature[RT <: TypeTree]() {
+    val argTypes: List[TypeTree]
     val retType: RT
   }
 
-  trait ApplicationSig[RT <: Type] extends Signature[RT]{
+  trait ApplicationSig[RT <: TypeTree] extends Signature[RT]{
     val owner : Identifier
     val idx : Int // Index in the table of a module
   }
@@ -24,7 +24,7 @@ object Signatures{
     * @param retType  Return type of the function
     * @param owner    Name of the module in which the function is defined
     */
-  case class FunSig(argTypes: List[Type], retType: Type, owner: Identifier, idx: Int) extends ApplicationSig[Type]
+  case class FunSig(argTypes: List[TypeTree], retType: TypeTree, owner: Identifier, idx: Int) extends ApplicationSig[TypeTree]
 
   /**
     * The signature of a constructor in the symbol table
@@ -35,8 +35,8 @@ object Signatures{
     *                 This is useful for code generation, where we need a runtime representation of which
     *                 instance of the parent type a value represents.
     */
-  case class ConstrSig(argTypes: List[Type], parent: Identifier, idx: Int) extends Signature[ClassType] {
-    val retType = ClassType(parent)
+  case class ConstrSig(argTypes: List[TypeTree], parent: Identifier, idx: Int) extends Signature[ClassTypeTree] {
+    override val retType: ClassTypeTree = ClassTypeTree(parent)
   }
 
 }

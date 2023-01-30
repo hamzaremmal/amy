@@ -18,7 +18,7 @@ object ModulePrinter {
     Indented(Stacked(mod.imports map mkImport)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
     Indented(mkTable(mod.table.get)),
-    Indented(Stacked(Utils.defaultFunTypes.map(Raw))),
+    Indented(Stacked(Utils.defaultFunTypes.map(s2d))),
     Indented(Stacked(mod.functions map mkFun)),
     ")"
   )

@@ -1,8 +1,8 @@
 module L_0
   abstract class List_0
   case class Nil_0() : List_0
-  case class Cons_0(v: Int, v: List_0) : List_0
-  fn isEmpty_0(l_0: List_0): Boolean = {
+  case class Cons_0(v: Int_0, v: List_0) : List_0
+  fn isEmpty_0(l_0: List_0): Boolean_0 = {
     l_0 match {
       case Nil_0() =>
         true
@@ -10,7 +10,7 @@ module L_0
         false
     }
   }
-  fn length_0(l_1: List_0): Int = {
+  fn length_0(l_1: List_0): Int_0 = {
     l_1 match {
       case Nil_0() =>
         0
@@ -18,7 +18,7 @@ module L_0
         (1 + length_0(t_0))
     }
   }
-  fn head_0(l_2: List_0): Int = {
+  fn head_0(l_2: List_0): Int_0 = {
     l_2 match {
       case Cons_0(h_0, _) =>
         h_0
@@ -45,7 +45,7 @@ module L_0
         reverseAcc_0(t_1, Cons_0(h_2, acc_0))
     }
   }
-  fn indexOf_0(l_6: List_0, i_0: Int): Int = {
+  fn indexOf_0(l_6: List_0, i_0: Int_0): Int_0 = {
     l_6 match {
       case Nil_0() =>
         -(1)
@@ -54,7 +54,7 @@ module L_0
           0
         } else {
           (
-            val rec_0: Int =
+            val rec_0: Int_0 =
               indexOf_0(t_2, i_0);
             (if((0 <= rec_0)) {
               (rec_0 + 1)
@@ -65,14 +65,14 @@ module L_0
         })
     }
   }
-  fn range_0(from_0: Int, to_0: Int): List_0 = {
+  fn range_0(from_0: Int_0, to_0: Int_0): List_0 = {
     (if((to_0 < from_0)) {
       Nil_0()
     } else {
       Cons_0(from_0, range_0((from_0 + 1), to_0))
     })
   }
-  fn sum_0(l_7: List_0): Int = {
+  fn sum_0(l_7: List_0): Int_0 = {
     l_7 match {
       case Nil_0() =>
         0
@@ -88,7 +88,7 @@ module L_0
         Cons_0(h_5, concat_0(t_4, l2_0))
     }
   }
-  fn contains_0(l_8: List_0, elem_0: Int): Boolean = {
+  fn contains_0(l_8: List_0, elem_0: Int_0): Boolean_0 = {
     l_8 match {
       case Nil_0() =>
         false
@@ -143,7 +143,7 @@ module L_0
         }
     }
   }
-  fn toString_0(l_12: List_0): String = {
+  fn toString_0(l_12: List_0): String_0 = {
     l_12 match {
       case Nil_0() =>
         "List()"
@@ -151,7 +151,7 @@ module L_0
         (("List(" ++ toString1_0(more_0)) ++ ")")
     }
   }
-  fn toString1_0(l_13: List_0): String = {
+  fn toString1_0(l_13: List_0): String_0 = {
     l_13 match {
       case Cons_0(h_8, Nil_0()) =>
         intToString_0(h_8)
@@ -159,7 +159,7 @@ module L_0
         ((intToString_0(h_9) ++ ", ") ++ toString1_0(t_7))
     }
   }
-  fn take_0(l_14: List_0, n_0: Int): List_0 = {
+  fn take_0(l_14: List_0, n_0: Int_0): List_0 = {
     (if((n_0 <= 0)) {
       Nil_0()
     } else {
@@ -173,29 +173,29 @@ module L_0
   }
 end L_0
 module Std_0
-  fn printInt_0(i_1: Int): Unit = {
+  fn printInt_0(i_1: Int_0): Unit_0 = {
     error("")
   }
-  fn printString_0(s_0: String): Unit = {
+  fn printString_0(s_0: String_0): Unit_0 = {
     error("")
   }
-  fn printBoolean_0(b_0: Boolean): Unit = {
+  fn printBoolean_0(b_0: Boolean_0): Unit_0 = {
     printString_0(booleanToString_0(b_0))
   }
-  fn readString_0(): String = {
+  fn readString_0(): String_0 = {
     error("")
   }
-  fn readInt_0(): Int = {
+  fn readInt_0(): Int_0 = {
     error("")
   }
-  fn intToString_0(i_2: Int): String = {
+  fn intToString_0(i_2: Int_0): String_0 = {
     (if((i_2 < 0)) {
       ("-" ++ intToString_0(-(i_2)))
     } else {
       (
-        val rem_0: Int =
+        val rem_0: Int_0 =
           (i_2 % 10);
-        val div_0: Int =
+        val div_0: Int_0 =
           (i_2 / 10);
         (if((div_0 == 0)) {
           digitToString_0(rem_0)
@@ -205,10 +205,10 @@ module Std_0
       )
     })
   }
-  fn digitToString_0(i_3: Int): String = {
+  fn digitToString_0(i_3: Int_0): String_0 = {
     error("")
   }
-  fn booleanToString_0(b_1: Boolean): String = {
+  fn booleanToString_0(b_1: Boolean_0): String_0 = {
     (if(b_1) {
       "true"
     } else {
@@ -219,8 +219,8 @@ end Std_0
 module O_0
   abstract class Option_0
   case class None_0() : Option_0
-  case class Some_0(v: Int) : Option_0
-  fn isDefined_0(o_0: Option_0): Boolean = {
+  case class Some_0(v: Int_0) : Option_0
+  fn isDefined_0(o_0: Option_0): Boolean_0 = {
     o_0 match {
       case None_0() =>
         false
@@ -228,7 +228,7 @@ module O_0
         true
     }
   }
-  fn get_0(o_1: Option_0): Int = {
+  fn get_0(o_1: Option_0): Int_0 = {
     o_1 match {
       case Some_0(i_4) =>
         i_4
@@ -236,7 +236,7 @@ module O_0
         error("get(None)")
     }
   }
-  fn getOrElse_0(o_2: Option_0, i_5: Int): Int = {
+  fn getOrElse_0(o_2: Option_0, i_5: Int_0): Int_0 = {
     o_2 match {
       case None_0() =>
         i_5
