@@ -44,11 +44,11 @@ object Transformer {
   def transformType(tt: N.TypeTree, inModule: String)(using Context): S.TypeTree = {
     tt match
       case N.FunctionTypeTree(params, rte) =>
-        S.FunctionType(params.map(_, inModule), transformType(rte, inModule))
+        S.FunctionTypeTree(params.map(transformType(_, inModule)), transformType(rte, inModule))
       case N.ClassTypeTree(N.QualifiedName(None, _)) =>
         ??? // TODO HR : Check for primitive types
-      case N.ClassTypeTree(N.QualifiedName(pre, name)) =>
-        symbols.getType(pre getOrElse inModule, name) map S.ClassTypeTree getOrElse{
+      case N.ClassTypeTree(qn@N.QualifiedName(pre, name)) =>
+        symbols.getType(pre getOrElse inModule, name) map S.ClassTypeTree.apply getOrElse{
           reporter.fatal(s"Could not find type $qn", tt)
         }
   }
@@ -74,7 +74,7 @@ object Transformer {
 
     val newParams = params zip sig.argTypes map { case (pd@N.ParamDef(name, tt), tpe) =>
       val s = Identifier.fresh(name)
-      S.ParamDef(s, S.TypeTree(tpe).setPos(tt)).setPos(pd)
+      S.ParamDef(s, tpe.setPos(tt)).setPos(pd)
     }
 
     val paramsMap = paramNames.zip(newParams.map(_.name)).toMap
@@ -82,7 +82,7 @@ object Transformer {
     S.FunDef(
       sym,
       newParams,
-      S.TypeTree(sig.retType).setPos(retType),
+      sig.retType.setPos(retType),
       transformExpr(body)(module, Scope.fresh.withParams(paramsMap), ctx)
     ).setPos(fd)
   }
@@ -100,11 +100,7 @@ object Transformer {
         S.AbstractClassDef(symbols.getType(module, name).get)
       case N.CaseClassDef(name, _, _) =>
         val Some((sym, sig)) = symbols.getConstructor(module, name)
-        S.CaseClassDef(
-          sym,
-          sig.argTypes map S.TypeTree.apply,
-          sig.parent
-        )
+        S.CaseClassDef(sym, sig.argTypes, sig.parent)
       case fd: N.FunDef =>
         transformFunDef(fd, module)
     }
@@ -179,7 +175,7 @@ object Transformer {
         val sym = Identifier.fresh(vd.name)
         val tpe = transformType(vd.tt, module)
         S.Let(
-          S.ParamDef(sym, S.TypeTree(tpe)).setPos(vd),
+          S.ParamDef(sym, tpe).setPos(vd),
           transformExpr(value),
           transformExpr(body)(module, scope.withLocal(vd.name, sym), ctx)
         )

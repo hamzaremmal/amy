@@ -1,10 +1,11 @@
 package amyc.backend.wasm.builtin.amy
 
-import amyc.core.Types.StringType
+import amyc.ast.SymbolicTreeModule.ClassTypeTree
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.Utils.{getFreshLabel, incr, memoryBoundary}
 import amyc.backend.wasm.utils.lh
+import amyc.core.StdNames
 import amyc.core.Context
 import amyc.symbols
 
@@ -16,7 +17,12 @@ object String extends BuiltInModule {
     // TODO HR : This patch should be remove when introducing native functions and this method should
     // TODO HR : Should be registered as a native method instead of adding it here
     symbols.addModule("String") // This garanties not to fail since String is considered as a Keyword
-    symbols.addFunction("String", "concat", StringType :: StringType :: Nil, StringType)
+    symbols.addFunction(
+      "String",
+      "concat",
+      List.fill(2)(ClassTypeTree(StdNames.IStringType)),
+      ClassTypeTree(StdNames.IStringType)
+    )
   }
 
   lazy val concat : BuiltIn =

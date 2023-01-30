@@ -89,7 +89,7 @@ object TypeInferer extends Pipeline[Program, Program]{
         }
       case FunRef(id) =>
         val FunSig(argTypes, retType,_, _) = symbols.getFunction(id).get
-        e.withType(FunctionType(argTypes, retType))
+        e.withType(FunctionType(argTypes.map(_.tpe), retType.tpe))
         Nil
       // ===================== Type Check Literals ==============================
       case IntLiteral(_) =>
@@ -143,16 +143,16 @@ object TypeInferer extends Pipeline[Program, Program]{
         application match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
-              (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
+              (expr, tpe) => expr.withType(tpe.tpe); genConstraints(expr, tpe.tpe)
             }
-            e.withType(constr.retType)
-            topLevelConstraint(constr.retType) ::: argsConstraint
+            e.withType(constr.retType.tpe)
+            topLevelConstraint(constr.retType.tpe) ::: argsConstraint
           case Some(FunSig(args_tpe, rte_tpe, _, _)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
-              (expr, tpe) => expr.withType(tpe); genConstraints(expr, tpe)
+              (expr, tpe) => expr.withType(tpe.tpe); genConstraints(expr, tpe.tpe)
             }
-            e.withType(rte_tpe)
-            topLevelConstraint(rte_tpe) ::: argsConstraint
+            e.withType(rte_tpe.tpe)
+            topLevelConstraint(rte_tpe.tpe) ::: argsConstraint
           case Some(FunctionTypeTree(args_tpe, rte_tpe)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
               (expr, tpe) => expr.withType(tpe.tpe); genConstraints(expr, tpe.tpe)
@@ -202,13 +202,13 @@ object TypeInferer extends Pipeline[Program, Program]{
                 case Some(c) => c
                 case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
               val pat_tpe = args zip constructor.argTypes
-              for (p, t) <- pat_tpe do p.withType(t)
+              for (p, t) <- pat_tpe do p.withType(t.tpe)
               val a = pat_tpe.foldLeft((List[Constraint](), Map.empty[Identifier, Type])) {
                 case (acc, (pat, tpe)) =>
-                  val handle = handlePattern(pat, tpe)
+                  val handle = handlePattern(pat, tpe.tpe)
                   (acc._1 ::: handle._1, acc._2 ++ handle._2)
               }
-              (Constraint(constructor.retType, scrutExpected, pat.position) :: a._1, a._2)
+              (Constraint(constructor.retType.tpe, scrutExpected, pat.position) :: a._1, a._2)
         }
 
         def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {

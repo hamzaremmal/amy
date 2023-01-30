@@ -6,6 +6,7 @@ import amyc.core.*
 import amyc.utils.*
 import amyc.ast.{Identifier, NominalTreeModule as N, SymbolicTreeModule as S}
 import amyc.analyzer.Transformer.*
+import amyc.core.Types.ClassType
 
 // Name analyzer for Amy
 // Takes a nominal program (names are plain string, qualified names are string pairs)
@@ -74,7 +75,8 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
 
   def registerTypes(mod: N.ModuleDef)(using Context) =
      for N.AbstractClassDef(name) <- mod.defs do
-       symbols.addType(mod.name, name)
+       val id = symbols.addType(mod.name, name)
+       ctx._types += (id -> ClassType(id))
 
   def checkModuleConsistency(mod: N.ModuleDef)(using Context) =
      val names = mod.defs.groupBy(_.name)

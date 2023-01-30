@@ -1,6 +1,7 @@
 package amyc.core
 
 import amyc.analyzer.{NameAnalyzer, SymbolTable}
+import amyc.ast.Identifier
 import amyc.core.Types.*
 import amyc.utils.{Pipeline, Reporter}
 
@@ -11,7 +12,8 @@ import scala.collection.mutable.HashMap
 case class Context private (reporter: Reporter){
 
   val tv : HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
-
+  
+  val _types : mutable.HashMap[Identifier, Type] = mutable.HashMap.empty
   private var _symtable: Option[SymbolTable] = None
   private var _pipeline : String = compiletime.uninitialized
 
