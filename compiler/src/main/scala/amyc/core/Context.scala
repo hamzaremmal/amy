@@ -1,6 +1,7 @@
 package amyc.core
 
-import amyc.analyzer.{NameAnalyzer, SymbolTable}
+import amyc.analyzer.{NameAnalyzer, SymbolTable, Scope, EmptyScope}
+import amyc.ast.Identifier
 import amyc.ast.SymbolicTreeModule.*
 import amyc.utils.{Pipeline, Reporter}
 
@@ -10,9 +11,11 @@ import scala.collection.mutable.HashMap
 // Contains a reporter and configuration for the compiler
 case class Context private (reporter: Reporter){
 
-  val tv : HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
+  val tv : mutable.HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
 
-  private var _symtable: Option[SymbolTable] = None
+  // Store Scopes of each module
+  private var _scopes : mutable.HashMap[Identifier, Scope] = mutable.HashMap.empty
+  private var _symtable : Option[SymbolTable] = None
   private var _pipeline : String = compiletime.uninitialized
 
 
@@ -38,6 +41,23 @@ case class Context private (reporter: Reporter){
 
   def phase : String =
     _pipeline
+
+  // ==============================================================================================
+  // ================================= SCOPE MANAGEMENT ===========================================
+  // ==============================================================================================
+
+  /**
+    * Index the Scope of each module
+    * @param id
+    * @param scope
+    * @return
+    */
+  def withScope(id: Identifier, scope : Scope = EmptyScope) =
+    _scopes.put(id, scope)
+
+  /* TODO : This method is unsafe, fix it */
+  def scope(id: Identifier) : Scope =
+    _scopes(id)
 
 }
 
