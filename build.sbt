@@ -70,7 +70,8 @@ lazy val `amy-language` = (project in file("."))
     dockerExposedPorts ++= Seq(),
     amy_setting,
     amyc_setting,
-    Compile / run := usage.value
+    Compile / run := usage.value,
+    Compile / doc / target := file("docs/api")
   )
 
 // ================================================================================================
@@ -79,7 +80,8 @@ lazy val `amy-language` = (project in file("."))
 
 lazy val `amy-compiler` = (project in file("compiler"))
   .settings(
-    Compile / mainClass := Some(amyc_entrypoint)
+    Compile / mainClass := Some(amyc_entrypoint),
+    Compile / doc / target := file("docs/api/amy-compiler")
   )
 
 // ================================================================================================
@@ -89,10 +91,14 @@ lazy val `amy-interpreter` = (project in file("interpreter"))
   .dependsOn(`amy-compiler` % "compile->compile;test->test")
   .settings(
     Compile / mainClass := Some(amy_entrypoint),
+    Compile / doc / target := file("docs/api/amy-interpreter")
   )
 
 // ================================================================================================
 // =================================== AMY'S STANDARD LIBRARY =====================================
 // ================================================================================================
 
-lazy val `amy-stdlib` = project in file("library")
+lazy val `amy-stdlib` = (project in file("library"))
+  .settings(
+    Compile / doc / target := file("docs/api/amy-stdlib")
+  )
