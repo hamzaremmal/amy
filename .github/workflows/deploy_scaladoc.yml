@@ -1,7 +1,8 @@
 name: Deploy scaladoc
 on:
   push:
-    - master
+    branches:
+      - master
     
 jobs:
   checkout:
