@@ -14,7 +14,7 @@ jobs:
     needs: checkout
     steps:
       - name: Generate scaladoc for amyc-compiler
-        run: sbt amyc-compiler/doc     
+        run: sbt amy-compiler/doc     
   upload-artifact:
     runs-on: ubuntu-latest
     needs: build
