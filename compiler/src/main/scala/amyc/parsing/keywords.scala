@@ -17,6 +17,11 @@ object keywords :
 
   sealed abstract class Keyword:
     register(this)
+    
+  object Keyword:
+    implicit def kw2str(kw: Keyword): String = kw.toString
+  
+  import Keyword.*
 
   case object `abstract` extends Keyword
   case object `case`     extends Keyword
@@ -47,7 +52,7 @@ object keywords :
 
   /* Check if a given string is a keyword */
   def isKeyword(str: String) : Boolean =
-    map(_.toString).contains(str)
+    map(kw2str).contains(str)
 
   /* fetch the corresponding Keyword object */
   def of(str: String) : Option[Keyword] = ???

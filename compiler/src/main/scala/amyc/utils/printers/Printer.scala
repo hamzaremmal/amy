@@ -1,8 +1,10 @@
 package amyc.utils.printers
 
 import amyc.ast.*
-import amyc.utils.*
+import amyc.utils.{Document, Indented, Lined, Stacked}
+import amyc.utils.Document.*
 import amyc.utils.printers.highlight.{Highlighter, NoHighlight}
+import amyc.parsing.keywords.*
 
 // A printer for Amy trees
 trait Printer(highlighter: Highlighter) {
@@ -14,12 +16,7 @@ trait Printer(highlighter: Highlighter) {
   implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document
   implicit def printQName(name: QualifiedName)(implicit printUniqueIds: Boolean): Document
 
-  protected implicit def stringToDoc(s: String): Raw = Raw(s)
-
   def apply(t: Tree)(implicit printUniqueIDs: Boolean = false): String = {
-
-    def binOp(e1: Expr, op: String, e2: Expr) = "(" <:> rec(e1) <:> " " + op + " " <:> rec(e2) <:> ")"
-
     def rec(t: Tree, parens: Boolean = true): Document = t match {
       /* Definitions */
       case Program(modules) =>
@@ -27,58 +24,55 @@ trait Printer(highlighter: Highlighter) {
 
       case ModuleDef(name, defs, optExpr) =>
         Stacked(
-          Lined(List(highlightKeyword("module"), name), " "),
+          doc"$module $name",
           "",
-          Indented(Stacked(defs ++ optExpr.toList map (rec(_, false)), emptyLines = true)),
-          Lined(List(highlightKeyword("end"), name), " "),
+          iden"${Stacked(defs ++ optExpr.toList map (rec(_, false)), emptyLines = true)}",
+          doc"$end $name",
           ""
         )
 
       case AbstractClassDef(name) =>
-        Lined(List(highlightKeyword("abstract"), highlightKeyword("class"), printName(name)), " ")
+        doc"${`abstract`} ${`class`} ${printName(name)}"
 
       case CaseClassDef(name, fields, parent) =>
-        def printField(f: TypeTree) = "v: " <:> rec(f)
-        "case class " <:> name <:> "(" <:> Lined(fields map printField, ", ") <:> ") : " <:> parent
+        def printField(f: TypeTree) = doc"v: ${rec(f)}"
+        doc"${`case`} ${`class`} $name(${fields.map(printField).mkDoc(", ")}) : $parent"
 
       case FunDef(name, params, retType, body) =>
         Stacked(
-          "fn " <:> name <:> "(" <:> Lined(params map (rec(_)), ", ") <:> "): " <:> rec(retType) <:> " = {",
-          Indented(rec(body, false)),
+          doc"$fn $name(${params.map(rec(_)).mkDoc(", ")}): ${rec(retType)} = {",
+          iden"${rec(body, false)}",
           "}"
         )
-
       case ParamDef(name, tpe) =>
-        name <:> ": " <:> rec(tpe)
-
-      /* Expressions */
+        doc"$name: ${rec(tpe)}"
       case Variable(name) =>
         name
       case IntLiteral(value) =>
-        highlightLiteral(value.toString)
+        value.toString
       case BooleanLiteral(value) =>
-        highlightLiteral(value.toString)
+        value.toString
       case StringLiteral(value) =>
-        highlightLiteral(s"\"$value\"")
+        s"\"$value\""
       case UnitLiteral() =>
-        highlightLiteral("()")
+        "()"
       case InfixCall(lhs, op, rhs) =>
-        binOp(lhs, op.toString, rhs)
+        doc"(${rec(lhs)} ${op.toString} ${rec(rhs)})"
       case Not(e) =>
-        "!(" <:> rec(e) <:> ")"
+        doc"!(${rec(e)})"
       case Neg(e) =>
-        "-(" <:> rec(e) <:> ")"
+        doc"-(${rec(e)})"
       case Call(name, args) =>
-        name <:> "(" <:> Lined(args map (rec(_)), ", ") <:> ")"
+        doc"$name(${args.map(rec(_)).mkDoc(", ")})"
       case Sequence(lhs, rhs) =>
         val main = Stacked(
-          rec(lhs, false) <:> ";",
+          doc"${rec(lhs, false)};",
           rec(rhs, false),
         )
         if (parens) {
           Stacked(
             "(",
-            Indented(main),
+            iden"${main}",
             ")"
           )
         } else {
@@ -86,14 +80,14 @@ trait Printer(highlighter: Highlighter) {
         }
       case Let(df, value, body) =>
         val main = Stacked(
-          "val " <:> rec(df) <:> " =",
-          Indented(rec(value)) <:> ";",
+          doc"${`val`} ${rec(df)} =",
+          iden"${rec(value)};",
           rec(body, false) // For demonstration purposes, the scope or df is indented
         )
         if (parens) {
           Stacked(
             "(",
-            Indented(main),
+            iden"${main}",
             ")"
           )
         } else {
@@ -101,26 +95,25 @@ trait Printer(highlighter: Highlighter) {
         }
       case Ite(cond, thenn, elze) =>
         Stacked(
-          "(if(" <:> rec(cond) <:> ") {",
-          Indented(rec(thenn)),
-          "} else {",
-          Indented(rec(elze)),
+          doc"(${`if`}(${rec(cond)}) {",
+          iden"${rec(thenn)}",
+          doc"} ${`else`} {",
+          iden"${rec(elze)}",
           "})"
         )
       case Match(scrut, cases) =>
         Stacked(
-          rec(scrut) <:> " match {",
-          Indented(Stacked(cases map (rec(_)))),
+          doc"${rec(scrut)} ${`match`}{",
+          iden"${Stacked(cases map (rec(_)))}",
           "}"
         )
       case Error(msg) =>
-        "error(" <:> rec(msg) <:> ")"
-
+        doc"$error(${rec(msg)})"
       /* cases and patterns */
       case MatchCase(pat, expr) =>
         Stacked(
-          "case " <:> rec(pat) <:> " =>",
-          Indented(rec(expr))
+          doc"${`case`} ${rec(pat)} =>",
+          iden"${rec(expr)}"
         )
       case WildcardPattern() =>
         "_"
@@ -129,8 +122,7 @@ trait Printer(highlighter: Highlighter) {
       case LiteralPattern(lit) =>
         rec(lit)
       case CaseClassPattern(name, args) =>
-        name <:> "(" <:> Lined(args map (rec(_)), ", ") <:> ")"
-
+        doc"$name(${args.map(rec(_)).mkDoc(", ")})"
       /* Types */
       case FunctionTypeTree(args, rte) =>
         s"(${args.map(apply).mkString(", ")}) => ${apply(rte)}"
