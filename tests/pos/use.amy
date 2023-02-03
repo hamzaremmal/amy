@@ -1,0 +1,4 @@
+module U
+    use Std.printString;
+    Std.printString("hello world")
+end U
