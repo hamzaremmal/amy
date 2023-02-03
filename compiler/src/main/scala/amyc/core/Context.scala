@@ -14,25 +14,18 @@ case class Context private (reporter: Reporter){
 
   val tv : mutable.HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
 
-  val _types : mutable.HashMap[Identifier, Type] =
-    mutable.HashMap(
-      //StdNames.IIntType -> IntType,
-      //StdNames.IStringType -> StringType,
-      //StdNames.IBooleanType -> BooleanType,
-      //StdNames.IUnitType -> UnitType
-  )
-
   // Store Scopes of each module
   private var _scopes : mutable.HashMap[Identifier, Scope] = mutable.HashMap.empty
   private var _symtable : Option[SymbolTable] = None
   private var _pipeline : String = compiletime.uninitialized
 
+  // TODO HR : Should be removed from Context
   def tpe(tree : TypeTree) : Type =
     tree match
-      case ClassTypeTree(id) => _types(id)
+      case ClassTypeTree(id) => ClassType(id)
       case FunctionTypeTree(args, rte) =>
-        val id = Identifier.fresh(s"(${args.map(tpe).mkString(";")}:${tpe(rte)})")
-        _types.getOrElseUpdate(id, FunctionType(args.map(tpe), tpe(rte)))
+        Identifier.fresh(s"(${args.map(tpe).mkString(";")}:${tpe(rte)})")
+        FunctionType(args.map(tpe), tpe(rte))
 
 
   // ==============================================================================================

@@ -96,8 +96,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     */
   def registerTypes(mod: N.ModuleDef)(using Context) =
      for N.AbstractClassDef(name) <- mod.defs do
-       val id = symbols.addType(mod.name, name)
-       ctx._types += (id -> ClassType(id))
+       symbols.addType(mod.name, name)
 
   /**
     *
@@ -116,14 +115,9 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     // register module
     ctx.withScope(symbols.addModule(modName))
     // register types
-    var id : Identifier = null
-    id = symbols.addType(modName, "Int")
-    ctx._types += (id -> ClassType(id))
-    id = symbols.addType(modName, "Boolean")
-    ctx._types += (id -> ClassType(id))
-    id = symbols.addType(modName, "Unit")
-    ctx._types += (id -> ClassType(id))
-    id = symbols.addType(modName, "String")
-    ctx._types += (id -> ClassType(id))
+    symbols.addType(modName, "Int")
+    symbols.addType(modName, "Boolean")
+    symbols.addType(modName, "Unit")
+    symbols.addType(modName, "String")
 
 }
