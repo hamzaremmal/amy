@@ -5,15 +5,15 @@ import amyc.{reporter, symbols}
 class StdDefinitions(using Context) :
 
   private type I = Identifier
-  
+
   lazy val StdModule    : I = ofModule("Std")
-  lazy val UnnamedModule : I = ofModule("unnamed")
+  lazy val UnnamedModule : I = ofModule("<unnamed>")
 
   lazy val StringType  : I = ofType(UnnamedModule, "String")
   lazy val UnitType    : I = ofType(UnnamedModule, "Unit")
   lazy val IntType     : I = ofType(UnnamedModule, "Int")
   lazy val BooleanType : I = ofType(UnnamedModule, "Boolean")
-  
+
   // ==============================================================================================
   // ===================================== HELPER METHODS =========================================
   // ==============================================================================================
