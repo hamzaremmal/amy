@@ -18,8 +18,9 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
   override val name = "NameAnalyzer"
   override def run(p: N.Program)(using Context): S.Program = {
 
-    // Step 0: Initialize symbol table
+    // Step 0: Initialize symbol table and register module "<unnamed>"
     ctx.withSymTable(new SymbolTable)
+    registerUnnamed
 
     // Step 1: Add modules
     registerModules(p)
@@ -109,5 +110,15 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       if (defs.size > 1) {
          reporter.fatal(s"Two definitions named $name in module ${mod.name}", defs.head)
       }
+
+  private def registerUnnamed(using Context) =
+    val modName = "<unnamed>"
+    // register module
+    ctx.withScope(symbols.addModule(modName))
+    // register types
+    symbols.addType(modName, "Int")
+    symbols.addType(modName, "Boolean")
+    symbols.addType(modName, "Unit")
+    symbols.addType(modName, "String")
 
 }

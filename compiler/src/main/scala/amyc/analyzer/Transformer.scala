@@ -3,7 +3,8 @@ package amyc.analyzer
 import amyc.*
 import amyc.core.*
 import amyc.core.Signatures.*
-import amyc.core.StdNames.binOp
+import amyc.core.StdDefinitions.*
+import amyc.core.StdNames.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 
 object Transformer {
@@ -47,10 +48,10 @@ object Transformer {
         S.FunctionTypeTree(params.map(transformType(_, inModule)), transformType(rte, inModule))
       case N.ClassTypeTree(N.QualifiedName(None, name)) =>
         name match
-          case "Unit" => S.ClassTypeTree(StdNames.IUnitType)
-          case "Boolean" => S.ClassTypeTree(StdNames.IBooleanType)
-          case "Int" => S.ClassTypeTree(StdNames.IIntType)
-          case "String" => S.ClassTypeTree(StdNames.IStringType)
+          case "Unit" => S.ClassTypeTree(stdDef.UnitType)
+          case "Boolean" => S.ClassTypeTree(stdDef.BooleanType)
+          case "Int" => S.ClassTypeTree(stdDef.IntType)
+          case "String" => S.ClassTypeTree(stdDef.StringType)
           case _ =>
             symbols.getType(inModule, name) map S.ClassTypeTree.apply getOrElse {
               reporter.fatal(s"Could not find type $name", tt)

@@ -2,6 +2,7 @@ package amyc.core
 
 import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.{NameAnalyzer, SymbolTable, Scope, EmptyScope}
+import amyc.core.StdDefinitions.*
 import amyc.core.Types.*
 import amyc.utils.{Pipeline, Reporter}
 
@@ -15,10 +16,10 @@ case class Context private (reporter: Reporter){
 
   val _types : mutable.HashMap[Identifier, Type] =
     mutable.HashMap(
-      StdNames.IIntType -> IntType,
-      StdNames.IStringType -> StringType,
-      StdNames.IBooleanType -> BooleanType,
-      StdNames.IUnitType -> UnitType
+      //StdNames.IIntType -> IntType,
+      //StdNames.IStringType -> StringType,
+      //StdNames.IBooleanType -> BooleanType,
+      //StdNames.IUnitType -> UnitType
   )
 
   // Store Scopes of each module
