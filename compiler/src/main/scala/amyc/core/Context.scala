@@ -22,7 +22,7 @@ case class Context private (reporter: Reporter){
   )
 
   // Store Scopes of each module
-  private var _scopes : mutable.HashMap[Identifier, Scope] = mutable.HashMap.empty
+  private val _scopes : mutable.HashMap[Identifier, Scope] = mutable.HashMap.empty
   private var _symtable : Option[SymbolTable] = None
   private var _pipeline : String = compiletime.uninitialized
 

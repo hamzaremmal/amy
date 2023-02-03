@@ -105,6 +105,8 @@ trait TreeModule { self =>
   /* */
   case class FunctionTypeTree(args: List[TypeTree], rte: TypeTree) extends TypeTree
 
+  case class UseStatement(use : QualifiedName) extends Expr
+
 
 
 }

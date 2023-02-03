@@ -245,6 +245,11 @@ object TypeInferer extends Pipeline[Program, Program]{
         val tv = TypeVariable.fresh()
         e.withType(tv)
         genConstraints(msg, StringType) ::: topLevelConstraint(tv)
+
+      // =====
+      case UseStatement(_) =>
+        e.withType(BottomType)
+        Nil
       // ============================= DEFAULT ====================================
       case expr =>
         ctx.reporter.fatal(s"Cannot type check tree $expr of type ${expr.getClass.getTypeName}")

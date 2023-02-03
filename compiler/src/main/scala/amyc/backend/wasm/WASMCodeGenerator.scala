@@ -158,6 +158,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
           cases.map(_ => end) // HR: Autant de End que de cases
       case Error(msg) =>
         error(cgExpr(msg))
+      case UseStatement(use) =>
+        // TODO : Use Statement should be deleted after NameAnalyzer
+        // TODO : It doesn't make sense to keep them after it
+        Comment(s"cannot generate wasm code for use statement $use") <:> i32.const(0)
       case _ =>
         ctx.reporter.fatal(s"Cannot generate wasm code for $expr", expr.position)
     }

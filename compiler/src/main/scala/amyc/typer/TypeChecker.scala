@@ -49,6 +49,7 @@ object TypeChecker extends Pipeline[Program, Program]{
       case t : IdPattern => checkIdPattern(t,ErrorType)
       case t : LiteralPattern[_] => checkLiteralPattern(t, ErrorType)
       case t : CaseClassPattern => checkCaseClassPattern(t, ErrorType)
+      case u : UseStatement => checkUseStatement(u)
       case p : Program => checkProgram(p)
       case m : ModuleDef => checkModule(m)
       case fn : FunDef => checkFunctionDefinition(fn)
@@ -224,6 +225,9 @@ object TypeChecker extends Pipeline[Program, Program]{
           reporter.error(s"found $constr instead of $scrut")
       case None => reporter.error(s"Constructor not found")
     expr
+
+  def checkUseStatement(u: UseStatement)(using Context) =
+    u
 
   def checkModule(module: ModuleDef)(using Context) =
     val ModuleDef(_, defs, expr) = module

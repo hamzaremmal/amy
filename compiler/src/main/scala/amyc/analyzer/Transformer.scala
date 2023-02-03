@@ -244,6 +244,18 @@ object Transformer {
         S.Match(transformExpr(scrut), cases map transformCase)
       case N.Error(msg) =>
         S.Error(transformExpr(msg))
+      case N.UseStatement(qn) =>
+        qn match
+          case N.QualifiedName(None, nme) => ???
+            // TODO : Resolve here to a module name
+          case N.QualifiedName(Some(mod), nme) =>
+            // Resolve here to a module declaration
+            // Either an abstract class, a case class or a function
+            val abs_class  = symbols.getType(mod, nme)
+            val case_class = symbols.getConstructor(mod, nme)
+            val fn         = symbols.getFunction(mod, nme)
+            // TODO HR : Add some checks here for unicity
+            S.UseStatement(fn.get._1)
     }
     res.setPos(expr)
   }

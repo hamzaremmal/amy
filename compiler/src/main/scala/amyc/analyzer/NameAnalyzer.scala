@@ -44,6 +44,10 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     //         Reconstruct modules and analyse function bodies/ expressions
     transformProgram(p)
 
+    // TODO HR : Use statements in the tree are not necessary for here
+    // TODO HR : Drop them from the tree makes it easier to implement
+    // TODO HR : (no need to worry about type checking or code generation)
+
   }
 
   // ==============================================================================================
