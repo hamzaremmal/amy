@@ -50,30 +50,6 @@ object Types :
 
   /**
     *
-    */
-  case object IntType extends Type :
-    override def toString: String = "Int"
-
-  /**
-    *
-    */
-  case object BooleanType extends Type:
-    override def toString: String = "Boolean"
-
-  /**
-    *
-    */
-  case object StringType extends Type:
-    override def toString: String = "String"
-
-  /**
-    *
-    */
-  case object UnitType extends Type:
-    override def toString: String = "Unit"
-
-  /**
-    *
     * @param args
     * @param rte
     */
