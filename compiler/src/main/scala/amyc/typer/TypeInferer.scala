@@ -1,5 +1,6 @@
 package amyc.typer
 
+import amyc.core.StdTypes.*
 import amyc.analyzer.SymbolTable
 import amyc.core.Signatures.*
 import amyc.core.Types.*
@@ -104,45 +105,45 @@ object TypeInferer extends Pipeline[Program, Program]{
         Nil
       // ===================== Type Check Literals ==============================
       case IntLiteral(_) =>
-        e.withType(IntType)
-        topLevelConstraint(IntType)
+        e.withType(stdType.IntType)
+        topLevelConstraint(stdType.IntType)
       case BooleanLiteral(_) =>
-        e.withType(BooleanType)
-        topLevelConstraint(BooleanType)
+        e.withType(stdType.BooleanType)
+        topLevelConstraint(stdType.BooleanType)
       case StringLiteral(_) =>
-        e.withType(StringType)
-        topLevelConstraint(StringType)
+        e.withType(stdType.StringType)
+        topLevelConstraint(stdType.StringType)
       case UnitLiteral() =>
-        e.withType(UnitType)
-        topLevelConstraint(UnitType)
+        e.withType(stdType.UnitType)
+        topLevelConstraint(stdType.UnitType)
       // ========================== Type Check Binary Operators =========================
       case InfixCall(lhs, StdNames.+ | StdNames.- | StdNames.* | StdNames./ | StdNames.%, rhs) =>
-        e.withType(IntType)
-        topLevelConstraint(IntType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
+        e.withType(stdType.IntType)
+        topLevelConstraint(stdType.IntType) ::: genConstraints(lhs, stdType.IntType) ::: genConstraints(rhs, stdType.IntType)
       case InfixCall(lhs, StdNames.< | StdNames.<=, rhs) =>
-        e.withType(BooleanType)
-        topLevelConstraint(BooleanType) ::: genConstraints(lhs, IntType) ::: genConstraints(rhs, IntType)
+        e.withType(stdType.BooleanType)
+        topLevelConstraint(stdType.BooleanType) ::: genConstraints(lhs, stdType.IntType) ::: genConstraints(rhs, stdType.IntType)
       case InfixCall(lhs, StdNames.&& | StdNames.||, rhs) =>
-        e.withType(BooleanType)
-        topLevelConstraint(BooleanType) ::: genConstraints(lhs, BooleanType) ::: genConstraints(rhs, BooleanType)
+        e.withType(stdType.BooleanType)
+        topLevelConstraint(stdType.BooleanType) ::: genConstraints(lhs, stdType.BooleanType) ::: genConstraints(rhs, stdType.BooleanType)
       case InfixCall(lhs, StdNames.eq_==, rhs) =>
         val generic = TypeVariable.fresh()
-        e.withType(BooleanType)
-        topLevelConstraint(BooleanType) ::: genConstraints(lhs, generic) ::: genConstraints(rhs, generic)
+        e.withType(stdType.BooleanType)
+        topLevelConstraint(stdType.BooleanType) ::: genConstraints(lhs, generic) ::: genConstraints(rhs, generic)
       case InfixCall(lhs, StdNames.++, rhs) =>
-        e.withType(StringType)
-        topLevelConstraint(StringType) ::: genConstraints(lhs, StringType) ::: genConstraints(rhs, StringType)
+        e.withType(stdType.StringType)
+        topLevelConstraint(stdType.StringType) ::: genConstraints(lhs, stdType.StringType) ::: genConstraints(rhs, stdType.StringType)
       case InfixCall(_, op, _) =>
         e.withType(ErrorType)
         reporter.error(s"Cannot infer type of operator $op")
         Nil
       // ============================== Type Check Unary Operators ==============================
       case Not(expr) =>
-        e.withType(BooleanType)
-        topLevelConstraint(BooleanType) ::: genConstraints(expr, BooleanType)
+        e.withType(stdType.BooleanType)
+        topLevelConstraint(stdType.BooleanType) ::: genConstraints(expr, stdType.BooleanType)
       case Neg(expr) =>
-        e.withType(IntType)
-        topLevelConstraint(IntType) ::: genConstraints(expr, IntType)
+        e.withType(stdType.IntType)
+        topLevelConstraint(stdType.IntType) ::: genConstraints(expr, stdType.IntType)
       // ============================== Type Check Applications =================================
       case Call(qname, args) =>
         // WARNING BY HR : An Application can either be a call to a constructor of a function
@@ -192,7 +193,7 @@ object TypeInferer extends Pipeline[Program, Program]{
       case Ite(cond, thenn, elze) =>
         val generic = TypeVariable.fresh()
         e.withType(generic)
-        topLevelConstraint(generic) ::: genConstraints(cond, BooleanType) ::: genConstraints(thenn, generic) ::: genConstraints(elze, generic)
+        topLevelConstraint(generic) ::: genConstraints(cond, stdType.BooleanType) ::: genConstraints(thenn, generic) ::: genConstraints(elze, generic)
       // =============================== Type Check Pattern Matching ============================
       case Match(scrut, cases) =>
         // Returns additional constraints from within the pattern with all bindings
@@ -244,7 +245,7 @@ object TypeInferer extends Pipeline[Program, Program]{
       case Error(msg) =>
         val tv = TypeVariable.fresh()
         e.withType(tv)
-        genConstraints(msg, StringType) ::: topLevelConstraint(tv)
+        genConstraints(msg, stdType.StringType) ::: topLevelConstraint(tv)
       // ============================= DEFAULT ====================================
       case expr =>
         ctx.reporter.fatal(s"Cannot type check tree $expr of type ${expr.getClass.getTypeName}")
