@@ -1,22 +1,21 @@
 package amyc.backend.wasm
 
-import amyc.backend.wasm.*
-import amyc.ast.*
-import amyc.utils.Pipeline
-import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
-import amyc.backend.wasm.utils.*
-import amyc.backend.wasm.*
-import amyc.backend.wasm.builtin.BuiltIn.*
-import Instructions.*
-import Utils.*
-import amyc.core.Signatures.*
-import amyc.core.*
 import amyc.*
+import amyc.ast.*
+import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
+import amyc.core.*
+import amyc.core.Signatures.*
+import amyc.core.StdNames.*
+import amyc.core.StdDefinitions.*
+import amyc.utils.Pipeline
+import amyc.backend.wasm.*
+import amyc.backend.wasm.utils.*
+import amyc.backend.wasm.utils.Utils.*
+import amyc.backend.wasm.builtin.BuiltIn.*
+import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.unnamed.null_fn
-import Instructions.*
 import amyc.backend.wasm.types.{result, typeuse}
-import amyc.backend.wasm.utils.LocalsHandler
 
 // TODO HR: Generate all wasm related files here
 object WASMCodeGenerator extends Pipeline[Program, Module]{
@@ -50,7 +49,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     } ++
       // Generate code for the "main" function, which contains the module expression
       optExpr.toList.map { expr =>
-        val mainFd = FunDef(Identifier.fresh("main"), Nil, ClassTypeTree(StdNames.IIntType), expr)
+        val mainFd = FunDef(Identifier.fresh("main"), Nil, ClassTypeTree(stdDef.IntType), expr)
         cgFunction(mainFd, name, true)
       }
   }

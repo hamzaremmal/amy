@@ -6,6 +6,7 @@ import amyc.core.{Context, Identifier, StdNames}
 import amyc.core.Types.*
 import amyc.core.Signatures.*
 import amyc.core.StdNames.*
+import amyc.core.StdTypes.*
 import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
@@ -25,15 +26,15 @@ object TypeChecker extends Pipeline[Program, Program]{
       case s : StringLiteral => checkStringLiteral(s)
       case u : UnitLiteral => checkUnitLiteral(u)
       case op@InfixCall(_, StdNames.+ | StdNames.- | StdNames.* | StdNames./ | StdNames.%, _) =>
-        checkBinOp(op)(IntType, IntType, IntType)
+        checkBinOp(op)(stdType.IntType, stdType.IntType, stdType.IntType)
       case op@InfixCall(_, StdNames.< | StdNames.<=, _) =>
-        checkBinOp(op)(IntType, IntType, BooleanType)
+        checkBinOp(op)(stdType.IntType, stdType.IntType, stdType.BooleanType)
       case op@InfixCall(_, StdNames.&& | StdNames.||, _) =>
-        checkBinOp(op)(BooleanType, BooleanType, BooleanType)
+        checkBinOp(op)(stdType.BooleanType, stdType.BooleanType, stdType.BooleanType)
       case op@InfixCall(_, StdNames.eq_==, _) =>
         checkEquals(op)
       case op@InfixCall(_, StdNames.++, _) =>
-        checkBinOp(op)(StringType, StringType, StringType)
+        checkBinOp(op)(stdType.StringType, stdType.StringType, stdType.StringType)
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot type check operator $op")
       case op : Not => checkNot(op)
@@ -90,15 +91,15 @@ object TypeChecker extends Pipeline[Program, Program]{
     i
 
   def checkBooleanLiteral(b: BooleanLiteral)(using Context) =
-    =:=(b, BooleanType)
+    =:=(b, stdType.BooleanType)
     b
 
   def checkStringLiteral(s: StringLiteral)(using Context) =
-    =:=(s, StringType)
+    =:=(s, stdType.StringType)
     s
 
   def checkUnitLiteral(u: UnitLiteral)(using Context) =
-    =:=(u, UnitType)
+    =:=(u, stdType.UnitType)
     u
 
   def checkBinOp(expr: InfixCall)(tlhs: Type, trhs: Type, rte: Type)(using Context) =
@@ -112,21 +113,21 @@ object TypeChecker extends Pipeline[Program, Program]{
   def checkEquals(expr: InfixCall)(using Context) =
     check(expr.lhs)
     val rhs = check(expr.rhs)
-    checkBinOp(expr)(rhs.tpe, rhs.tpe, BooleanType)
+    checkBinOp(expr)(rhs.tpe, rhs.tpe, stdType.BooleanType)
 
 
   def checkNot(expr: Not)(using Context) =
     val Not(e) = expr
     check(e)
-    =:=(e, BooleanType)
-    =:=(expr, BooleanType)
+    =:=(e, stdType.BooleanType)
+    =:=(expr, stdType.BooleanType)
     expr
 
   def checkNeg(expr: Neg)(using Context) =
     val Neg(e) = expr
     check(e)
-    =:=(e,IntType)
-    =:=(expr, IntType)
+    =:=(e,stdType.IntType)
+    =:=(expr, stdType.IntType)
     expr
 
   def checkCall(expr: Call)(using Context) =
@@ -164,7 +165,7 @@ object TypeChecker extends Pipeline[Program, Program]{
   def checkIte(expr: Ite)(using Context) =
     val Ite(cond, thenn, elze) = expr
     check(cond)
-    =:=(cond, BooleanType)
+    =:=(cond, stdType.BooleanType)
     check(thenn)
     check(elze)
     =:=(thenn, elze.tpe)
@@ -183,7 +184,7 @@ object TypeChecker extends Pipeline[Program, Program]{
   def checkError(expr: Error)(using Context) =
     val Error(msg) = expr
     check(msg)
-    =:=(msg, StringType)
+    =:=(msg, stdType.StringType)
     expr
 
   def checkPattern(pat: Pattern, scrut: Type)(using Context): Tree =

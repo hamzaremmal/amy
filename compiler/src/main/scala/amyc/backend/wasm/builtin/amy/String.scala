@@ -5,6 +5,7 @@ import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.Utils.{getFreshLabel, incr, memoryBoundary}
 import amyc.backend.wasm.utils.lh
+import amyc.core.StdDefinitions.*
 import amyc.core.StdNames
 import amyc.core.Context
 import amyc.symbols
@@ -20,8 +21,8 @@ object String extends BuiltInModule {
     symbols.addFunction(
       "String",
       "concat",
-      List.fill(2)(ClassTypeTree(StdNames.IStringType)),
-      ClassTypeTree(StdNames.IStringType)
+      List.fill(2)(ClassTypeTree(stdDef.StringType)),
+      ClassTypeTree(stdDef.IntType)
     )
   }
 
