@@ -27,9 +27,6 @@ class SymbolTable {
   // ???
   private val types = mutable.HashMap[Symbol, ModuleSymbol]()
   // Maps the symbol of a given function to its signature
-  // TODO HR : This should be merged in FunctionSymbol
-  private val functions = mutable.HashMap[Symbol, FunSig]()
-  // Maps the symbol of a given function to its signature
   // TODO HR : This should be merged in ConstructorSymbol
   private val constructors = mutable.HashMap[Symbol, ConstrSig]()
 
@@ -137,7 +134,7 @@ class SymbolTable {
     val sym = FunctionSymbol(Identifier.fresh(name), sym_owner)
     val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> sym
-    functions += sym -> FunSig(argTypes, retType, idx)
+    sym.signature(FunSig(argTypes, retType, idx))
     sym
 
   def addInfixFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
@@ -145,7 +142,7 @@ class SymbolTable {
     val sym = FunctionSymbol(Identifier.fresh(name), sym_owner, true)
     val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> sym
-    functions += sym -> FunSig(argTypes, retType, idx)
+    sym.signature(FunSig(argTypes, retType, idx))
     sym
 
   /**
@@ -154,18 +151,8 @@ class SymbolTable {
     * @param name
     * @return
     */
-  def getFunction(owner: String, name: String): Option[(Symbol, ApplicationSig[TypeTree])] =
-    for
-      sym <- defsByName.get(owner, name)
-      sig <- functions.get(sym)
-    yield (sym, sig)
-
-  /**
-    *
-    * @param symbol
-    * @return
-    */
-  def getFunction(symbol: Symbol): Option[FunSig] =
-    functions.get(symbol)
+  def getFunction(owner: String, name: String): Option[Symbol] =
+    // TODO HR : Still need to check if it's a function
+    defsByName.get((owner, name))
 
 }

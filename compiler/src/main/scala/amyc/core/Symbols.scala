@@ -1,6 +1,9 @@
 package amyc.core
 
+import amyc.ast.SymbolicTreeModule
+import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Identifier
+import amyc.core.Signatures.FunSig
 
 object Symbols:
 
@@ -17,6 +20,16 @@ object Symbols:
   /* Used for functions */
 
   case class FunctionSymbol(override val id: Identifier, owner : ModuleSymbol, is_infix : Boolean = false) extends Symbol(id, owner):
+    private var _sig : FunSig = compiletime.uninitialized
+    def signature(fs : FunSig): FunctionSymbol =
+      _sig = fs
+      this
+
+    def signature: FunSig = _sig
+    final def param: List[TypeTree] = signature.argTypes
+    final def rte: TypeTree = signature.retType
+    final def idx: Int = signature.idx
+
     override val toString: String = id.name
 
   /* Used for constructors */

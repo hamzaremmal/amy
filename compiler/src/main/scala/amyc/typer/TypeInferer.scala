@@ -100,9 +100,8 @@ object TypeInferer extends Pipeline[Program, Program]{
             e.withType(ErrorType)
             reporter.error(s"Cannot find symbol $name")
             Nil
-      case FunRef(id) =>
-        val FunSig(argTypes, retType, _) = symbols.getFunction(id).get
-        e.withType(ctx.tpe(FunctionTypeTree(argTypes, retType)))
+      case FunRef(id : FunctionSymbol) =>
+        e.withType(ctx.tpe(FunctionTypeTree(id.param, id.rte)))
         Nil
       // ===================== Type Check Literals ==============================
       case IntLiteral(_) =>
@@ -136,26 +135,27 @@ object TypeInferer extends Pipeline[Program, Program]{
         args(0).withType(tv)
         args(1).withType(tv)
         topLevelConstraint(stdType.BooleanType) ::: genConstraints(args(0), tv) ::: genConstraints(args(1), tv)
-      case Call(qname, args) =>
-        // WARNING BY HR : An Application can either be a call to a constructor of a function
-        val application =
-          env.get(qname.id) orElse {
-            symbols.getConstructor(qname)
-          } orElse {
-            symbols.getFunction(qname)
-        }
-        application match
+      case Call(qname: ConstructorSymbol, args) =>
+        symbols.getConstructor(qname) match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
               (expr, tpe) => expr.withType(ctx.tpe(tpe)); genConstraints(expr, ctx.tpe(tpe))
             }
             e.withType(ctx.tpe(constr.retType))
             topLevelConstraint(e.tpe) ::: argsConstraint
-          case Some(FunSig(args_tpe, rte_tpe, _)) =>
-            val argsConstraint = (args zip args_tpe) flatMap {
+          case None =>
+            reporter.error("")
+            Nil
+      case Call(qname: FunctionSymbol, args) =>
+        val fn = env.get(qname.id) orElse {
+          Some(qname)
+        }.asInstanceOf[Option[FunctionType | FunctionSymbol]]
+         fn match
+          case Some(f : FunctionSymbol) =>
+            val argsConstraint = (args zip f.param) flatMap {
               (expr, tpe) => expr.withType(ctx.tpe(tpe)); genConstraints(expr, expr.tpe)
             }
-            e.withType(ctx.tpe(rte_tpe))
+            e.withType(ctx.tpe(f.rte))
             topLevelConstraint(e.tpe) ::: argsConstraint
           case Some(FunctionType(args_tpe, rte_tpe)) =>
             val argsConstraint = (args zip args_tpe) flatMap {
@@ -163,12 +163,6 @@ object TypeInferer extends Pipeline[Program, Program]{
             }
             e.withType(rte_tpe)
             topLevelConstraint(rte_tpe) ::: argsConstraint
-          case None =>
-            e.withType(ErrorType)
-            reporter.error(s"unknown symbol $qname")
-            Nil
-          case _ =>
-            reporter.fatal(s"Match case is missing in TypeInferer ($application)")
       // ================================ Type Check Sequences ==================================
       case Sequence(e1, e2) =>
         e.withType(expected)

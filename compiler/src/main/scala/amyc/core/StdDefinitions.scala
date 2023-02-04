@@ -64,7 +64,7 @@ class StdDefinitions(using Context) :
   private def ofFunction(module: String, name: String): I =
     symbols.getFunction(module, name).getOrElse {
       reporter.fatal(s"Definition of type $name in module $module is missing")
-    }._1
+    }
 
 object StdDefinitions:
 

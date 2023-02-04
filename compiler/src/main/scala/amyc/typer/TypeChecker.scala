@@ -133,19 +133,17 @@ object TypeChecker extends Pipeline[Program, Program]{
 
     else
       args.foreach(check)
-      // In case of a function application
-      for
-        FunSig(argTypes, retType, _) <- symbols.getFunction(qname)
-      do
-        args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
-        =:=(expr, retType.tpe)
-      // In case of a constructor application
-      for
-        cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
-      do
-        args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
-        =:=(expr, ctx.tpe(cs.retType))
-
+      qname match
+        case f: FunctionSymbol =>
+          args zip f.param map ((arg, tpe) => =:=(arg, tpe.tpe))
+          =:=(expr, f.rte.tpe)
+        case f: ConstructorSymbol =>
+          // TODO HR : Change here when signature is added to ConstructorSymbol
+          for
+            cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
+          do
+            args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
+            =:=(expr, ctx.tpe(cs.retType))
       expr
 
   def checkSequence(seq: Sequence)(using Context) =

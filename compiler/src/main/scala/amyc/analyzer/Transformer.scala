@@ -71,7 +71,7 @@ object Transformer {
     */
   def transformFunDef(fd: N.FunDef, module: String)(using Context): S.FunDef = {
     val N.FunDef(name, params, retType, body) = fd
-    val Some((sym, sig)) = symbols.getFunction(module, name)
+    val Some(sym) = symbols.getFunction(module, name)
 
     params.groupBy(_.name).foreach { case (name, ps) =>
       if (ps.size > 1) {
@@ -81,9 +81,10 @@ object Transformer {
 
     val paramNames = params.map(_.name)
 
-    val newParams = params zip sig.argTypes map { case (pd@N.ParamDef(name, tt), tpe) =>
-      val s = LocalSymbol(Identifier.fresh(name))
-      S.ParamDef(s, tpe.setPos(tt)).setPos(pd)
+    val newParams = params zip sym.asInstanceOf[FunctionSymbol].param map {
+      case (pd@N.ParamDef(name, tt), tpe) =>
+        val s = LocalSymbol(Identifier.fresh(name))
+        S.ParamDef(s, tpe.setPos(tt)).setPos(pd)
     }
 
     val paramsMap = paramNames.zip(newParams.map(_.name.id)).toMap
@@ -91,7 +92,7 @@ object Transformer {
     S.FunDef(
       sym,
       newParams,
-      sig.retType.setPos(retType),
+      sym.asInstanceOf[FunctionSymbol].rte.setPos(retType),
       transformExpr(body)(module, Scope.fresh.withParams(paramsMap), ctx)
     ).setPos(fd)
   }
@@ -134,7 +135,6 @@ object Transformer {
         // TODO HR : get won't throw an exception; operation guaranteed to work
         val sym = symbols.getFunction(module.get, name)
           .getOrElse(reporter.fatal(s"Fix error message here"))
-          ._1
         S.FunRef(sym)
       case N.IntLiteral(value) =>
         S.IntLiteral(value)
@@ -154,8 +154,7 @@ object Transformer {
       case N.Call(qname, args) =>
         val owner = qname.module.getOrElse(module)
         val name = qname.name
-        val entry =
-          scope.resolve(qname.name) orElse {
+        val entry = scope.resolve(qname.name) orElse {
             symbols.getConstructor(owner, name)
           } orElse {
             symbols.getFunction(owner, name)
@@ -163,7 +162,12 @@ object Transformer {
         entry match {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
-          case Some((sym: Symbol, sig: Signature[_])) =>
+          case Some(sym: FunctionSymbol) =>
+            if (sym.param.size != args.size) {
+              reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
+            }
+            S.Call(sym, args.map(transformExpr(_)))
+          case Some((sym: Symbol, sig : ConstrSig)) =>
             if (sig.argTypes.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
