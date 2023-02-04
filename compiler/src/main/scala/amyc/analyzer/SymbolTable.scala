@@ -26,9 +26,6 @@ class SymbolTable {
   private val modules = mutable.HashMap[String, ModuleSymbol]()
   // ???
   private val types = mutable.HashMap[Symbol, ModuleSymbol]()
-  // Maps the symbol of a given function to its signature
-  // TODO HR : This should be merged in ConstructorSymbol
-  private val constructors = mutable.HashMap[Symbol, ConstrSig]()
 
   // ==============================================================================================
   // ======================================== API =================================================
@@ -94,10 +91,12 @@ class SymbolTable {
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
     val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner)
     defsByName += (owner, name) -> sym
-    constructors += sym -> ConstrSig(
-      argTypes,
-      parent,
-      constrIndexes.next(parent)
+    sym.signature(
+      ConstrSig(
+        argTypes,
+        parent,
+        constrIndexes.next(parent)
+      )
     )
     sym
 
@@ -107,19 +106,8 @@ class SymbolTable {
     * @param name
     * @return
     */
-  def getConstructor(owner: String, name: String): Option[(Symbol, ConstrSig)] =
-    for
-      sym <- defsByName.get(owner, name)
-      sig <- constructors.get(sym)
-    yield (sym, sig)
-
-  /**
-    *
-    * @param symbol
-    * @return
-    */
-  def getConstructor(symbol: Symbol): Option[ConstrSig] =
-    constructors.get(symbol)
+  def getConstructor(owner: String, name: String): Option[Symbol] =
+    defsByName.get(owner, name)
 
   /**
     *

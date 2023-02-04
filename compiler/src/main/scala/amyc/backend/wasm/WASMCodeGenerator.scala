@@ -91,10 +91,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         cgExpr(e) <:> i32.eqz
       case Neg(e) =>
         mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
+      case AmyCall(sym: ConstructorSymbol, args) =>
+        genConstructorCall(sym, args)
       case AmyCall(qname, args) =>
-        symbols.getConstructor(qname)
-          .map(genConstructorCall(_, args))
-          .getOrElse(genFunctionCall(args, qname))
+        genFunctionCall(args, qname)
       case Sequence(e1, e2) =>
         withComment(e1.toString) {
           cgExpr(e1)
@@ -174,8 +174,8 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
 
 
 
-  def genConstructorCall(constrSig: ConstrSig, args: List[Expr])(using LocalsHandler, Context) = {
-    val ConstrSig(_, _, index) = constrSig
+  def genConstructorCall(sym: ConstructorSymbol, args: List[Expr])(using LocalsHandler, Context) = {
+    val ConstrSig(_, _, index) = sym.signature
     val l = lh.getFreshLocal // ref to object, should contain the name
 
     global.get(memoryBoundary) <:>
@@ -276,7 +276,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     local.set(idx) <:>
     ift({
       // HR : First check if the primary constructor is the same
-      equ(loadLocal(idx), constructor(symbols.getConstructor(constr).get))
+      equ(loadLocal(idx), constructor(constr.asInstanceOf[ConstructorSymbol].signature))
     }, {
       // HR : Check if all the pattern applies
       // HR : if the constructor has no parameters the foldLeft returns true

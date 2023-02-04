@@ -85,12 +85,7 @@ object Interpreter extends Pipeline[Program, Unit] :
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
       case Call(qname : ConstructorSymbol, args) =>
-        val fn = symbols.getConstructor(qname)
-        fn match
-          case Some(ConstrSig(_, _, _)) =>
-            CaseClassValue(qname, args.map(interpret(_, program)))
-          case None =>
-            reporter.fatal(s"Constructor  not defined $qname")
+        CaseClassValue(qname, args.map(interpret(_, program)))
       case Call(qname : FunctionSymbol, args) =>
         val fn = locals.get(qname) orElse {
           builtIns.get(qname)

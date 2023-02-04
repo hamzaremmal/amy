@@ -3,7 +3,7 @@ package amyc.core
 import amyc.ast.SymbolicTreeModule
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Identifier
-import amyc.core.Signatures.FunSig
+import amyc.core.Signatures.{ConstrSig, FunSig}
 
 object Symbols:
 
@@ -33,7 +33,20 @@ object Symbols:
     override val toString: String = id.name
 
   /* Used for constructors */
-  case class ConstructorSymbol(override val id: Identifier, owner: ModuleSymbol) extends Symbol(id, owner)
+  case class ConstructorSymbol(override val id: Identifier, owner: ModuleSymbol) extends Symbol(id, owner):
+    private var _sig: ConstrSig = compiletime.uninitialized
+
+    def signature(fs: ConstrSig): ConstructorSymbol =
+      _sig = fs
+      this
+
+    def signature: ConstrSig = _sig
+
+    final def param: List[TypeTree] = signature.argTypes
+
+    final def rte: TypeTree = signature.retType
+
+    final def idx: Int = signature.idx
 
   /* Used for local variables, parameters and patterns */
   /* TODO HR : owner symbol should be the enclosed symbol (either a function, a module or a module) */

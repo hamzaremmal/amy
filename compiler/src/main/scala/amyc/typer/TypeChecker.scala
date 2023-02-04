@@ -138,12 +138,8 @@ object TypeChecker extends Pipeline[Program, Program]{
           args zip f.param map ((arg, tpe) => =:=(arg, tpe.tpe))
           =:=(expr, f.rte.tpe)
         case f: ConstructorSymbol =>
-          // TODO HR : Change here when signature is added to ConstructorSymbol
-          for
-            cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
-          do
-            args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
-            =:=(expr, ctx.tpe(cs.retType))
+          args zip f.param map ((arg, tpe) => =:=(arg, tpe.tpe))
+          =:=(expr, ctx.tpe(f.rte))
       expr
 
   def checkSequence(seq: Sequence)(using Context) =
@@ -214,14 +210,11 @@ object TypeChecker extends Pipeline[Program, Program]{
 
   def checkCaseClassPattern(expr: CaseClassPattern, scrut: Type)(using Context) =
     val CaseClassPattern(constr, args) = expr
-    symbols.getConstructor(constr) match
-      case Some(ConstrSig(argTypes, parent, _)) =>
-        if ClassType(constr.id) =:= scrut || ClassType(parent.id) =:= scrut then
-          // TODO HR : Need to have a symbol as the type not a qualified name
-          (args zip argTypes) foreach ((p, t) => checkPattern(p, t.tpe))
-        else
-          reporter.error(s"found $constr instead of $scrut")
-      case None => reporter.error(s"Constructor not found")
+      if ClassType(constr.id) =:= scrut || ClassType(constr.asInstanceOf[ConstructorSymbol].signature.parent.id) =:= scrut then
+        // TODO HR : Need to have a symbol as the type not a qualified name
+        (args zip constr.asInstanceOf[ConstructorSymbol].param) foreach ((p, t) => checkPattern(p, t.tpe))
+      else
+        reporter.error(s"found $constr instead of $scrut")
     expr
 
   def checkModule(module: ModuleDef)(using Context) =

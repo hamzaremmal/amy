@@ -136,16 +136,11 @@ object TypeInferer extends Pipeline[Program, Program]{
         args(1).withType(tv)
         topLevelConstraint(stdType.BooleanType) ::: genConstraints(args(0), tv) ::: genConstraints(args(1), tv)
       case Call(qname: ConstructorSymbol, args) =>
-        symbols.getConstructor(qname) match
-          case Some(constr@ConstrSig(args_tpe, _, _)) =>
-            val argsConstraint = (args zip args_tpe) flatMap {
-              (expr, tpe) => expr.withType(ctx.tpe(tpe)); genConstraints(expr, ctx.tpe(tpe))
-            }
-            e.withType(ctx.tpe(constr.retType))
-            topLevelConstraint(e.tpe) ::: argsConstraint
-          case None =>
-            reporter.error("")
-            Nil
+          val argsConstraint = (args zip qname.param) flatMap {
+            (expr, tpe) => expr.withType(ctx.tpe(tpe)); genConstraints(expr, ctx.tpe(tpe))
+          }
+          e.withType(ctx.tpe(qname.rte))
+          topLevelConstraint(e.tpe) ::: argsConstraint
       case Call(qname: FunctionSymbol, args) =>
         val fn = env.get(qname.id) orElse {
           Some(qname)
@@ -196,19 +191,16 @@ object TypeInferer extends Pipeline[Program, Program]{
               val tv = TypeVariable.fresh()
               pat.withType(tv)
               (genConstraints(lit, tv), Map.empty)
-            case CaseClassPattern(constr, args) =>
+            case CaseClassPattern(constr: ConstructorSymbol, args) =>
               pat.withType(ClassType(constr.id))
-              val constructor = symbols.getConstructor(constr) match
-                case Some(c) => c
-                case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
-              val pat_tpe = args zip constructor.argTypes
+              val pat_tpe = args zip constr.param
               for (p, t) <- pat_tpe do p.withType(ctx.tpe(t))
               val a = pat_tpe.foldLeft((List[Constraint](), Map.empty[Identifier, Type])) {
                 case (acc, (pat, tpe)) =>
                   val handle = handlePattern(pat, ctx.tpe(tpe))
                   (acc._1 ::: handle._1, acc._2 ++ handle._2)
               }
-              (Constraint(ctx.tpe(constructor.retType), scrutExpected, pat.position) :: a._1, a._2)
+              (Constraint(ctx.tpe(constr.rte), scrutExpected, pat.position) :: a._1, a._2)
         }
 
         def handleCase(cse: MatchCase, scrutExpected: Type, rt: Type): List[Constraint] = {

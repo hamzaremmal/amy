@@ -109,8 +109,8 @@ object Transformer {
       case N.AbstractClassDef(name) =>
         S.AbstractClassDef(symbols.getType(module, name).get)
       case N.CaseClassDef(name, _, _) =>
-        val Some((sym, sig)) = symbols.getConstructor(module, name)
-        S.CaseClassDef(sym, sig.argTypes, sig.parent)
+        val Some(sym : ConstructorSymbol) = symbols.getConstructor(module, name)
+        S.CaseClassDef(sym, sym.param, sym.signature.parent)
       case fd: N.FunDef =>
         transformFunDef(fd, module)
     }
@@ -167,8 +167,8 @@ object Transformer {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
             S.Call(sym, args.map(transformExpr(_)))
-          case Some((sym: Symbol, sig : ConstrSig)) =>
-            if (sig.argTypes.size != args.size) {
+          case Some(sym: ConstructorSymbol) =>
+            if (sym.param.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
             S.Call(sym, args.map(transformExpr(_)))
@@ -214,7 +214,7 @@ object Transformer {
                 reporter.warning("Suspicious shadowing by an Id Pattern", pat)
               }
               symbols.getConstructor(module, name) match {
-                case Some((_, ConstrSig(Nil, _, _))) =>
+                case Some(sym : ConstructorSymbol) if sym.param.isEmpty =>
                   reporter.warning(s"There is a nullary constructor in this module called '$name'. Did you mean '$name()'?", pat)
                 case _ =>
               }
@@ -223,12 +223,12 @@ object Transformer {
             case N.LiteralPattern(lit) =>
               (S.LiteralPattern(transformExpr(lit).asInstanceOf[S.Literal[_]]), scope)
             case N.CaseClassPattern(constr, args) =>
-              val (sym, sig) = symbols
+              val sym = symbols
                 .getConstructor(constr.module.getOrElse(module), constr.name)
                 .getOrElse {
                   reporter.fatal(s"Constructor $constr not found", pat)
-                }
-              if (sig.argTypes.size != args.size) {
+                }.asInstanceOf[ConstructorSymbol]
+              if (sym.signature.argTypes.size != args.size) {
                 reporter.fatal(s"Wrong number of args for constructor $constr", pat)
               }
               val (newPatts, moreLocals0) = (args map transformPattern).unzip
