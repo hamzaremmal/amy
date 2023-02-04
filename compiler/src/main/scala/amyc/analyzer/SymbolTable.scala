@@ -24,99 +24,33 @@ class SymbolTable {
   private val defsByName = mutable.HashMap[(String, String), Symbol]()
   // maps a nominal representation of the tree to its symbol
   private val modules = mutable.HashMap[String, ModuleSymbol]()
-  // ???
-  private val types = mutable.HashMap[Symbol, ModuleSymbol]()
 
   // ==============================================================================================
   // ======================================== API =================================================
   // ==============================================================================================
 
-  /**
-    * Register a new Module
-    * @param name
-    * @return Symbol of the module
-    */
+  /* register a new module */
   def addModule(name: String): ModuleSymbol =
     val sym = ModuleSymbol(Identifier.fresh(name))
     modules += name -> sym
     sym
 
-  /**
-    * Fetch the Symbol of the requested module
-    * @param name
-    * @return
-    */
-  def getModule(name: String): Option[ModuleSymbol] =
-    modules.get(name)
-
-  /**
-    *
-    * @param owner
-    * @param name
-    * @return
-    */
+  /* register a new type */
   def addType(owner: String, name: String): Symbol =
     val sym_owner = modules.getOrElse(owner, sys.error(s"Module $name not found!"))
     val sym = TypeSymbol(Identifier.fresh(name), sym_owner)
     defsByName += (owner, name) -> sym
-    types += (sym -> sym_owner)
     sym
 
-  /**
-    *
-    * @param owner
-    * @param name
-    * @return
-    */
-  def getType(owner: String, name: String): Option[Symbol] =
-    defsByName.get(owner,name) filter types.contains
-
-  /**
-    *
-    * @param symbol
-    * @return
-    */
-  def getType(symbol: Symbol): Option[Symbol] =
-    types.get(symbol)
-
-  /**
-    *
-    * @param owner
-    * @param name
-    * @param argTypes
-    * @param parent
-    * @return
-    */
+  /* register a new constructor */
   def addConstructor(owner: String, name: String, argTypes: List[TypeTree], parent: Symbol): Symbol =
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
     val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner)
     defsByName += (owner, name) -> sym
-    sym.signature(
-      ConstrSig(
-        argTypes,
-        parent,
-        constrIndexes.next(parent)
-      )
-    )
+    sym.signature(ConstrSig(argTypes, parent, constrIndexes.next(parent)))
     sym
 
-  /**
-    *
-    * @param owner
-    * @param name
-    * @return
-    */
-  def getConstructor(owner: String, name: String): Option[Symbol] =
-    defsByName.get(owner, name)
-
-  /**
-    *
-    * @param owner
-    * @param name
-    * @param argTypes
-    * @param retType
-    * @return
-    */
+  /* register a new function */
   def addFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
     val sym = FunctionSymbol(Identifier.fresh(name), sym_owner)
@@ -125,6 +59,7 @@ class SymbolTable {
     sym.signature(FunSig(argTypes, retType, idx))
     sym
 
+  /* register a new infix function (trick for now to implement binary operators) */
   def addInfixFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
     val sym = FunctionSymbol(Identifier.fresh(name), sym_owner, true)
@@ -133,14 +68,31 @@ class SymbolTable {
     sym.signature(FunSig(argTypes, retType, idx))
     sym
 
-  /**
-    *
-    * @param owner
-    * @param name
-    * @return
-    */
-  def getFunction(owner: String, name: String): Option[Symbol] =
-    // TODO HR : Still need to check if it's a function
-    defsByName.get((owner, name))
+
+  /* fetch symbol of a module */
+  def getModule(name: String): Option[ModuleSymbol] =
+    modules.get(name)
+
+  /* fetch the symbol of a type */
+  def getType(owner: String, name: String): Option[TypeSymbol] =
+    defsByName get (owner, name) flatMap { _ match
+        case sym: TypeSymbol => Some(sym)
+        case _ => None
+    }
+
+  /* fetch the symbol of a constructor */
+  def getConstructor(owner: String, name: String): Option[ConstructorSymbol] =
+    defsByName get(owner, name) flatMap {
+      _ match
+        case sym: ConstructorSymbol => Some(sym)
+        case _ => None
+    }
+
+  /* fetch the symbol of a function */
+  def getFunction(owner: String, name: String): Option[FunctionSymbol] =
+    defsByName get (owner, name) flatMap { _ match
+      case sym : FunctionSymbol => Some(sym)
+      case _ => None
+    }
 
 }
