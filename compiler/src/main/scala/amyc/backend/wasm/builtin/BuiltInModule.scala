@@ -22,7 +22,7 @@ abstract class BuiltInModule {
     val (id, sym) = symbols.getFunction(owner, name).getOrElse {
       reporter.fatal(s"BuiltIn function ${owner}_$name is not defined - symbol is missing")
     }
-    Function(fullName(sym.owner, id), sym.argTypes.length, false, sym.idx) {
+    Function(fullName(sym.owner.id, id.id), sym.argTypes.length, false, sym.idx) {
       code
     }
 

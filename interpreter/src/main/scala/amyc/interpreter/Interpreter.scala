@@ -7,10 +7,10 @@ import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.SymbolTable
 import amyc.core.{Context, Identifier, StdNames}
 import amyc.core.StdNames.*
+import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 import amyc.interpreter.*
 import amyc.interpreter.Value.*
 import amyc.interpreter.BuiltIns.builtIns
-
 
 import scala.collection.mutable
 
@@ -28,9 +28,9 @@ object Interpreter extends Pipeline[Program, Unit] {
   }
 
   def findFunctionOwner(functionName: Identifier)(using Context) =
-    symbols.getFunction(functionName).getOrElse{
+    symbols.getFunction(FunctionSymbol(functionName)).getOrElse{
       reporter.fatal(s"Function $functionName not found")
-    }.owner.name
+    }.owner.id.name
 
   def findFunction(program: Program, owner: String, name: String) = {
     program.modules.find(_.name.name == owner).get.defs.collectFirst {
@@ -89,7 +89,7 @@ object Interpreter extends Pipeline[Program, Unit] {
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
       case Call(qname, args) =>
-        val fn = symbols.getConstructor(qname) orElse {
+        val fn = symbols.getConstructor(ConstructorSymbol(qname)) orElse {
           locals.get(qname)
         } orElse {
           val owner = findFunctionOwner(qname)

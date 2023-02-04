@@ -9,6 +9,7 @@ import amyc.ast.SymbolicTreeModule
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.StdNames
+import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
@@ -100,7 +101,7 @@ object TypeInferer extends Pipeline[Program, Program]{
             reporter.error(s"Cannot find symbol $name")
             Nil
       case FunRef(id) =>
-        val FunSig(argTypes, retType,_, _) = symbols.getFunction(id).get
+        val FunSig(argTypes, retType,_, _) = symbols.getFunction(FunctionSymbol(id)).get
         e.withType(ctx.tpe(FunctionTypeTree(argTypes, retType)))
         Nil
       // ===================== Type Check Literals ==============================
@@ -149,9 +150,9 @@ object TypeInferer extends Pipeline[Program, Program]{
         // WARNING BY HR : An Application can either be a call to a constructor of a function
         val application =
           env.get(qname) orElse {
-            symbols.getConstructor(qname)
+            symbols.getConstructor(ConstructorSymbol(qname))
           } orElse {
-            symbols.getFunction(qname)
+            symbols.getFunction(FunctionSymbol(qname))
         }
         application match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
@@ -213,7 +214,7 @@ object TypeInferer extends Pipeline[Program, Program]{
               (genConstraints(lit, tv), Map.empty)
             case CaseClassPattern(constr, args) =>
               pat.withType(ClassType(constr))
-              val constructor = symbols.getConstructor(constr) match
+              val constructor = symbols.getConstructor(ConstructorSymbol(constr)) match
                 case Some(c) => c
                 case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
               val pat_tpe = args zip constructor.argTypes

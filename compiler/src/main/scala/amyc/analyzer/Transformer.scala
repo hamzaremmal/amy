@@ -2,6 +2,7 @@ package amyc.analyzer
 
 import amyc.*
 import amyc.core.*
+import amyc.core.Symbols.*
 import amyc.core.Signatures.*
 import amyc.core.StdDefinitions.*
 import amyc.core.StdNames.*
@@ -33,7 +34,7 @@ object Transformer {
     }
     val symDefs = for d <- defs yield transformDef(d, name)
     val symExpr = optExpr.map(transformExpr(_)(name, ctx.scope(symName), ctx))
-    S.ModuleDef(symName, symDefs, symExpr)
+    S.ModuleDef(symName.id, symDefs, symExpr)
 
   /**
     * 
@@ -53,11 +54,11 @@ object Transformer {
           case "Int" => S.ClassTypeTree(stdDef.IntType)
           case "String" => S.ClassTypeTree(stdDef.StringType)
           case _ =>
-            symbols.getType(inModule, name) map S.ClassTypeTree.apply getOrElse {
+            symbols.getType(inModule, name).map(_.id) map S.ClassTypeTree.apply getOrElse {
               reporter.fatal(s"Could not find type $name", tt)
             }
       case N.ClassTypeTree(qn@N.QualifiedName(pre, name)) =>
-        symbols.getType(pre getOrElse inModule, name) map S.ClassTypeTree.apply getOrElse{
+        symbols.getType(pre getOrElse inModule, name).map(_.id) map S.ClassTypeTree.apply getOrElse{
           reporter.fatal(s"Could not find type $qn", tt)
         }
   }
@@ -89,7 +90,7 @@ object Transformer {
     val paramsMap = paramNames.zip(newParams.map(_.name)).toMap
 
     S.FunDef(
-      sym,
+      sym.id,
       newParams,
       sig.retType.setPos(retType),
       transformExpr(body)(module, Scope.fresh.withParams(paramsMap), ctx)
@@ -106,10 +107,10 @@ object Transformer {
   def transformDef(df: N.ClassOrFunDef, module: String)(using Context): S.ClassOrFunDef = {
     df match {
       case N.AbstractClassDef(name) =>
-        S.AbstractClassDef(symbols.getType(module, name).get)
+        S.AbstractClassDef(symbols.getType(module, name).get.id)
       case N.CaseClassDef(name, _, _) =>
         val Some((sym, sig)) = symbols.getConstructor(module, name)
-        S.CaseClassDef(sym, sig.argTypes, sig.parent)
+        S.CaseClassDef(sym.id, sig.argTypes, sig.parent.id)
       case fd: N.FunDef =>
         transformFunDef(fd, module)
     }
@@ -135,7 +136,7 @@ object Transformer {
         val sym = symbols.getFunction(module.get, name)
           .getOrElse(reporter.fatal(s"Fix error message here"))
           ._1
-        S.FunRef(sym)
+        S.FunRef(sym.id)
       case N.IntLiteral(value) =>
         S.IntLiteral(value)
       case N.BooleanLiteral(value) =>
@@ -162,13 +163,13 @@ object Transformer {
         entry match {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
-          case Some((sym: Identifier, sig: Signature[_])) =>
+          case Some((sym: Symbol, sig: Signature[_])) =>
             if (sig.argTypes.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
-            S.Call(sym, args.map(transformExpr(_)))
-          case Some(sym: Identifier) =>
-            S.Call(sym, args.map(transformExpr(_)))
+            S.Call(sym.id, args.map(transformExpr(_)))
+          case Some(sym: Symbol) =>
+            S.Call(sym.id, args.map(transformExpr(_)))
           case _ =>
             reporter.fatal(s"NameAnalyzer resolved to $entry")
         }
@@ -237,7 +238,7 @@ object Transformer {
                 moreLocals0.reduce(Scope.combine)
               else
                 scope
-              (S.CaseClassPattern(sym, newPatts), moreLocals)
+              (S.CaseClassPattern(sym.id, newPatts), moreLocals)
           }
           (newPat.setPos(pat), newScope)
         }

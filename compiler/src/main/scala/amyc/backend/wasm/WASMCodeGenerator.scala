@@ -16,6 +16,7 @@ import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.unnamed.null_fn
 import amyc.backend.wasm.types.{result, typeuse}
+import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 
 // TODO HR: Generate all wasm related files here
 object WASMCodeGenerator extends Pipeline[Program, Module]{
@@ -81,7 +82,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         local.get(lh(name))
       case FunRef(ref) =>
         i32.const {
-          val sig = symbols.getFunction(ref).getOrElse {
+          val sig = symbols.getFunction(FunctionSymbol(ref)).getOrElse {
             reporter.fatal("todo")
           }
           sig.idx
@@ -119,7 +120,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case Neg(e) =>
         mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
       case AmyCall(qname, args) =>
-        symbols.getConstructor(qname)
+        symbols.getConstructor(ConstructorSymbol(qname))
           .map(genConstructorCall(_, args))
           .getOrElse(genFunctionCall(args, qname))
       case Sequence(e1, e2) =>
@@ -170,7 +171,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     args.map(cgExpr) <:> {
       lh(qname) match
         case -1 =>
-          call(fullName(symbols.getFunction(qname).get.owner, qname))
+          call(fullName(symbols.getFunction(FunctionSymbol(qname)).get.owner.id, qname))
         case idx =>
           local.get(idx) <:>
           call_indirect(typeuse(mkFunTypeName(args.size)))
@@ -280,7 +281,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     local.set(idx) <:>
     ift({
       // HR : First check if the primary constructor is the same
-      equ(loadLocal(idx), constructor(symbols.getConstructor(constr).get))
+      equ(loadLocal(idx), constructor(symbols.getConstructor(ConstructorSymbol(constr)).get))
     }, {
       // HR : Check if all the pattern applies
       // HR : if the constructor has no parameters the foldLeft returns true

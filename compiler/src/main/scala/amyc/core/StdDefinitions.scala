@@ -19,12 +19,12 @@ class StdDefinitions(using Context) :
   // ==============================================================================================
 
   def ofModule(name: String): I =
-    symbols.getModule(name).getOrElse {
+    symbols.getModule(name).map(_.id).getOrElse {
       reporter.fatal(s"Definition of module $name is missing")
     }
 
   def ofType(module: String, name: String): I =
-    symbols.getType(module, name).getOrElse {
+    symbols.getType(module, name).map(_.id).getOrElse {
       reporter.fatal(s"Definition of type $name in module $module is missing")
     }
 

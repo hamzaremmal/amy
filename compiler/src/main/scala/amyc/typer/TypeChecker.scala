@@ -7,6 +7,7 @@ import amyc.core.Types.*
 import amyc.core.Signatures.*
 import amyc.core.StdNames.*
 import amyc.core.StdTypes.*
+import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
 
@@ -135,13 +136,13 @@ object TypeChecker extends Pipeline[Program, Program]{
     args.foreach(check)
     // In case of a function application
     for
-      FunSig(argTypes, retType, _, _) <- symbols.getFunction(qname)
+      FunSig(argTypes, retType, _, _) <- symbols.getFunction(FunctionSymbol(qname))
     do
       args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
       =:=(expr, retType.tpe)
     // In case of a constructor application
     for
-      cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
+      cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(ConstructorSymbol(qname))
     do
       args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
       =:=(expr, ctx.tpe(cs.retType))
@@ -216,9 +217,9 @@ object TypeChecker extends Pipeline[Program, Program]{
 
   def checkCaseClassPattern(expr: CaseClassPattern, scrut: Type)(using Context) =
     val CaseClassPattern(constr, args) = expr
-    symbols.getConstructor(constr) match
+    symbols.getConstructor(ConstructorSymbol(constr)) match
       case Some(ConstrSig(argTypes, parent, _)) =>
-        if ClassType(constr) =:= scrut || ClassType(parent) =:= scrut then
+        if ClassType(constr) =:= scrut || ClassType(parent.id) =:= scrut then
           // TODO HR : Need to have a symbol as the type not a qualified name
           (args zip argTypes) foreach ((p, t) => checkPattern(p, t.tpe))
         else
