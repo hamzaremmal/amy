@@ -25,7 +25,7 @@ trait TreeModule :
   sealed trait Tree extends Positioned :
     private var tpe_ : Type = NoType
     def tpe: Type = tpe_
-    final def withType(tpe: Type) =
+    final def withType(tpe: Type) : this.type =
       tpe_ = tpe
       this
 
@@ -123,6 +123,8 @@ trait TreeModule :
 
   /** Represent a ClassType such as O.Option or String */
   case class ClassTypeTree(qname: QualifiedName) extends TypeTree
+
+  case class TTypeTree(override val tpe: Type) extends TypeTree
 
   /** Represents a FunctionType such as (String) => String */
   case class FunctionTypeTree(args: List[TypeTree], rte: TypeTree) extends TypeTree

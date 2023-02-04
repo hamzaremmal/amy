@@ -4,6 +4,7 @@ import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.{NameAnalyzer, SymbolTable, Scope, EmptyScope}
 import amyc.core.StdDefinitions.*
 import amyc.core.Types.*
+import amyc.core.Symbols.*
 import amyc.utils.{Pipeline, Reporter}
 
 import scala.collection.mutable
@@ -15,14 +16,16 @@ case class Context private (reporter: Reporter){
   val tv : mutable.HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
 
   // Store Scopes of each module
-  private var _scopes : mutable.HashMap[Identifier, Scope] = mutable.HashMap.empty
+  private val _scopes : mutable.HashMap[Symbol, Scope] = mutable.HashMap.empty
+
   private var _symtable : Option[SymbolTable] = None
   private var _pipeline : String = compiletime.uninitialized
 
   // TODO HR : Should be removed from Context
   def tpe(tree : TypeTree) : Type =
     tree match
-      case ClassTypeTree(id) => ClassType(id)
+      case ClassTypeTree(id) => ClassType(id.id)
+      case TTypeTree(tpe) => tpe
       case FunctionTypeTree(args, rte) =>
         Identifier.fresh(s"(${args.map(tpe).mkString(";")}:${tpe(rte)})")
         FunctionType(args.map(tpe), tpe(rte))
@@ -61,11 +64,11 @@ case class Context private (reporter: Reporter){
     * @param scope
     * @return
     */
-  def withScope(id: Identifier, scope : Scope = EmptyScope) =
+  def withScope(id: Symbol, scope : Scope = EmptyScope) =
     _scopes.put(id, scope)
 
   /* TODO : This method is unsafe, fix it */
-  def scope(id: Identifier) : Scope =
+  def scope(id: Symbol) : Scope =
     _scopes(id)
 
 }

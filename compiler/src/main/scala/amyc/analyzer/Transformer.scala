@@ -2,9 +2,9 @@ package amyc.analyzer
 
 import amyc.*
 import amyc.core.*
+import amyc.core.Symbols.*
 import amyc.core.Signatures.*
 import amyc.core.StdDefinitions.*
-import amyc.core.StdNames.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 
 object Transformer {
@@ -71,7 +71,7 @@ object Transformer {
     */
   def transformFunDef(fd: N.FunDef, module: String)(using Context): S.FunDef = {
     val N.FunDef(name, params, retType, body) = fd
-    val Some((sym, sig)) = symbols.getFunction(module, name)
+    val Some(sym) = symbols.getFunction(module, name)
 
     params.groupBy(_.name).foreach { case (name, ps) =>
       if (ps.size > 1) {
@@ -81,9 +81,10 @@ object Transformer {
 
     val paramNames = params.map(_.name)
 
-    val newParams = params zip sig.argTypes map { case (pd@N.ParamDef(name, tt), tpe) =>
-      val s = Identifier.fresh(name)
-      S.ParamDef(s, tpe.setPos(tt)).setPos(pd)
+    val newParams = params zip sym.asInstanceOf[FunctionSymbol].param map {
+      case (pd@N.ParamDef(name, tt), tpe) =>
+        val s = LocalSymbol(Identifier.fresh(name))
+        S.ParamDef(s, tpe.setPos(tt)).setPos(pd)
     }
 
     val paramsMap = paramNames.zip(newParams.map(_.name)).toMap
@@ -91,7 +92,7 @@ object Transformer {
     S.FunDef(
       sym,
       newParams,
-      sig.retType.setPos(retType),
+      sym.rte.setPos(retType),
       transformExpr(body)(module, Scope.fresh.withParams(paramsMap), ctx)
     ).setPos(fd)
   }
@@ -108,8 +109,8 @@ object Transformer {
       case N.AbstractClassDef(name) =>
         S.AbstractClassDef(symbols.getType(module, name).get)
       case N.CaseClassDef(name, _, _) =>
-        val Some((sym, sig)) = symbols.getConstructor(module, name)
-        S.CaseClassDef(sym, sig.argTypes, sig.parent)
+        val Some(sym : ConstructorSymbol) = symbols.getConstructor(module, name)
+        S.CaseClassDef(sym, sym.param, sym.signature.parent)
       case fd: N.FunDef =>
         transformFunDef(fd, module)
     }
@@ -134,7 +135,6 @@ object Transformer {
         // TODO HR : get won't throw an exception; operation guaranteed to work
         val sym = symbols.getFunction(module.get, name)
           .getOrElse(reporter.fatal(s"Fix error message here"))
-          ._1
         S.FunRef(sym)
       case N.IntLiteral(value) =>
         S.IntLiteral(value)
@@ -145,7 +145,8 @@ object Transformer {
       case N.UnitLiteral() =>
         S.UnitLiteral()
       case N.InfixCall(lhs, op, rhs) =>
-        S.InfixCall(transformExpr(lhs), binOp(op), transformExpr(rhs))
+        // desugar infix calls to function calls
+        transformExpr(N.Call(N.QualifiedName(Some("<unnamed>"), op), lhs :: rhs :: Nil))
       case N.Not(e) =>
         S.Not(transformExpr(e))
       case N.Neg(e) =>
@@ -153,8 +154,7 @@ object Transformer {
       case N.Call(qname, args) =>
         val owner = qname.module.getOrElse(module)
         val name = qname.name
-        val entry =
-          scope.resolve(qname.name) orElse {
+        val entry = scope.resolve(qname.name) orElse {
             symbols.getConstructor(owner, name)
           } orElse {
             symbols.getFunction(owner, name)
@@ -162,12 +162,17 @@ object Transformer {
         entry match {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
-          case Some((sym: Identifier, sig: Signature[_])) =>
-            if (sig.argTypes.size != args.size) {
+          case Some(sym: FunctionSymbol) =>
+            if (sym.param.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
             S.Call(sym, args.map(transformExpr(_)))
-          case Some(sym: Identifier) =>
+          case Some(sym: ConstructorSymbol) =>
+            if (sym.param.size != args.size) {
+              reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
+            }
+            S.Call(sym, args.map(transformExpr(_)))
+          case Some(sym: Symbol) =>
             S.Call(sym, args.map(transformExpr(_)))
           case _ =>
             reporter.fatal(s"NameAnalyzer resolved to $entry")
@@ -181,7 +186,7 @@ object Transformer {
         if (scope.isParam(vd.name)) {
           reporter.warning(s"Local variable ${vd.name} shadows function parameter", vd)
         }
-        val sym = Identifier.fresh(vd.name)
+        val sym = LocalSymbol(Identifier.fresh(vd.name))
         val tpe = transformType(vd.tt, module)
         S.Let(
           S.ParamDef(sym, tpe).setPos(vd),
@@ -209,21 +214,21 @@ object Transformer {
                 reporter.warning("Suspicious shadowing by an Id Pattern", pat)
               }
               symbols.getConstructor(module, name) match {
-                case Some((_, ConstrSig(Nil, _, _))) =>
+                case Some(sym : ConstructorSymbol) if sym.param.isEmpty =>
                   reporter.warning(s"There is a nullary constructor in this module called '$name'. Did you mean '$name()'?", pat)
                 case _ =>
               }
-              val sym = Identifier.fresh(name)
+              val sym = LocalSymbol(Identifier.fresh(name))
               (S.IdPattern(sym), scope.withLocal(name, sym))
             case N.LiteralPattern(lit) =>
               (S.LiteralPattern(transformExpr(lit).asInstanceOf[S.Literal[_]]), scope)
             case N.CaseClassPattern(constr, args) =>
-              val (sym, sig) = symbols
+              val sym = symbols
                 .getConstructor(constr.module.getOrElse(module), constr.name)
                 .getOrElse {
                   reporter.fatal(s"Constructor $constr not found", pat)
                 }
-              if (sig.argTypes.size != args.size) {
+              if (sym.signature.argTypes.size != args.size) {
                 reporter.fatal(s"Wrong number of args for constructor $constr", pat)
               }
               val (newPatts, moreLocals0) = (args map transformPattern).unzip

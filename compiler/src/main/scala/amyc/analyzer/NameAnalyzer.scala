@@ -3,6 +3,9 @@ package analyzer
 
 import amyc.*
 import amyc.core.*
+import amyc.core.Types.*
+import amyc.core.StdDefinitions.*
+import amyc.core.StdTypes.*
 import amyc.utils.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 import amyc.analyzer.Transformer.*
@@ -119,5 +122,17 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     symbols.addType(modName, "Boolean")
     symbols.addType(modName, "Unit")
     symbols.addType(modName, "String")
+    // register bin op
+    symbols.addInfixFunction(modName, "+",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "-",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "*",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "/",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "%",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "<",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
+    symbols.addInfixFunction(modName, "<=", List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
+    symbols.addInfixFunction(modName, "&&", List(S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
+    symbols.addInfixFunction(modName, "||", List(S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
+    symbols.addInfixFunction(modName, "==", List(S.TTypeTree(NoType), S.TTypeTree(NoType)), S.TTypeTree(NoType)) // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
+    symbols.addInfixFunction(modName, "++", List(S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType), S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)), S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType))
 
 }

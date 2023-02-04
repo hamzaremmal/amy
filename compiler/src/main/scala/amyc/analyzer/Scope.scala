@@ -1,10 +1,11 @@
 package amyc.analyzer
 
-import amyc.core.{Context, Identifier}
 import amyc.reporter
+import amyc.core.Context
+import amyc.core.Symbols.*
 
 /* alias to write Scope definition */
-private type Bag = Map[String, Identifier]
+private type Bag = Map[String, Symbol]
 
 /**
   *
@@ -21,7 +22,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param id (Identifier) -
     * @return
     */
-  final def withLocal(name : String, id : Identifier) : Scope =
+  final def withLocal(name : String, id : Symbol) : Scope =
     Scope(Some(this), params, locals + (name -> id))
 
   /**
@@ -29,7 +30,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param locals
     * @return
     */
-  final def withLocals(locals : Bag) : Scope =
+  final def withLocals(locals: Bag): Scope =
     Scope(Some(this), params, locals)
 
   /**
@@ -39,7 +40,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param id
     * @return
     */
-  final def withParam(name : String, id : Identifier) : Scope =
+  final def withParam(name : String, id : Symbol) : Scope =
     Scope(Some(this), params + (name -> id), locals)
 
   /**
@@ -73,7 +74,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param Context
     * @return
     */
-  def resolve(name : String) : Option[Identifier] =
+  def resolve(name : String) : Option[Symbol] =
     resolveInScope(name) orElse parent.flatMap(_.resolve(name))
 
   /**
@@ -82,7 +83,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param name
     * @return
     */
-  def resolveInScope(name : String) : Option[Identifier] =
+  def resolveInScope(name : String) : Option[Symbol] =
     // Local variables shadow parameters!
     locals.get(name) orElse params.get(name)
 
