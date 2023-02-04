@@ -27,7 +27,7 @@ abstract class Value {
 
   override def toString: String = this match {
     case IntValue(i) => i.toString
-    case b:BooleanValue => b.toString
+    case b:BooleanValue => b.b.toString
     case StringValue(s) => s
     case UnitValue => "()"
     case CaseClassValue(constructor, args) =>

@@ -136,13 +136,13 @@ object TypeChecker extends Pipeline[Program, Program]{
     args.foreach(check)
     // In case of a function application
     for
-      FunSig(argTypes, retType, _, _) <- symbols.getFunction(FunctionSymbol(qname))
+      FunSig(argTypes, retType, _, _) <- symbols.getFunction(qname)
     do
       args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
       =:=(expr, retType.tpe)
     // In case of a constructor application
     for
-      cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(ConstructorSymbol(qname))
+      cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
     do
       args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
       =:=(expr, ctx.tpe(cs.retType))
@@ -217,9 +217,9 @@ object TypeChecker extends Pipeline[Program, Program]{
 
   def checkCaseClassPattern(expr: CaseClassPattern, scrut: Type)(using Context) =
     val CaseClassPattern(constr, args) = expr
-    symbols.getConstructor(ConstructorSymbol(constr)) match
+    symbols.getConstructor(constr) match
       case Some(ConstrSig(argTypes, parent, _)) =>
-        if ClassType(constr) =:= scrut || ClassType(parent.id) =:= scrut then
+        if ClassType(constr.id) =:= scrut || ClassType(parent.id) =:= scrut then
           // TODO HR : Need to have a symbol as the type not a qualified name
           (args zip argTypes) foreach ((p, t) => checkPattern(p, t.tpe))
         else

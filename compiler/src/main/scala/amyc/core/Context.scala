@@ -24,7 +24,7 @@ case class Context private (reporter: Reporter){
   // TODO HR : Should be removed from Context
   def tpe(tree : TypeTree) : Type =
     tree match
-      case ClassTypeTree(id) => ClassType(id)
+      case ClassTypeTree(id) => ClassType(id.id)
       case FunctionTypeTree(args, rte) =>
         Identifier.fresh(s"(${args.map(tpe).mkString(";")}:${tpe(rte)})")
         FunctionType(args.map(tpe), tpe(rte))

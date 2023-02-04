@@ -20,9 +20,9 @@ class SymbolicTreePrinter extends Pipeline[S.Program, S.Program]{
     inline implicit def printQName(name: QualifiedName)(implicit printUniqueIds: Boolean): Document =
       printName(name)
 
-    override implicit def printName(name: Identifier)(implicit printUniqueIds: Boolean): Document = {
+    override implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document = {
       if (printUniqueIds) {
-        val id = map.getOrElseUpdate(name, counter.next(name.name))
+        val id = map.getOrElseUpdate(name.id, counter.next(name.name))
         s"${name.name}_$id"
       } else {
         name.name

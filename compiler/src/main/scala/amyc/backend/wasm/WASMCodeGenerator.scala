@@ -4,6 +4,7 @@ import amyc.*
 import amyc.ast.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.core.*
+import amyc.core.Symbols.*
 import amyc.core.Signatures.*
 import amyc.core.StdNames.*
 import amyc.core.StdDefinitions.*
@@ -45,13 +46,13 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     val ModuleDef(name, defs, optExpr) = moduleDef
     // Generate code for all functions
     defs.collect {
-      case fd: FunDef if !builtInFunctions(fullName(name, fd.name)) =>
-        cgFunction(fd, name, false)
+      case fd: FunDef if !builtInFunctions(fullName(name.id, fd.name)) =>
+        cgFunction(fd, name.id, false)
     } ++
       // Generate code for the "main" function, which contains the module expression
       optExpr.toList.map { expr =>
-        val mainFd = FunDef(Identifier.fresh("main"), Nil, ClassTypeTree(stdDef.IntType), expr)
-        cgFunction(mainFd, name, true)
+        val mainFd = FunDef(FunctionSymbol(Identifier.fresh("main")), Nil, ClassTypeTree(stdDef.IntType), expr)
+        cgFunction(mainFd, name.id, true)
       }
   }
 
@@ -79,10 +80,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def cgExpr(expr: Expr)(using LocalsHandler, Context): Code = {
     expr match {
       case Variable(name) =>
-        local.get(lh(name))
+        local.get(lh(name.id))
       case FunRef(ref) =>
         i32.const {
-          val sig = symbols.getFunction(FunctionSymbol(ref)).getOrElse {
+          val sig = symbols.getFunction(ref).getOrElse {
             reporter.fatal("todo")
           }
           sig.idx
@@ -120,7 +121,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case Neg(e) =>
         mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
       case AmyCall(qname, args) =>
-        symbols.getConstructor(ConstructorSymbol(qname))
+        symbols.getConstructor(qname)
           .map(genConstructorCall(_, args))
           .getOrElse(genFunctionCall(args, qname))
       case Sequence(e1, e2) =>
@@ -131,7 +132,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
             cgExpr(e2)
           }
       case Let(pdf, value, body) =>
-        val idx = lh.getFreshLocal(pdf.name)
+        val idx = lh.getFreshLocal(pdf.name.id)
         withComment(expr.toString) {
           setLocal(cgExpr(value), idx) <:>
             cgExpr(body)
@@ -167,11 +168,11 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   // ==================================== GENERATE APPLICATIONS ===================================
   // ==============================================================================================
 
-  def genFunctionCall(args: List[Expr], qname: Identifier)(using LocalsHandler, Context) =
+  def genFunctionCall(args: List[Expr], qname: Symbol)(using LocalsHandler, Context) =
     args.map(cgExpr) <:> {
-      lh(qname) match
+      lh(qname.id) match
         case -1 =>
-          call(fullName(symbols.getFunction(FunctionSymbol(qname)).get.owner.id, qname))
+          call(fullName(symbols.getFunction(qname).get.owner.id, qname))
         case idx =>
           local.get(idx) <:>
           call_indirect(typeuse(mkFunTypeName(args.size)))
@@ -241,7 +242,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def genIdPattern(id: Name)
                   (using LocalsHandler)
                   (using Context) =
-    val idLocal = lh.getFreshLocal(id)
+    val idLocal = lh.getFreshLocal(id.id)
     // HR : We return true as this pattern will be executed if encountered
     local.set(idLocal) <:> mkBoolean(true)
 
@@ -281,7 +282,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     local.set(idx) <:>
     ift({
       // HR : First check if the primary constructor is the same
-      equ(loadLocal(idx), constructor(symbols.getConstructor(ConstructorSymbol(constr)).get))
+      equ(loadLocal(idx), constructor(symbols.getConstructor(constr).get))
     }, {
       // HR : Check if all the pattern applies
       // HR : if the constructor has no parameters the foldLeft returns true

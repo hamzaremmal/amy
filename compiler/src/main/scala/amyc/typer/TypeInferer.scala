@@ -23,7 +23,7 @@ object TypeInferer extends Pipeline[Program, Program]{
     val env = params.map {
       case df@ParamDef(name, tt) =>
         tt.withType(ctx.tpe(tt))
-        name -> df.withType(ctx.tpe(tt)).tpe
+        name.id -> df.withType(ctx.tpe(tt)).tpe
     }.toMap
     // we will need to infer the type of the result. If we assume that the type is correct
     // This will always type check.
@@ -91,7 +91,7 @@ object TypeInferer extends Pipeline[Program, Program]{
     e match {
       // ===================== Type Check Variables =============================
       case Variable(name) =>
-        val symbol = env.get(name)
+        val symbol = env.get(name.id)
         symbol match
           case Some(tpe: Type) =>
             e.withType(tpe)
@@ -101,7 +101,7 @@ object TypeInferer extends Pipeline[Program, Program]{
             reporter.error(s"Cannot find symbol $name")
             Nil
       case FunRef(id) =>
-        val FunSig(argTypes, retType,_, _) = symbols.getFunction(FunctionSymbol(id)).get
+        val FunSig(argTypes, retType,_, _) = symbols.getFunction(id).get
         e.withType(ctx.tpe(FunctionTypeTree(argTypes, retType)))
         Nil
       // ===================== Type Check Literals ==============================
@@ -149,10 +149,10 @@ object TypeInferer extends Pipeline[Program, Program]{
       case Call(qname, args) =>
         // WARNING BY HR : An Application can either be a call to a constructor of a function
         val application =
-          env.get(qname) orElse {
-            symbols.getConstructor(ConstructorSymbol(qname))
+          env.get(qname.id) orElse {
+            symbols.getConstructor(qname)
           } orElse {
-            symbols.getFunction(FunctionSymbol(qname))
+            symbols.getFunction(qname)
         }
         application match
           case Some(constr@ConstrSig(args_tpe, _, _)) =>
@@ -189,7 +189,7 @@ object TypeInferer extends Pipeline[Program, Program]{
         df.tt.withType(ctx.tpe(df.tt))
         e.withType(expected)
         df.withType(df.tt.tpe)
-        genConstraints(value, tv) ::: genConstraints(body, expected)(using env + (df.name -> df.tt.tpe), ctx)
+        genConstraints(value, tv) ::: genConstraints(body, expected)(using env + (df.name.id -> df.tt.tpe), ctx)
       // =========================== Type Check Conditions ======================================
       case Ite(cond, thenn, elze) =>
         val generic = TypeVariable.fresh()
@@ -207,14 +207,14 @@ object TypeInferer extends Pipeline[Program, Program]{
               (Nil, Map.empty)
             case IdPattern(name) =>
               pat.withType(scrutExpected)
-              (Nil, Map(name -> scrutExpected))
+              (Nil, Map(name.id -> scrutExpected))
             case LiteralPattern(lit) =>
               val tv = TypeVariable.fresh()
               pat.withType(tv)
               (genConstraints(lit, tv), Map.empty)
             case CaseClassPattern(constr, args) =>
-              pat.withType(ClassType(constr))
-              val constructor = symbols.getConstructor(ConstructorSymbol(constr)) match
+              pat.withType(ClassType(constr.id))
+              val constructor = symbols.getConstructor(constr) match
                 case Some(c) => c
                 case None => ctx.reporter.fatal(s"Constructor type was not found $constr")
               val pat_tpe = args zip constructor.argTypes

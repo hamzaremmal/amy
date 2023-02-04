@@ -43,17 +43,17 @@ object Interpreter extends Pipeline[Program, Unit] {
   def interpret(expr: Expr, program: Program)(implicit locals: Map[Identifier, Value], ctx: Context): Value = {
     expr match {
       case Variable(name) =>
-        locals.get(name) match
+        locals.get(name.id) match
           case Some(value) => value
           case None =>
             ctx.reporter.fatal(s"variable '$name' is not in scope or defined")
       case FunRef(ref) =>
-        val owner = findFunctionOwner(ref)
+        val owner = findFunctionOwner(ref.id)
         builtIns.get(owner, ref.name) map {
           BuiltInFunctionValue
         } orElse {
           findFunction(program, owner, ref.name) map { fd =>
-            FunctionValue(fd.params.map(_.name), fd.body)
+            FunctionValue(fd.params.map(_.name.id), fd.body)
           }
         } getOrElse {
             reporter.fatal("Function not found")
@@ -89,18 +89,18 @@ object Interpreter extends Pipeline[Program, Unit] {
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
       case Call(qname, args) =>
-        val fn = symbols.getConstructor(ConstructorSymbol(qname)) orElse {
-          locals.get(qname)
+        val fn = symbols.getConstructor(qname) orElse {
+          locals.get(qname.id)
         } orElse {
-          val owner = findFunctionOwner(qname)
+          val owner = findFunctionOwner(qname.id)
           builtIns.get((owner, qname.name))
         } orElse {
-          val owner = findFunctionOwner(qname)
+          val owner = findFunctionOwner(qname.id)
           findFunction(program, owner, qname.name)
         }
         fn match
           case Some(ConstrSig(_, _, _)) =>
-            CaseClassValue(qname, args.map(interpret(_, program)))
+            CaseClassValue(qname.id, args.map(interpret(_, program)))
           case Some(f: BuiltIns.BuiltInFunction) =>
             f(args.map(interpret(_, program)))
           case Some(BuiltInFunctionValue(f)) =>
@@ -109,7 +109,7 @@ object Interpreter extends Pipeline[Program, Unit] {
             val vargs = (n_args zip args.map(interpret(_,program))).toMap
             interpret(body, program)(locals ++ vargs, ctx)
           case Some(f: FunDef) =>
-            val arg_val = (f.params.map(_.name) zip args.map(interpret(_, program))).toMap
+            val arg_val = (f.params.map(_.name.id) zip args.map(interpret(_, program))).toMap
             val lookup = locals ++ arg_val
             interpret(f.body, program)(using lookup, ctx)
           case _ =>
@@ -119,7 +119,7 @@ object Interpreter extends Pipeline[Program, Unit] {
         interpret(e2, program)
       case Let(df, value, body) =>
         val df_val = interpret(value, program)
-        val locals_n = locals + (df.name -> df_val)
+        val locals_n = locals + (df.name.id -> df_val)
         interpret(body, program)(using locals_n, ctx)
       case Ite(cond, thenn, elze) =>
         if interpret(cond, program).asBoolean then
@@ -133,7 +133,7 @@ object Interpreter extends Pipeline[Program, Unit] {
             case (_, WildcardPattern()) =>
               Some(Nil)
             case (_, IdPattern(name)) =>
-              Some((name -> v) :: Nil)
+              Some((name.id -> v) :: Nil)
             case (IntValue(i1), LiteralPattern(IntLiteral(i2))) =>
               if i1 != i2 then None else Some(Nil)
             case (BooleanValue(b1), LiteralPattern(BooleanLiteral(b2))) =>
@@ -143,7 +143,7 @@ object Interpreter extends Pipeline[Program, Unit] {
             case (UnitValue, LiteralPattern(UnitLiteral())) =>
               Some(Nil)
             case (CaseClassValue(con1, realArgs), CaseClassPattern(con2, formalArgs)) =>
-              if con1 != con2 then
+              if con1 != con2.id then
                 None
               else
                 val zipped_parameters = realArgs zip formalArgs
@@ -175,7 +175,7 @@ object Interpreter extends Pipeline[Program, Unit] {
 
   def loadFunctions(mod: ModuleDef) =
     val fn = for FunDef(name, param, _, body) <- mod.defs yield
-        (name, FunctionValue(param.map(_.name), body))
+        (name, FunctionValue(param.map(_.name.id), body))
     fn.toMap
 
 }

@@ -2,9 +2,11 @@ package amyc.core
 
 import amyc.{reporter, symbols}
 
+import amyc.core.Symbols.*
+
 class StdDefinitions(using Context) :
 
-  private type I = Identifier
+  private type I = Symbol
 
   lazy val StdModule    : I = ofModule("Std")
   lazy val UnnamedModule : I = ofModule("<unnamed>")
@@ -19,16 +21,16 @@ class StdDefinitions(using Context) :
   // ==============================================================================================
 
   def ofModule(name: String): I =
-    symbols.getModule(name).map(_.id).getOrElse {
+    symbols.getModule(name).getOrElse {
       reporter.fatal(s"Definition of module $name is missing")
     }
 
   def ofType(module: String, name: String): I =
-    symbols.getType(module, name).map(_.id).getOrElse {
+    symbols.getType(module, name).getOrElse {
       reporter.fatal(s"Definition of type $name in module $module is missing")
     }
 
-  def ofType(module: Identifier, name: String): I = ofType(module.name, name)
+  def ofType(module: Symbol, name: String): I = ofType(module.name, name)
 
 object StdDefinitions:
 

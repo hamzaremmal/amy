@@ -7,10 +7,10 @@ class StdTypes(using Context):
   
   private type T = Type
   
-  lazy val IntType     : T = ClassType(stdDef.IntType)
-  lazy val StringType  : T = ClassType(stdDef.StringType)
-  lazy val UnitType    : T = ClassType(stdDef.UnitType)
-  lazy val BooleanType : T = ClassType(stdDef.BooleanType)
+  lazy val IntType     : T = ClassType(stdDef.IntType.id)
+  lazy val StringType  : T = ClassType(stdDef.StringType.id)
+  lazy val UnitType    : T = ClassType(stdDef.UnitType.id)
+  lazy val BooleanType : T = ClassType(stdDef.BooleanType.id)
 
 
 object StdTypes :

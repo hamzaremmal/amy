@@ -2,15 +2,16 @@ package amyc.core
 
 import amyc.core.Context
 import amyc.*
+import amyc.core.Symbols.*
 
 import scala.annotation.targetName
 
 object StdNames {
 
-  private type I = Identifier
+  private type I = Symbol
 
   private implicit def str2id(s: String): I =
-    Identifier.fresh(s)
+    FunctionSymbol(Identifier.fresh(s))
 
   // ==============================================================================================
   // ==================================== BINARY OPERATORS ========================================
@@ -33,7 +34,7 @@ object StdNames {
   @targetName("concat") lazy val ++    : I = "++"
 
 
-  def binOp(op: String)(using Context): Identifier =
+  def binOp(op: String)(using Context): Symbol =
     op match
       case "+"  => +
       case "-"  => -

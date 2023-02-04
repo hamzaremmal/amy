@@ -36,7 +36,7 @@ object Signatures{
     *                 instance of the parent type a value represents.
     */
   case class ConstrSig(argTypes: List[TypeTree], parent: Symbol, idx: Int) extends Signature[ClassTypeTree] {
-    override val retType: ClassTypeTree = ClassTypeTree(parent.id)
+    override val retType: ClassTypeTree = ClassTypeTree(parent)
   }
 
 }
