@@ -172,7 +172,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         args.map(cgExpr) <:> {
         lh(qname.id) match
           case -1 =>
-            call(fullName(symbols.getFunction(qname).get.owner.id, qname))
+            call(fullName(qname.asInstanceOf[FunctionSymbol].owner.id, qname))
           case idx =>
             local.get(idx) <:>
             call_indirect(typeuse(mkFunTypeName(args.size)))

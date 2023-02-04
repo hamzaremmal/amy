@@ -137,7 +137,7 @@ class SymbolTable {
     val sym = FunctionSymbol(Identifier.fresh(name), sym_owner)
     val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> sym
-    functions += sym -> FunSig(argTypes, retType, sym_owner, idx)
+    functions += sym -> FunSig(argTypes, retType, idx)
     sym
 
   def addInfixFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
@@ -145,7 +145,7 @@ class SymbolTable {
     val sym = FunctionSymbol(Identifier.fresh(name), sym_owner, true)
     val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> sym
-    functions += sym -> FunSig(argTypes, retType, sym_owner, idx)
+    functions += sym -> FunSig(argTypes, retType, idx)
     sym
 
   /**

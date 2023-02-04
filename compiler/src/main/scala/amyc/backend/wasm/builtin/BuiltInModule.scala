@@ -5,6 +5,7 @@ import amyc.backend.wasm.Instructions.Code
 import amyc.backend.wasm.utils.LocalsHandler
 import amyc.backend.wasm.utils.Utils.fullName
 import amyc.core.Context
+import amyc.core.Symbols.FunctionSymbol
 import amyc.{reporter, symbols}
 
 abstract class BuiltInModule {
@@ -22,7 +23,7 @@ abstract class BuiltInModule {
     val (id, sym) = symbols.getFunction(owner, name).getOrElse {
       reporter.fatal(s"BuiltIn function ${owner}_$name is not defined - symbol is missing")
     }
-    Function(fullName(sym.owner.id, id), sym.argTypes.length, false, sym.idx) {
+    Function(fullName(id.asInstanceOf[FunctionSymbol].owner.id, id), sym.argTypes.length, false, sym.idx) {
       code
     }
 

@@ -135,7 +135,7 @@ object TypeChecker extends Pipeline[Program, Program]{
       args.foreach(check)
       // In case of a function application
       for
-        FunSig(argTypes, retType, _, _) <- symbols.getFunction(qname)
+        FunSig(argTypes, retType, _) <- symbols.getFunction(qname)
       do
         args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
         =:=(expr, retType.tpe)

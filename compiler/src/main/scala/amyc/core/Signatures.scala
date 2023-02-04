@@ -13,7 +13,6 @@ object Signatures{
   }
 
   trait ApplicationSig[RT <: TypeTree] extends Signature[RT]{
-    val owner : Symbol
     val idx : Int // Index in the table of a module
   }
 
@@ -24,7 +23,7 @@ object Signatures{
     * @param retType  Return type of the function
     * @param owner    Name of the module in which the function is defined
     */
-  case class FunSig(argTypes: List[TypeTree], retType: TypeTree, owner: ModuleSymbol, idx: Int) extends ApplicationSig[TypeTree]
+  case class FunSig(argTypes: List[TypeTree], retType: TypeTree, idx: Int) extends ApplicationSig[TypeTree]
 
   /**
     * The signature of a constructor in the symbol table
