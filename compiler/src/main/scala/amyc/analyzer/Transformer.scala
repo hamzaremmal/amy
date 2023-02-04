@@ -87,12 +87,12 @@ object Transformer {
         S.ParamDef(s, tpe.setPos(tt)).setPos(pd)
     }
 
-    val paramsMap = paramNames.zip(newParams.map(_.name.id)).toMap
+    val paramsMap = paramNames.zip(newParams.map(_.name)).toMap
 
     S.FunDef(
       sym,
       newParams,
-      sym.asInstanceOf[FunctionSymbol].rte.setPos(retType),
+      sym.rte.setPos(retType),
       transformExpr(body)(module, Scope.fresh.withParams(paramsMap), ctx)
     ).setPos(fd)
   }
@@ -129,7 +129,7 @@ object Transformer {
     val res = expr match {
       case N.Variable(name) =>
         scope.resolve(name) match
-          case Some(id) => S.Variable(LocalSymbol(id))
+          case Some(id) => S.Variable(id)
           case _ => reporter.fatal(s"Variable $name not found", expr)
       case N.FunRef(N.QualifiedName(module, name)) =>
         // TODO HR : get won't throw an exception; operation guaranteed to work
@@ -191,7 +191,7 @@ object Transformer {
         S.Let(
           S.ParamDef(sym, tpe).setPos(vd),
           transformExpr(value),
-          transformExpr(body)(module, scope.withLocal(vd.name, sym.id), ctx)
+          transformExpr(body)(module, scope.withLocal(vd.name, sym), ctx)
         )
       case N.Ite(cond, thenn, elze) =>
         S.Ite(transformExpr(cond), transformExpr(thenn), transformExpr(elze))
@@ -219,7 +219,7 @@ object Transformer {
                 case _ =>
               }
               val sym = LocalSymbol(Identifier.fresh(name))
-              (S.IdPattern(sym), scope.withLocal(name, sym.id))
+              (S.IdPattern(sym), scope.withLocal(name, sym))
             case N.LiteralPattern(lit) =>
               (S.LiteralPattern(transformExpr(lit).asInstanceOf[S.Literal[_]]), scope)
             case N.CaseClassPattern(constr, args) =>
