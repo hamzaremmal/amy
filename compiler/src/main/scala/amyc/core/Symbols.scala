@@ -16,11 +16,11 @@ object Symbols:
 
   /* Used for functions */
 
-  case class FunctionSymbol(override val id: Identifier, owner : Symbol, is_infix : Boolean = false) extends Symbol(id, owner):
+  case class FunctionSymbol(override val id: Identifier, owner : ModuleSymbol, is_infix : Boolean = false) extends Symbol(id, owner):
     override val toString: String = id.name
 
   /* Used for constructors */
-  case class ConstructorSymbol(override val id: Identifier) extends Symbol(id, NoSymbol)
+  case class ConstructorSymbol(override val id: Identifier, owner: ModuleSymbol) extends Symbol(id, owner)
 
   /* Used for local variables, parameters and patterns */
   case class LocalSymbol(override val id: Identifier) extends Symbol(id, NoSymbol)

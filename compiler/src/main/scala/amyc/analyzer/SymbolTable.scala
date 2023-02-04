@@ -94,7 +94,8 @@ class SymbolTable {
     * @return
     */
   def addConstructor(owner: String, name: String, argTypes: List[TypeTree], parent: Symbol): Symbol =
-    val sym = ConstructorSymbol(Identifier.fresh(name))
+    val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
+    val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner)
     defsByName += (owner, name) -> sym
     constructors += sym -> ConstrSig(
       argTypes,
