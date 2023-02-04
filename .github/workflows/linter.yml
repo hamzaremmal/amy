@@ -10,12 +10,13 @@ name: Linter
 # Start the job on all push #
 #############################
 on:
-  push:
-    branches:
-      - master
-  pull_request:
-    branches: 
-      - master
+  workflow_dispatch
+  #push:
+  #  branches:
+  #    - master
+  #pull_request:
+  #  branches: 
+  #    - master
 
 ###############
 # Set the Job #
