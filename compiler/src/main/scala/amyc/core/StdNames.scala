@@ -1,8 +1,9 @@
 package amyc.core
 
-import amyc.core.Context
 import amyc.*
 import amyc.core.Symbols.*
+import amyc.core.StdDefinitions.*
+import amyc.core.Context
 
 import scala.annotation.targetName
 

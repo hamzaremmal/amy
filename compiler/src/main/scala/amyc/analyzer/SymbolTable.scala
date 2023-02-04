@@ -62,9 +62,10 @@ class SymbolTable {
     * @return
     */
   def addType(owner: String, name: String): Symbol =
-    val sym = TypeSymbol(Identifier.fresh(name))
+    val sym_owner = modules.getOrElse(owner, sys.error(s"Module $name not found!"))
+    val sym = TypeSymbol(Identifier.fresh(name), sym_owner)
     defsByName += (owner, name) -> sym
-    types += (sym -> modules.getOrElse(owner, sys.error(s"Module $name not found!")))
+    types += (sym -> sym_owner)
     sym
 
   /**
@@ -131,10 +132,11 @@ class SymbolTable {
     * @return
     */
   def addFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
+    val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
     val sym = FunctionSymbol(Identifier.fresh(name))
     val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> sym
-    functions += sym -> FunSig(argTypes, retType, getModule(owner).getOrElse(sys.error(s"Module $owner not found!")), idx)
+    functions += sym -> FunSig(argTypes, retType, sym_owner, idx)
     sym
 
   /**
