@@ -2,7 +2,7 @@ package amyc.interpreter
 
 import amyc.*
 import amyc.utils.*
-import amyc.core.{Context, Identifier}
+import amyc.core.Context
 import amyc.core.StdDefinitions.*
 import amyc.core.Symbols.*
 import amyc.core.Signatures.*
@@ -10,7 +10,8 @@ import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.SymbolTable
 import amyc.interpreter.*
 import amyc.interpreter.Value.*
-import amyc.interpreter.BuiltIns.builtIns
+import amyc.interpreter.builtin.{BuiltIns, BuiltinModule}
+import amyc.interpreter.builtin.BuiltIns.builtIns
 
 import scala.collection.mutable
 
@@ -19,22 +20,22 @@ object Interpreter extends Pipeline[Program, Unit] :
 
   override val name = "Interpreter"
 
-  override def run(program: Program)(using Context): Unit = {
-    for {
+  override def run(program: Program)(using Context): Unit =
+    for
       m <- program.modules
       e <- m.optExpr
-    } do
+    do
       interpret(e, program)(Map.empty, ctx)
-  }
 
-  def findFunction(program: Program, owner: String, name: String) = {
-    program.modules.find(_.name.name == owner).get.defs.collectFirst {
-      case fd@FunDef(fn, _, _, _) if fn.name == name => fd
+  // TODO HR : Remove this function in favour of a runtime environment
+  def findFunction(program: Program, fn : FunctionSymbol) =
+    program.modules.find(_.name == fn.owner).get.defs.collectFirst {
+      case fd@FunDef(_fn, _, _, _) if _fn == fn => fd
     }
-  }
 
   // Interprets a function, using evaluations for local variables contained in 'locals'
   // TODO HR: We will have to remove `program` as a parameter of this function
+  // TODO HR : Remove locals in favour of a runtime environment
   def interpret(expr: Expr, program: Program)(implicit locals: Map[Symbol, Value], ctx: Context): Value = {
     val c = stdDef
     expr match {
@@ -44,10 +45,10 @@ object Interpreter extends Pipeline[Program, Unit] :
           case None =>
             reporter.fatal(s"variable '$name' is not in scope or defined")
       case FunRef(ref : FunctionSymbol) =>
-        builtIns.get(ref.owner.name, ref.name) map {
+        builtIns.get(ref) map {
           BuiltInFunctionValue
         } orElse {
-          findFunction(program, ref.owner.name, ref.name) map { fd =>
+          findFunction(program, ref) map { fd =>
             FunctionValue(fd.params.map(_.name), fd.body)
           }
         } getOrElse {
@@ -92,12 +93,12 @@ object Interpreter extends Pipeline[Program, Unit] :
             reporter.fatal(s"Constructor  not defined $qname")
       case Call(qname : FunctionSymbol, args) =>
         val fn = locals.get(qname) orElse {
-          builtIns.get((qname.owner.name, qname.name))
+          builtIns.get(qname)
         } orElse {
-          findFunction(program, qname.owner.name, qname.name)
+          findFunction(program, qname)
         }
         fn match
-          case Some(f: BuiltIns.BuiltInFunction) =>
+          case Some(f: BuiltinModule.BuiltInFunction) =>
             f(args.map(interpret(_, program)))
           case Some(BuiltInFunctionValue(f)) =>
             f(args.map(interpret(_, program)))

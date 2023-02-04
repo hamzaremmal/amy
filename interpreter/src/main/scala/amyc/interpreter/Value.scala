@@ -4,6 +4,7 @@ import amyc.*
 import amyc.core.Context
 import amyc.core.Symbols.*
 import amyc.ast.SymbolicTreeModule.Expr
+import amyc.interpreter.builtin.BuiltinModule
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
@@ -111,4 +112,4 @@ case class CaseClassValue(constructor: Symbol, args: List[Value]) extends Value
 
 case class FunctionValue(args: List[Symbol], body: Expr) extends Value
 
-case class BuiltInFunctionValue(fn: BuiltIns.BuiltInFunction) extends Value
+case class BuiltInFunctionValue(fn: BuiltinModule.BuiltInFunction) extends Value

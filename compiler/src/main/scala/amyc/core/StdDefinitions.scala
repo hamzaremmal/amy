@@ -9,27 +9,34 @@ class StdDefinitions(using Context) :
   private type I = Symbol
 
   // ----------------- Std.amy ------------------
-  lazy val StdModule    : I = ofModule("Std")
+  lazy val StdModule         : I = ofModule("Std")
+
+  lazy val Std_printInt      : I = ofFunction(StdModule, "printInt")
+  lazy val Std_printString   : I = ofFunction(StdModule, "printString")
+  lazy val Std_readString    : I = ofFunction(StdModule, "readString")
+  lazy val Std_readInt       : I = ofFunction(StdModule, "readInt")
+  lazy val Std_intToString   : I = ofFunction(StdModule, "intToString")
+  lazy val Std_digitToString : I = ofFunction(StdModule, "digitToString")
 
   // ----------------- unnamed ------------------
-  lazy val UnnamedModule : I = ofModule("<unnamed>")
+  lazy val UnnamedModule     : I = ofModule("<unnamed>")
 
-  lazy val StringType  : I = ofType(UnnamedModule, "String")
-  lazy val UnitType    : I = ofType(UnnamedModule, "Unit")
-  lazy val IntType     : I = ofType(UnnamedModule, "Int")
-  lazy val BooleanType : I = ofType(UnnamedModule, "Boolean")
+  lazy val StringType        : I = ofType(UnnamedModule, "String")
+  lazy val UnitType          : I = ofType(UnnamedModule, "Unit")
+  lazy val IntType           : I = ofType(UnnamedModule, "Int")
+  lazy val BooleanType       : I = ofType(UnnamedModule, "Boolean")
 
-  lazy val binop_+     : I = ofFunction(UnnamedModule, "+")
-  lazy val binop_-     : I = ofFunction(UnnamedModule, "-")
-  lazy val binop_*     : I = ofFunction(UnnamedModule, "*")
-  lazy val binop_/     : I = ofFunction(UnnamedModule, "/")
-  lazy val binop_%     : I = ofFunction(UnnamedModule, "%")
-  lazy val binop_<     : I = ofFunction(UnnamedModule, "<")
-  lazy val binop_<=    : I = ofFunction(UnnamedModule, "<=")
-  lazy val binop_&&    : I = ofFunction(UnnamedModule, "&&")
-  lazy val binop_||    : I = ofFunction(UnnamedModule, "||")
-  lazy val binop_==    : I = ofFunction(UnnamedModule, "==")
-  lazy val binop_++    : I = ofFunction(UnnamedModule, "++")
+  lazy val binop_+           : I = ofFunction(UnnamedModule, "+")
+  lazy val binop_-           : I = ofFunction(UnnamedModule, "-")
+  lazy val binop_*           : I = ofFunction(UnnamedModule, "*")
+  lazy val binop_/           : I = ofFunction(UnnamedModule, "/")
+  lazy val binop_%           : I = ofFunction(UnnamedModule, "%")
+  lazy val binop_<           : I = ofFunction(UnnamedModule, "<")
+  lazy val binop_<=          : I = ofFunction(UnnamedModule, "<=")
+  lazy val binop_&&          : I = ofFunction(UnnamedModule, "&&")
+  lazy val binop_||          : I = ofFunction(UnnamedModule, "||")
+  lazy val binop_==          : I = ofFunction(UnnamedModule, "==")
+  lazy val binop_++          : I = ofFunction(UnnamedModule, "++")
 
   // --------------------- ..... --------------------------------
 
