@@ -59,7 +59,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
-    val sig = symbols.getFunction(owner.name, fd.name.name).map(_.asInstanceOf[FunctionSymbol].signature.idx).getOrElse(0)
+    val sig = symbols.getFunction(owner.name, fd.name.name).map(_.signature.idx).getOrElse(0)
     Function(fd, owner, isMain, sig) {
       val body = cgExpr(fd.body)
       withComment(fd.toString) {

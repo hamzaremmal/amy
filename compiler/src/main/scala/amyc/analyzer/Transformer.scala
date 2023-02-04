@@ -227,7 +227,7 @@ object Transformer {
                 .getConstructor(constr.module.getOrElse(module), constr.name)
                 .getOrElse {
                   reporter.fatal(s"Constructor $constr not found", pat)
-                }.asInstanceOf[ConstructorSymbol]
+                }
               if (sym.signature.argTypes.size != args.size) {
                 reporter.fatal(s"Wrong number of args for constructor $constr", pat)
               }

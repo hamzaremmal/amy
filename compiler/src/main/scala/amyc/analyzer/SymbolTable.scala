@@ -1,33 +1,30 @@
 package amyc.analyzer
 
-import amyc.ast.SymbolicTreeModule.TypeTree
-import amyc.core.Identifier
-import amyc.core.Symbols.*
-import amyc.utils.UniqueCounter
+import amyc.*
+import amyc.core.*
 import amyc.core.Signatures.*
+import amyc.core.Symbols.*
+import amyc.ast.SymbolicTreeModule.TypeTree
+import amyc.utils.UniqueCounter
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
-import scala.collection.mutable.HashMap
 
 // A class that represents a dictionary of symbols for an Amy program
-class SymbolTable {
+class SymbolTable :
   /* Atomic counters to index constructors and functions */
+  /* TODO HR : Remove both counters as those are specific to wasm backend */
   private val constrIndexes = new UniqueCounter[Symbol]
   private val funIndexes = new AtomicInteger
 
-  // ==============================================================================================
-  // ========================================= TABLES =============================================
-  // ==============================================================================================
-
   // map a definition (owner, def) to its symbol
-  private val defsByName = mutable.HashMap[(String, String), Symbol]()
+  private val defsByName : mutable.HashMap[(String, String), Symbol] =
+    mutable.HashMap.empty
   // maps a nominal representation of the tree to its symbol
-  private val modules = mutable.HashMap[String, ModuleSymbol]()
+  private val modules : mutable.HashMap[String, ModuleSymbol] =
+    mutable.HashMap.empty
 
-  // ==============================================================================================
-  // ======================================== API =================================================
-  // ==============================================================================================
+  // ====================================== REGISTER METHODS ======================================
 
   /* register a new module */
   def addModule(name: String): ModuleSymbol =
@@ -68,6 +65,7 @@ class SymbolTable {
     sym.signature(FunSig(argTypes, retType, idx))
     sym
 
+  // ====================================== SAFE METHODS ==========================================
 
   /* fetch symbol of a module */
   def getModule(name: String): Option[ModuleSymbol] =
@@ -95,4 +93,32 @@ class SymbolTable {
       case _ => None
     }
 
-}
+  // ===================================== FAIL METHODS ===========================================
+
+  def module(name: String)(using Context): ModuleSymbol =
+    getModule(name) getOrElse {
+      reporter.fatal(s"Definition of module $name is missing")
+    }
+
+  def `type`(module: String, name: String)(using Context): TypeSymbol =
+    getType(module, name) getOrElse {
+      reporter.fatal(s"Definition of type $name in module $module is missing")
+    }
+
+  def `type`(module: Symbol, name: String)(using Context): TypeSymbol =
+    `type`(module.name, name)
+
+  def function(module: Symbol, name: String)(using Context): FunctionSymbol =
+    function(module.name, name)
+
+  def function(module: String, name: String)(using Context): FunctionSymbol =
+    getFunction(module, name) getOrElse {
+      reporter.fatal(s"Definition of type $name in module $module is missing")
+    }
+
+  def constructor(module: String, name: String)(using Context): ConstructorSymbol =
+    getConstructor(module, name) getOrElse {
+      reporter.fatal(s"Definition of type $name in module $module is missing")
+    }
+
+  def constructor(module: ModuleSymbol, name: String)(using Context): ConstructorSymbol = constructor(module.name, name)
