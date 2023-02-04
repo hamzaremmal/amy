@@ -1,5 +1,6 @@
 package amyc.typer
 
+import amyc.core.StdDefinitions.*
 import amyc.core.StdTypes.*
 import amyc.analyzer.SymbolTable
 import amyc.core.Signatures.*
@@ -8,7 +9,6 @@ import amyc.core.{Context, Identifier}
 import amyc.ast.SymbolicTreeModule
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
-import amyc.core.StdNames
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 import amyc.{ctx, reporter, symbols}
 import amyc.utils.Pipeline
@@ -87,7 +87,7 @@ object TypeInferer extends Pipeline[Program, Program]{
     //  that we found (or generated) for the current expression `e`
     def topLevelConstraint(found: Type): List[Constraint] =
       List(Constraint(found, expected, e.position))
-
+    val defs = stdDef
     e match {
       // ===================== Type Check Variables =============================
       case Variable(name) =>
@@ -118,25 +118,9 @@ object TypeInferer extends Pipeline[Program, Program]{
         e.withType(stdType.UnitType)
         topLevelConstraint(stdType.UnitType)
       // ========================== Type Check Binary Operators =========================
-      case InfixCall(lhs, StdNames.+ | StdNames.- | StdNames.* | StdNames./ | StdNames.%, rhs) =>
-        e.withType(stdType.IntType)
-        topLevelConstraint(stdType.IntType) ::: genConstraints(lhs, stdType.IntType) ::: genConstraints(rhs, stdType.IntType)
-      case InfixCall(lhs, StdNames.< | StdNames.<=, rhs) =>
-        e.withType(stdType.BooleanType)
-        topLevelConstraint(stdType.BooleanType) ::: genConstraints(lhs, stdType.IntType) ::: genConstraints(rhs, stdType.IntType)
-      case InfixCall(lhs, StdNames.&& | StdNames.||, rhs) =>
-        e.withType(stdType.BooleanType)
-        topLevelConstraint(stdType.BooleanType) ::: genConstraints(lhs, stdType.BooleanType) ::: genConstraints(rhs, stdType.BooleanType)
-      case InfixCall(lhs, StdNames.eq_==, rhs) =>
-        val generic = TypeVariable.fresh()
-        e.withType(stdType.BooleanType)
-        topLevelConstraint(stdType.BooleanType) ::: genConstraints(lhs, generic) ::: genConstraints(rhs, generic)
-      case InfixCall(lhs, StdNames.++, rhs) =>
-        e.withType(stdType.StringType)
-        topLevelConstraint(stdType.StringType) ::: genConstraints(lhs, stdType.StringType) ::: genConstraints(rhs, stdType.StringType)
       case InfixCall(_, op, _) =>
         e.withType(ErrorType)
-        reporter.error(s"Cannot infer type of operator $op")
+        reporter.error(s"Cannot infer type of infix call $e (it should have been desugared)")
         Nil
       // ============================== Type Check Unary Operators ==============================
       case Not(expr) =>
@@ -146,6 +130,12 @@ object TypeInferer extends Pipeline[Program, Program]{
         e.withType(stdType.IntType)
         topLevelConstraint(stdType.IntType) ::: genConstraints(expr, stdType.IntType)
       // ============================== Type Check Applications =================================
+      case Call(defs.binop_==, args) =>
+        val tv = TypeVariable.fresh()
+        e.withType(stdType.BooleanType)
+        args(0).withType(tv)
+        args(1).withType(tv)
+        topLevelConstraint(stdType.BooleanType) ::: genConstraints(args(0), tv) ::: genConstraints(args(1), tv)
       case Call(qname, args) =>
         // WARNING BY HR : An Application can either be a call to a constructor of a function
         val application =

@@ -2,10 +2,10 @@ package amyc.typer
 
 import amyc.analyzer.SymbolTable
 import amyc.ast.SymbolicTreeModule.*
-import amyc.core.{Context, Identifier, StdNames}
+import amyc.core.{Context, Identifier}
 import amyc.core.Types.*
 import amyc.core.Signatures.*
-import amyc.core.StdNames.*
+import amyc.core.StdDefinitions.*
 import amyc.core.StdTypes.*
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 import amyc.{ctx, reporter, symbols}
@@ -26,18 +26,8 @@ object TypeChecker extends Pipeline[Program, Program]{
       case b : BooleanLiteral => checkBooleanLiteral(b)
       case s : StringLiteral => checkStringLiteral(s)
       case u : UnitLiteral => checkUnitLiteral(u)
-      case op@InfixCall(_, StdNames.+ | StdNames.- | StdNames.* | StdNames./ | StdNames.%, _) =>
-        checkBinOp(op)(stdType.IntType, stdType.IntType, stdType.IntType)
-      case op@InfixCall(_, StdNames.< | StdNames.<=, _) =>
-        checkBinOp(op)(stdType.IntType, stdType.IntType, stdType.BooleanType)
-      case op@InfixCall(_, StdNames.&& | StdNames.||, _) =>
-        checkBinOp(op)(stdType.BooleanType, stdType.BooleanType, stdType.BooleanType)
-      case op@InfixCall(_, StdNames.eq_==, _) =>
-        checkEquals(op)
-      case op@InfixCall(_, StdNames.++, _) =>
-        checkBinOp(op)(stdType.StringType, stdType.StringType, stdType.StringType)
-      case InfixCall(_, op, _) =>
-        reporter.fatal(s"Cannot type check operator $op")
+      case InfixCall(_, _, _) =>
+        reporter.fatal(s"Cannot type check infix operator $tree")
       case op : Not => checkNot(op)
       case op : Neg => checkNeg(op)
       case op : Call => checkCall(op)
@@ -133,21 +123,30 @@ object TypeChecker extends Pipeline[Program, Program]{
 
   def checkCall(expr: Call)(using Context) =
     val Call(qname, args) = expr
-    args.foreach(check)
-    // In case of a function application
-    for
-      FunSig(argTypes, retType, _, _) <- symbols.getFunction(qname)
-    do
-      args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
-      =:=(expr, retType.tpe)
-    // In case of a constructor application
-    for
-      cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
-    do
-      args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
-      =:=(expr, ctx.tpe(cs.retType))
+    if qname == stdDef.binop_== then
+      val lhs = check(args(0))
+      val rhs = check(args(1))
+      =:=(lhs, rhs.tpe)
+      =:=(rhs, rhs.tpe)
+      =:=(expr, stdType.BooleanType)
+      expr
 
-    expr
+    else
+      args.foreach(check)
+      // In case of a function application
+      for
+        FunSig(argTypes, retType, _, _) <- symbols.getFunction(qname)
+      do
+        args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
+        =:=(expr, retType.tpe)
+      // In case of a constructor application
+      for
+        cs@ConstrSig(argTypes, _, _) <- symbols.getConstructor(qname)
+      do
+        args zip argTypes map ((arg, tpe) => =:=(arg, tpe.tpe))
+        =:=(expr, ctx.tpe(cs.retType))
+
+      expr
 
   def checkSequence(seq: Sequence)(using Context) =
     val Sequence(e1, e2) = seq

@@ -2,11 +2,11 @@ package amyc.interpreter
 
 import amyc.*
 import amyc.utils.*
+import amyc.core.StdDefinitions.*
 import amyc.core.Signatures.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.SymbolTable
-import amyc.core.{Context, Identifier, StdNames}
-import amyc.core.StdNames.*
+import amyc.core.{Context, Identifier}
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 import amyc.interpreter.*
 import amyc.interpreter.Value.*
@@ -41,6 +41,7 @@ object Interpreter extends Pipeline[Program, Unit] {
   // Interprets a function, using evaluations for local variables contained in 'locals'
   // TODO HR: We will have to remove `program` as a parameter of this function
   def interpret(expr: Expr, program: Program)(implicit locals: Map[Identifier, Value], ctx: Context): Value = {
+    val c = stdDef
     expr match {
       case Variable(name) =>
         locals.get(name.id) match
@@ -62,28 +63,28 @@ object Interpreter extends Pipeline[Program, Unit] {
       case BooleanLiteral(b) => BooleanValue(b)
       case StringLiteral(s) => StringValue(s)
       case UnitLiteral() => UnitValue
-      case InfixCall(lhs, StdNames.+, rhs) =>
-        interpret(lhs, program) + interpret(rhs, program)
-      case InfixCall(lhs, StdNames.-, rhs) =>
-        interpret(lhs, program) - interpret(rhs, program)
-      case InfixCall(lhs, StdNames.*, rhs) =>
-        interpret(lhs, program) * interpret(rhs, program)
-      case InfixCall(lhs, StdNames./, rhs) =>
-        interpret(lhs, program) / interpret(rhs, program)
-      case InfixCall(lhs, StdNames.%, rhs) =>
-        interpret(lhs, program) % interpret(rhs, program)
-      case InfixCall(lhs, StdNames.<, rhs) =>
-        interpret(lhs, program) < interpret(rhs, program)
-      case InfixCall(lhs, StdNames.<=, rhs) =>
-        interpret(lhs, program) <= interpret(rhs, program)
-      case InfixCall(lhs, StdNames.&&, rhs) =>
-        interpret(lhs, program) && interpret(rhs, program)
-      case InfixCall(lhs, StdNames.||, rhs) =>
-        interpret(lhs, program) || interpret(rhs, program)
-      case InfixCall(lhs, StdNames.eq_==, rhs) =>
-        interpret(lhs, program) == interpret(rhs, program)
-      case InfixCall(lhs, StdNames.++ ,rhs) =>
-        interpret(lhs, program) ++ interpret(rhs, program)
+      case Call(c.binop_+, args) =>
+        interpret(args(0), program) + interpret(args(1), program)
+      case Call(c.binop_-, args) =>
+        interpret(args(0), program) - interpret(args(1), program)
+      case Call(c.binop_*, args) =>
+        interpret(args(0), program) * interpret(args(1), program)
+      case Call(c.binop_/, args) =>
+        interpret(args(0), program) / interpret(args(1), program)
+      case Call(c.binop_%, args) =>
+        interpret(args(0), program) % interpret(args(1), program)
+      case Call(c.binop_<, args) =>
+        interpret(args(0), program) < interpret(args(1), program)
+      case Call(c.binop_<=, args) =>
+        interpret(args(0), program) <= interpret(args(1), program)
+      case Call(c.binop_&&, args) =>
+        interpret(args(0), program) && interpret(args(1), program)
+      case Call(c.binop_||, args) =>
+        interpret(args(0), program) || interpret(args(1), program)
+      case Call(c.binop_==, args) =>
+        interpret(args(0), program) == interpret(args(1), program)
+      case Call(c.binop_++ ,args) =>
+        interpret(args(0), program) ++ interpret(args(1), program)
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot interpret operator $op")
       case Not(e) => ! interpret(e, program)

@@ -5,7 +5,6 @@ import amyc.core.*
 import amyc.core.Symbols.*
 import amyc.core.Signatures.*
 import amyc.core.StdDefinitions.*
-import amyc.core.StdNames.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 
 object Transformer {
@@ -146,7 +145,8 @@ object Transformer {
       case N.UnitLiteral() =>
         S.UnitLiteral()
       case N.InfixCall(lhs, op, rhs) =>
-        S.InfixCall(transformExpr(lhs), binOp(op), transformExpr(rhs))
+        // desugar infix calls to function calls
+        transformExpr(N.Call(N.QualifiedName(Some("<unnamed>"), op), lhs :: rhs :: Nil))
       case N.Not(e) =>
         S.Not(transformExpr(e))
       case N.Neg(e) =>

@@ -6,7 +6,6 @@ import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.core.*
 import amyc.core.Symbols.*
 import amyc.core.Signatures.*
-import amyc.core.StdNames.*
 import amyc.core.StdDefinitions.*
 import amyc.utils.Pipeline
 import amyc.backend.wasm.*
@@ -92,30 +91,8 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       case BooleanLiteral(b) => mkBoolean(b)
       case StringLiteral(s) => mkString(s)
       case UnitLiteral() => mkUnit
-      case InfixCall(lhs, StdNames.+, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.add)
-      case InfixCall(lhs, StdNames.-, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.sub)
-      case InfixCall(lhs, StdNames.*, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.mul)
-      case InfixCall(lhs, StdNames./, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.div_s)
-      case InfixCall(lhs, StdNames.%, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.rem_s)
-      case InfixCall(lhs, StdNames.<, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.lt_s)
-      case InfixCall(lhs, StdNames.<=, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(i32.le_s)
-      case InfixCall(lhs, StdNames.&&, rhs) =>
-        and(cgExpr(lhs), cgExpr(rhs))
-      case InfixCall(lhs, StdNames.||, rhs) =>
-        or(cgExpr(lhs), cgExpr(rhs))
-      case InfixCall(lhs, StdNames.eq_==, rhs) =>
-        equ(cgExpr(lhs), cgExpr(rhs))
-      case InfixCall(lhs, StdNames.++, rhs) =>
-        mkBinOp(cgExpr(lhs), cgExpr(rhs))(call(id(String.concat.name)))
       case InfixCall(_, op, _) =>
-        reporter.fatal(s"Cannot generate wasm code for operator $op")
+        reporter.fatal(s"Cannot generate wasm code for operator, should not appear here $op")
       case Not(e) =>
         cgExpr(e) <:> i32.eqz
       case Neg(e) =>
@@ -169,14 +146,37 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   // ==============================================================================================
 
   def genFunctionCall(args: List[Expr], qname: Symbol)(using LocalsHandler, Context) =
-    args.map(cgExpr) <:> {
-      lh(qname.id) match
-        case -1 =>
-          call(fullName(symbols.getFunction(qname).get.owner.id, qname))
-        case idx =>
-          local.get(idx) <:>
-          call_indirect(typeuse(mkFunTypeName(args.size)))
-    }
+      if qname == stdDef.binop_+ then
+        mkBinOp(cgExpr(args.head), cgExpr(args(1)))(i32.add)
+      else if qname == stdDef.binop_- then
+        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.sub)
+      else if qname == stdDef.binop_* then
+        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.mul)
+      else if qname == stdDef.binop_/ then
+        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.div_s)
+      else if qname == stdDef.binop_% then
+        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.rem_s)
+      else if qname == stdDef.binop_< then
+        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.lt_s)
+      else if qname == stdDef.binop_<= then
+        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.le_s)
+      else if qname == stdDef.binop_&& then
+        and(cgExpr(args(0)), cgExpr(args(1)))
+      else if qname == stdDef.binop_|| then
+        or(cgExpr(args(0)), cgExpr(args(1)))
+      else if qname == stdDef.binop_== then
+        equ(cgExpr(args(0)), cgExpr(args(1)))
+      else if qname == stdDef.binop_++ then
+        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(call(id(String.concat.name)))
+      else
+        args.map(cgExpr) <:> {
+        lh(qname.id) match
+          case -1 =>
+            call(fullName(symbols.getFunction(qname).get.owner.id, qname))
+          case idx =>
+            local.get(idx) <:>
+            call_indirect(typeuse(mkFunTypeName(args.size)))
+        }
 
 
 

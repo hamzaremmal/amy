@@ -6,7 +6,6 @@ import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.Utils.{getFreshLabel, incr, memoryBoundary}
 import amyc.backend.wasm.utils.lh
 import amyc.core.StdDefinitions.*
-import amyc.core.StdNames
 import amyc.core.Context
 import amyc.symbols
 

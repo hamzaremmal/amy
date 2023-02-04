@@ -1,7 +1,8 @@
 package amyc.utils.printers
 
 import amyc.ast.NominalTreeModule
-import amyc.utils.{Document, Raw}
+import amyc.utils.printers.NominalPrinter.treeModule
+import amyc.utils.{Document, Lined, Raw}
 import amyc.utils.printers.highlight.NoHighlight
 
 
@@ -18,3 +19,7 @@ object NominalPrinter extends Printer(NoHighlight) :
       case QualifiedName(None, name) =>
         name
     })
+
+  override def printCall(c: treeModule.Call)(implicit printUniqueIDs: Boolean): Document =
+    val Call(name, args) = c
+    name <:> "(" <:> Lined(args map (toDoc(_)), ", ") <:> ")"

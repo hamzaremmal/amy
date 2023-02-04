@@ -25,6 +25,7 @@ case class Context private (reporter: Reporter){
   def tpe(tree : TypeTree) : Type =
     tree match
       case ClassTypeTree(id) => ClassType(id.id)
+      case TTypeTree(tpe) => tpe
       case FunctionTypeTree(args, rte) =>
         Identifier.fresh(s"(${args.map(tpe).mkString(";")}:${tpe(rte)})")
         FunctionType(args.map(tpe), tpe(rte))

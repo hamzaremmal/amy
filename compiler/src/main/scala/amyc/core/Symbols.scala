@@ -16,7 +16,7 @@ object Symbols:
 
   /* Used for functions */
 
-  case class FunctionSymbol(override val id: Identifier) extends Symbol(id, NoSymbol):
+  case class FunctionSymbol(override val id: Identifier, is_infix : Boolean = false) extends Symbol(id, NoSymbol):
     override val toString: String = id.name
 
   /* Used for constructors */

@@ -1,11 +1,12 @@
 package amyc.utils.printers.phases
 
 import amyc.ast.SymbolicTreeModule as S
+import amyc.core.Symbols.FunctionSymbol
 import amyc.core.{Context, Identifier}
 import amyc.utils.printers.Printer
-import amyc.utils.printers.SymbolicPrinter.printName
+import amyc.utils.printers.SymbolicPrinter.{apply, printName}
 import amyc.utils.printers.highlight.NoHighlight
-import amyc.utils.{Document, Pipeline, UniqueCounter}
+import amyc.utils.{Document, Lined, Pipeline, UniqueCounter}
 
 class SymbolicTreePrinter extends Pipeline[S.Program, S.Program]{
 
@@ -19,6 +20,14 @@ class SymbolicTreePrinter extends Pipeline[S.Program, S.Program]{
 
     inline implicit def printQName(name: QualifiedName)(implicit printUniqueIds: Boolean): Document =
       printName(name)
+
+    override def printCall(c: TestUniquePrinter.this.treeModule.Call)(implicit printUniqueIDs: Boolean): Document =
+      val Call(name, args) = c
+      name match
+        case f: FunctionSymbol if f.is_infix =>
+          "(" <:> toDoc(args(0)) <:> " " <:> printName(name)(false) <:> " " <:> toDoc(args(1)) <:> ")"
+        case _ =>
+          printQName(name) <:> "(" <:> Lined(args map (toDoc(_)), ", ") <:> ")"
 
     override implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document = {
       if (printUniqueIds) {
