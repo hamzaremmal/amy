@@ -1,8 +1,9 @@
 package amyc.interpreter
 
-import amyc.ast.SymbolicTreeModule.Expr
 import amyc.*
-import amyc.core.{Context, Identifier}
+import amyc.core.Context
+import amyc.core.Symbols.*
+import amyc.ast.SymbolicTreeModule.Expr
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
@@ -106,8 +107,8 @@ case class StringValue(s: String) extends Value {
 
 case object UnitValue extends Value
 
-case class CaseClassValue(constructor: Identifier, args: List[Value]) extends Value
+case class CaseClassValue(constructor: Symbol, args: List[Value]) extends Value
 
-case class FunctionValue(args: List[Identifier], body: Expr) extends Value
+case class FunctionValue(args: List[Symbol], body: Expr) extends Value
 
 case class BuiltInFunctionValue(fn: BuiltIns.BuiltInFunction) extends Value

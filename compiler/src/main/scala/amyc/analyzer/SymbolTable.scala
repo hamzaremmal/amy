@@ -133,7 +133,7 @@ class SymbolTable {
     */
   def addFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
-    val sym = FunctionSymbol(Identifier.fresh(name))
+    val sym = FunctionSymbol(Identifier.fresh(name), sym_owner)
     val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> sym
     functions += sym -> FunSig(argTypes, retType, sym_owner, idx)
@@ -141,7 +141,7 @@ class SymbolTable {
 
   def addInfixFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
-    val sym = FunctionSymbol(Identifier.fresh(name), true)
+    val sym = FunctionSymbol(Identifier.fresh(name), sym_owner, true)
     val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> sym
     functions += sym -> FunSig(argTypes, retType, sym_owner, idx)
