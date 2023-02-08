@@ -2,9 +2,9 @@ package amyc.backend.wasm.wrapper
 
 import amyc.backend.wasm.Module
 
-object NodeJSWrapper {
+object NodeJSWrapper:
 
-  def apply(moduleFile: String, module :Module): String =
+  def apply(moduleFile: String, module: Module): String =
     s"""function safe_require(module_name) {
        |  try {
        |    return require(module_name);
@@ -60,9 +60,12 @@ object NodeJSWrapper {
        |
        |loadWebAssembly('$moduleFile', importObject).then(function(instance) {
        |""".stripMargin ++
-      module.functions.filter(_.isMain).map { f =>
-        s"  instance.exports.${f.name}();\n"
-      }.mkString ++
+      module.functions
+        .filter(_.isMain)
+        .map { f =>
+          s"  instance.exports.${f.name}();\n"
+        }
+        .mkString ++
       """  rl.close();
         |}).catch( function(error) {
         |  rl.close();
@@ -70,8 +73,10 @@ object NodeJSWrapper {
         |})
         |""".stripMargin
 
-  /** JavaScript object containing the values to be imported into the WASM instance.
-    * Requires a waitInput(), log(line) and exit() function to be in scope.
+  /**
+    * JavaScript object containing the values to be imported into the WASM
+    * instance. Requires a waitInput(), log(line) and exit() function to be in
+    * scope.
     */
   lazy val importObject: String =
     s"""const importObject = {
@@ -123,5 +128,3 @@ object NodeJSWrapper {
        |  }
        |};
        |""".stripMargin
-
-}

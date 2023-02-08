@@ -10,7 +10,7 @@ import amyc.core.Signatures.*
 import amyc.reporter
 
 // Utilities for CodeGen
-object Utils {
+object Utils:
 
   // The index of the global variable that represents the free memory boundary
   val memoryBoundary: Int = 0
@@ -24,16 +24,16 @@ object Utils {
   // ================================== WASM FUNCTION TYPES =======================================
   // ==============================================================================================
 
-  lazy val defaultFunTypes : Context ?=> List[String] =
-    s"(type $$${mkFunTypeName(0)} (func (result i32)))"::
-    s"(type $$${mkFunTypeName(1)} (func (param i32) (result i32)))" ::
-    s"(type $$${mkFunTypeName(2)} (func (param i32 i32) (result i32)))" ::
-    s"(type $$${mkFunTypeName(3)} (func (param i32 i32 i32) (result i32)))" ::
-    s"(type $$${mkFunTypeName(4)} (func (param i32 i32 i32 i32) (result i32)))" ::
-    s"(type $$${mkFunTypeName(5)} (func (param i32 i32 i32 i32 i32) (result i32)))" ::
-    Nil
+  lazy val defaultFunTypes: Context ?=> List[String] =
+    s"(type $$${mkFunTypeName(0)} (func (result i32)))" ::
+      s"(type $$${mkFunTypeName(1)} (func (param i32) (result i32)))" ::
+      s"(type $$${mkFunTypeName(2)} (func (param i32 i32) (result i32)))" ::
+      s"(type $$${mkFunTypeName(3)} (func (param i32 i32 i32) (result i32)))" ::
+      s"(type $$${mkFunTypeName(4)} (func (param i32 i32 i32 i32) (result i32)))" ::
+      s"(type $$${mkFunTypeName(5)} (func (param i32 i32 i32 i32 i32) (result i32)))" ::
+      Nil
 
-  def mkFunTypeName(params: Int)(using Context) : String =
+  def mkFunTypeName(params: Int)(using Context): String =
     if(params <= maxParamsInFun)
       s"fun_$params"
     else
@@ -63,7 +63,8 @@ object Utils {
 
   /** Utilities */
   // A globally unique name for definitions
-  def fullName(owner: Identifier, df: Symbol): String = owner.name + "_" + df.name
+  def fullName(owner: Identifier, df: Symbol): String =
+    owner.name + "_" + df.name
 
   // A fresh label name
   def getFreshLabel(name: String = "label") = {
@@ -78,15 +79,15 @@ object Utils {
   // will point at its field in index (and consume the ADT).
   // 'index' MUST be 0-based.
   inline def adtField(inline base: Code, inline index: Int): Code =
-    withComment(s"adtField index: $index from base : $base"){
-      base <:> i32.const(4* (index + 1)) <:> i32.add
+    withComment(s"adtField index: $index from base : $base") {
+      base <:> i32.const(4 * (index + 1)) <:> i32.add
     }
 
   // Increment a local variable
   inline def incr(l: localidx) =
     local.get(l) <:> i32.const(1) <:> i32.add <:> local.set(l)
 
-  inline def withComment(inline comment : String)(inline code: Code) : Code =
+  inline def withComment(inline comment: String)(inline code: Code): Code =
     Comment(comment) <:> code
 
   // Creates a known string constant s in memory
@@ -96,66 +97,70 @@ object Utils {
 
     val completeS = s + 0.toChar.toString * padding
 
-    val setChars = for ((c, ind) <- completeS.zipWithIndex.toList) yield {
+    val setChars = for((c, ind) <- completeS.zipWithIndex.toList) yield {
       global.get(memoryBoundary) <:> i32.const(ind) <:> i32.add <:>
         i32.const(c.toInt) <:> i32.store8
     }
 
     val setMemory =
-      global.get(memoryBoundary) <:> global.get(memoryBoundary) <:> i32.const(size + padding) <:> i32.add <:>
+      global.get(memoryBoundary) <:> global.get(memoryBoundary) <:> i32.const(
+        size + padding
+      ) <:> i32.add <:>
         global.set(memoryBoundary)
 
-    withComment(s"mkString: $s"){
+    withComment(s"mkString: $s") {
       setChars <:> setMemory
     }
   }
 
-  inline def mkBoolean(inline b : Boolean): Code =
+  inline def mkBoolean(inline b: Boolean): Code =
     i32.const(if b then 1 else 0)
 
-  inline def mkUnit : Code = i32.const(0)
+  inline def mkUnit: Code = i32.const(0)
 
-  inline def mkBinOp(inline lhs : Code, inline rhs : Code)(op : Instruction) : Code =
+  inline def mkBinOp(inline lhs: Code, inline rhs: Code)(
+      op: Instruction
+  ): Code =
     lhs <:> rhs <:> op
 
-  inline def equ(inline lhs: Code, inline rhs: Code) : Code =
+  inline def equ(inline lhs: Code, inline rhs: Code): Code =
     mkBinOp(lhs, rhs)(i32.eq)
 
-  inline def and(inline lhs: Code, inline rhs: Code) : Code =
+  inline def and(inline lhs: Code, inline rhs: Code): Code =
     ift(lhs, rhs, mkBoolean(false))
 
-  inline def or(lhs: Code, rhs: Code) : Code =
+  inline def or(lhs: Code, rhs: Code): Code =
     ift(lhs, mkBoolean(true), rhs)
 
-  inline def loadGlobal(inline idx: Int) : Code =
+  inline def loadGlobal(inline idx: Int): Code =
     global.get(idx) <:> i32.load
 
   inline def setGlobal(inline code: Code, inline idx: globalidx): Code =
     code <:> global.set(idx)
 
-  inline def loadLocal(inline idx: localidx) : Code =
+  inline def loadLocal(inline idx: localidx): Code =
     local.get(idx) <:> i32.load
 
   inline def setLocal(inline code: Code, inline idx: localidx): Code =
     code <:> local.set(idx)
 
-  inline def constructor(inline const: ConstrSig) : Code =
+  inline def constructor(inline const: ConstrSig): Code =
     i32.const(const.idx)
 
-  inline def error(inline msg: Code) : Code =
+  inline def error(inline msg: Code): Code =
     msg <:> call("Std_printString") <:> unreachable
 
   inline def ift(inline cond: Code, inline thenn: Code, elze: Code) =
     cond <:>
-    `if`(None, Some(result(i32))) <:>
-    thenn <:>
-    `else`() <:>
-    elze <:> end
+      `if`(None, Some(result(i32))) <:>
+      thenn <:>
+      `else`() <:>
+      elze <:> end
 
-  def resolveOrder(fn: List[Function], n: => Function)(using Context): List[Function] =
+  def resolveOrder(fn: List[Function], n: => Function)(using
+      Context
+  ): List[Function] =
     def resolve(idx: Int) =
       fn.find(_.idx == idx).getOrElse(n)
     val size = fn.map(_.idx).max
     for i <- (0 to size).toList yield resolve(i)
-
-}

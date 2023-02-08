@@ -10,18 +10,16 @@ import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 object Transformer {
 
   /**
-    *
     * @param p
-    * @param core .Context
+    * @param core
+    *   .Context
     * @return
     */
   def transformProgram(p: N.Program)(using Context): S.Program =
-    val symMods = for mod <- p.modules yield
-      transformModule(mod).setPos(mod)
+    val symMods = for mod <- p.modules yield transformModule(mod).setPos(mod)
     S.Program(symMods).setPos(p)
 
   /**
-    * 
     * @param mod
     * @param Context
     * @return
@@ -36,34 +34,43 @@ object Transformer {
     S.ModuleDef(symName, symDefs, symExpr)
 
   /**
-    * 
     * @param tt
     * @param inModule
     * @param core.Context
     * @return
     */
-  def transformType(tt: N.TypeTree, inModule: String)(using Context): S.TypeTree = {
+  def transformType(tt: N.TypeTree, inModule: String)(using
+      Context
+  ): S.TypeTree = {
     tt match
       case N.FunctionTypeTree(params, rte) =>
-        S.FunctionTypeTree(params.map(transformType(_, inModule)), transformType(rte, inModule))
+        S.FunctionTypeTree(
+          params.map(transformType(_, inModule)),
+          transformType(rte, inModule)
+        )
       case N.ClassTypeTree(N.QualifiedName(None, name)) =>
         name match
-          case "Unit" => S.ClassTypeTree(stdDef.UnitType)
+          case "Unit"    => S.ClassTypeTree(stdDef.UnitType)
           case "Boolean" => S.ClassTypeTree(stdDef.BooleanType)
-          case "Int" => S.ClassTypeTree(stdDef.IntType)
-          case "String" => S.ClassTypeTree(stdDef.StringType)
+          case "Int"     => S.ClassTypeTree(stdDef.IntType)
+          case "String"  => S.ClassTypeTree(stdDef.StringType)
           case _ =>
-            symbols.getType(inModule, name) map S.ClassTypeTree.apply getOrElse {
+            symbols.getType(
+              inModule,
+              name
+            ) map S.ClassTypeTree.apply getOrElse {
               reporter.fatal(s"Could not find type $name", tt)
             }
-      case N.ClassTypeTree(qn@N.QualifiedName(pre, name)) =>
-        symbols.getType(pre getOrElse inModule, name) map S.ClassTypeTree.apply getOrElse{
+      case N.ClassTypeTree(qn @ N.QualifiedName(pre, name)) =>
+        symbols.getType(
+          pre getOrElse inModule,
+          name
+        ) map S.ClassTypeTree.apply getOrElse {
           reporter.fatal(s"Could not find type $qn", tt)
         }
   }
 
   /**
-    * 
     * @param fd
     * @param module
     * @param core.Context
@@ -74,7 +81,7 @@ object Transformer {
     val Some(sym) = symbols.getFunction(module, name)
 
     params.groupBy(_.name).foreach { case (name, ps) =>
-      if (ps.size > 1) {
+      if(ps.size > 1) {
         reporter.fatal(s"Two parameters named $name in function ${fd.name}", fd)
       }
     }
@@ -82,7 +89,7 @@ object Transformer {
     val paramNames = params.map(_.name)
 
     val newParams = params zip sym.asInstanceOf[FunctionSymbol].param map {
-      case (pd@N.ParamDef(name, tt), tpe) =>
+      case (pd @ N.ParamDef(name, tt), tpe) =>
         val s = LocalSymbol(Identifier.fresh(name))
         S.ParamDef(s, tpe.setPos(tt)).setPos(pd)
     }
@@ -98,18 +105,19 @@ object Transformer {
   }
 
   /**
-    * 
     * @param df
     * @param module
     * @param core.Context
     * @return
     */
-  def transformDef(df: N.ClassOrFunDef, module: String)(using Context): S.ClassOrFunDef = {
+  def transformDef(df: N.ClassOrFunDef, module: String)(using
+      Context
+  ): S.ClassOrFunDef = {
     df match {
       case N.AbstractClassDef(name) =>
         S.AbstractClassDef(symbols.getType(module, name).get)
       case N.CaseClassDef(name, _, _) =>
-        val Some(sym : ConstructorSymbol) = symbols.getConstructor(module, name)
+        val Some(sym: ConstructorSymbol) = symbols.getConstructor(module, name)
         S.CaseClassDef(sym, sym.param, sym.signature.parent)
       case fd: N.FunDef =>
         transformFunDef(fd, module)
@@ -117,23 +125,24 @@ object Transformer {
   }.setPos(df)
 
   /**
-    * 
     * @param expr
     * @param module
     * @param names
     * @param context
     * @return
     */
-  def transformExpr(expr: N.Expr)
-                   (implicit module: String, scope : Scope, context: Context): S.Expr = {
+  def transformExpr(
+      expr: N.Expr
+  )(implicit module: String, scope: Scope, context: Context): S.Expr = {
     val res = expr match {
       case N.Variable(name) =>
         scope.resolve(name) match
           case Some(id) => S.Variable(id)
-          case _ => reporter.fatal(s"Variable $name not found", expr)
+          case _        => reporter.fatal(s"Variable $name not found", expr)
       case N.FunRef(N.QualifiedName(module, name)) =>
         // TODO HR : get won't throw an exception; operation guaranteed to work
-        val sym = symbols.getFunction(module.get, name)
+        val sym = symbols
+          .getFunction(module.get, name)
           .getOrElse(reporter.fatal(s"Fix error message here"))
         S.FunRef(sym)
       case N.IntLiteral(value) =>
@@ -146,7 +155,9 @@ object Transformer {
         S.UnitLiteral()
       case N.InfixCall(lhs, op, rhs) =>
         // desugar infix calls to function calls
-        transformExpr(N.Call(N.QualifiedName(Some("<unnamed>"), op), lhs :: rhs :: Nil))
+        transformExpr(
+          N.Call(N.QualifiedName(Some("<unnamed>"), op), lhs :: rhs :: Nil)
+        )
       case N.Not(e) =>
         S.Not(transformExpr(e))
       case N.Neg(e) =>
@@ -155,21 +166,27 @@ object Transformer {
         val owner = qname.module.getOrElse(module)
         val name = qname.name
         val entry = scope.resolve(qname.name) orElse {
-            symbols.getConstructor(owner, name)
-          } orElse {
-            symbols.getFunction(owner, name)
-          }
+          symbols.getConstructor(owner, name)
+        } orElse {
+          symbols.getFunction(owner, name)
+        }
         entry match {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
           case Some(sym: FunctionSymbol) =>
-            if (sym.param.size != args.size) {
-              reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
+            if(sym.param.size != args.size) {
+              reporter.fatal(
+                s"Wrong number of arguments for function/constructor $qname",
+                expr
+              )
             }
             S.Call(sym, args.map(transformExpr(_)))
           case Some(sym: ConstructorSymbol) =>
-            if (sym.param.size != args.size) {
-              reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
+            if(sym.param.size != args.size) {
+              reporter.fatal(
+                s"Wrong number of arguments for function/constructor $qname",
+                expr
+              )
             }
             S.Call(sym, args.map(transformExpr(_)))
           case Some(sym: Symbol) =>
@@ -180,11 +197,14 @@ object Transformer {
       case N.Sequence(e1, e2) =>
         S.Sequence(transformExpr(e1), transformExpr(e2))
       case N.Let(vd, value, body) =>
-        if (scope.isLocal(vd.name)) {
+        if(scope.isLocal(vd.name)) {
           reporter.fatal(s"Variable redefinition: ${vd.name}", vd)
         }
-        if (scope.isParam(vd.name)) {
-          reporter.warning(s"Local variable ${vd.name} shadows function parameter", vd)
+        if(scope.isParam(vd.name)) {
+          reporter.warning(
+            s"Local variable ${vd.name} shadows function parameter",
+            vd
+          )
         }
         val sym = LocalSymbol(Identifier.fresh(vd.name))
         val tpe = transformType(vd.tt, module)
@@ -199,7 +219,10 @@ object Transformer {
         def transformCase(cse: N.MatchCase) = {
           val N.MatchCase(pat, rhs) = cse
           val (newPat, caseScope) = transformPattern(pat)
-          S.MatchCase(newPat, transformExpr(rhs)(module, caseScope, ctx).setPos(rhs)).setPos(cse)
+          S.MatchCase(
+            newPat,
+            transformExpr(rhs)(module, caseScope, ctx).setPos(rhs)
+          ).setPos(cse)
         }
 
         def transformPattern(pat: N.Pattern): (S.Pattern, Scope) = {
@@ -207,41 +230,55 @@ object Transformer {
             case N.WildcardPattern() =>
               (S.WildcardPattern(), scope)
             case N.IdPattern(name) =>
-              if (scope.isLocal(name)) {
+              if(scope.isLocal(name)) {
                 reporter.fatal(s"Pattern identifier $name already defined", pat)
               }
-              if (scope.isParam(name)) {
+              if(scope.isParam(name)) {
                 reporter.warning("Suspicious shadowing by an Id Pattern", pat)
               }
               symbols.getConstructor(module, name) match {
-                case Some(sym : ConstructorSymbol) if sym.param.isEmpty =>
-                  reporter.warning(s"There is a nullary constructor in this module called '$name'. Did you mean '$name()'?", pat)
+                case Some(sym: ConstructorSymbol) if sym.param.isEmpty =>
+                  reporter.warning(
+                    s"There is a nullary constructor in this module called '$name'. Did you mean '$name()'?",
+                    pat
+                  )
                 case _ =>
               }
               val sym = LocalSymbol(Identifier.fresh(name))
               (S.IdPattern(sym), scope.withLocal(name, sym))
             case N.LiteralPattern(lit) =>
-              (S.LiteralPattern(transformExpr(lit).asInstanceOf[S.Literal[_]]), scope)
+              (
+                S.LiteralPattern(transformExpr(lit).asInstanceOf[S.Literal[_]]),
+                scope
+              )
             case N.CaseClassPattern(constr, args) =>
               val sym = symbols
                 .getConstructor(constr.module.getOrElse(module), constr.name)
                 .getOrElse {
                   reporter.fatal(s"Constructor $constr not found", pat)
                 }
-              if (sym.signature.argTypes.size != args.size) {
-                reporter.fatal(s"Wrong number of args for constructor $constr", pat)
+              if(sym.signature.argTypes.size != args.size) {
+                reporter.fatal(
+                  s"Wrong number of args for constructor $constr",
+                  pat
+                )
               }
               val (newPatts, moreLocals0) = (args map transformPattern).unzip
               val moreLocals = if moreLocals0.nonEmpty then
                 // TODO HR : This check here should be refactored (inefficient)
-                moreLocals0.toSet.flatMap(_.locals.map(identity)).groupBy(_._1).foreach { case (name, pairs) =>
-                  if (pairs.size > 1) {
-                    reporter.fatal(s"Multiple definitions of $name in pattern", pat)
+                moreLocals0.toSet
+                  .flatMap(_.locals.map(identity))
+                  .groupBy(_._1)
+                  .foreach { case (name, pairs) =>
+                    if(pairs.size > 1) {
+                      reporter.fatal(
+                        s"Multiple definitions of $name in pattern",
+                        pat
+                      )
+                    }
                   }
-                }
                 moreLocals0.reduce(Scope.combine)
-              else
-                scope
+              else scope
               (S.CaseClassPattern(sym, newPatts), moreLocals)
           }
           (newPat.setPos(pat), newScope)
@@ -253,13 +290,13 @@ object Transformer {
       case N.UseStatement(qn) =>
         qn match
           case N.QualifiedName(None, nme) => ???
-            // TODO : Resolve here to a module name
+          // TODO : Resolve here to a module name
           case N.QualifiedName(Some(mod), nme) =>
             // Resolve here to a module declaration
             // Either an abstract class, a case class or a function
-            val abs_class  = symbols.getType(mod, nme)
+            val abs_class = symbols.getType(mod, nme)
             val case_class = symbols.getConstructor(mod, nme)
-            val fn         = symbols.getFunction(mod, nme)
+            val fn = symbols.getFunction(mod, nme)
             // TODO HR : Add some checks here for unicity
             S.UseStatement(fn.get)
     }

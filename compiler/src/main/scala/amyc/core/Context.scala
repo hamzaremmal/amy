@@ -11,38 +11,38 @@ import scala.collection.mutable
 import scala.collection.mutable.HashMap
 
 // Contains a reporter and configuration for the compiler
-case class Context private (reporter: Reporter){
+case class Context private (reporter: Reporter):
 
-  val tv : mutable.HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
+  val tv: mutable.HashMap[Type, Type] = mutable.HashMap.empty[Type, Type]
 
   // Store Scopes of each module
-  private val _scopes : mutable.HashMap[Symbol, Scope] = mutable.HashMap.empty
+  private val _scopes: mutable.HashMap[Symbol, Scope] = mutable.HashMap.empty
 
-  private var _symtable : Option[SymbolTable] = None
-  private var _pipeline : String = compiletime.uninitialized
+  private var _symtable: Option[SymbolTable] = None
+  private var _pipeline: String = compiletime.uninitialized
 
   // TODO HR : Should be removed from Context
-  def tpe(tree : TypeTree) : Type =
+  def tpe(tree: TypeTree): Type =
     tree match
       case ClassTypeTree(id) => ClassType(id.id)
-      case TTypeTree(tpe) => tpe
+      case TTypeTree(tpe)    => tpe
       case FunctionTypeTree(args, rte) =>
         Identifier.fresh(s"(${args.map(tpe).mkString(";")}:${tpe(rte)})")
         FunctionType(args.map(tpe), tpe(rte))
-
 
   // ==============================================================================================
   // =================================== SYMBOL MANAGEMENT ========================================
   // ==============================================================================================
   def symbols: SymbolTable =
-    _symtable.getOrElse{
-        reporter.fatal(s"Cannot access the symbol table before the NameAnalyzer")
+    _symtable.getOrElse {
+      reporter.fatal(s"Cannot access the symbol table before the NameAnalyzer")
     }
 
   def withSymTable(table: SymbolTable): Unit =
     _symtable match
       case None if phase == NameAnalyzer.name => _symtable = Some(table)
-      case _ => reporter.fatal(s"Cannot change the symbol table in a compiler Run")
+      case _ =>
+        reporter.fatal(s"Cannot change the symbol table in a compiler Run")
 
   // ==============================================================================================
   // ===================================== PHASE MANAGEMENT =======================================
@@ -51,7 +51,7 @@ case class Context private (reporter: Reporter){
   def atPhase(pipeline: Pipeline[_, _]): Unit =
     _pipeline = pipeline.name
 
-  def phase : String =
+  def phase: String =
     _pipeline
 
   // ==============================================================================================
@@ -64,18 +64,15 @@ case class Context private (reporter: Reporter){
     * @param scope
     * @return
     */
-  def withScope(id: Symbol, scope : Scope = EmptyScope) =
+  def withScope(id: Symbol, scope: Scope = EmptyScope) =
     _scopes.put(id, scope)
 
   /* TODO : This method is unsafe, fix it */
-  def scope(id: Symbol) : Scope =
+  def scope(id: Symbol): Scope =
     _scopes(id)
 
-}
-
-object Context {
+object Context:
 
   def inFreshContext[A](body: Context ?=> A): A =
-    given ctx : Context = new Context(new Reporter)
+    given ctx: Context = new Context(new Reporter)
     body
-}
