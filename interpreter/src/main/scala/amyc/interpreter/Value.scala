@@ -1,8 +1,10 @@
 package amyc.interpreter
 
-import amyc.ast.SymbolicTreeModule.Expr
 import amyc.*
-import amyc.core.{Context, Identifier}
+import amyc.core.Context
+import amyc.core.Symbols.*
+import amyc.ast.SymbolicTreeModule.Expr
+import amyc.interpreter.builtin.BuiltinModule
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
@@ -27,7 +29,7 @@ abstract class Value {
 
   override def toString: String = this match {
     case IntValue(i) => i.toString
-    case b:BooleanValue => b.toString
+    case b:BooleanValue => b.b.toString
     case StringValue(s) => s
     case UnitValue => "()"
     case CaseClassValue(constructor, args) =>
@@ -106,8 +108,8 @@ case class StringValue(s: String) extends Value {
 
 case object UnitValue extends Value
 
-case class CaseClassValue(constructor: Identifier, args: List[Value]) extends Value
+case class CaseClassValue(constructor: Symbol, args: List[Value]) extends Value
 
-case class FunctionValue(args: List[Identifier], body: Expr) extends Value
+case class FunctionValue(args: List[Symbol], body: Expr) extends Value
 
-case class BuiltInFunctionValue(fn: BuiltIns.BuiltInFunction) extends Value
+case class BuiltInFunctionValue(fn: BuiltinModule.BuiltInFunction) extends Value

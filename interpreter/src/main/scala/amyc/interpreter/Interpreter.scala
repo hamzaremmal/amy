@@ -2,57 +2,53 @@ package amyc.interpreter
 
 import amyc.*
 import amyc.utils.*
+import amyc.core.Context
+import amyc.core.StdDefinitions.*
+import amyc.core.Symbols.*
 import amyc.core.Signatures.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.SymbolTable
-import amyc.core.{Context, Identifier, StdNames}
-import amyc.core.StdNames.*
 import amyc.interpreter.*
 import amyc.interpreter.Value.*
-import amyc.interpreter.BuiltIns.builtIns
-
+import amyc.interpreter.builtin.{BuiltIns, BuiltinModule}
+import amyc.interpreter.builtin.BuiltIns.builtIns
 
 import scala.collection.mutable
 
 // An interpreter for Amy programs, implemented in Scala
-object Interpreter extends Pipeline[Program, Unit] {
+object Interpreter extends Pipeline[Program, Unit] :
 
   override val name = "Interpreter"
 
-  override def run(program: Program)(using Context): Unit = {
-    for {
+  override def run(program: Program)(using Context): Unit =
+    for
       m <- program.modules
       e <- m.optExpr
-    } do
+    do
       interpret(e, program)(Map.empty, ctx)
-  }
 
-  def findFunctionOwner(functionName: Identifier)(using Context) =
-    symbols.getFunction(functionName).getOrElse{
-      reporter.fatal(s"Function $functionName not found")
-    }.owner.name
-
-  def findFunction(program: Program, owner: String, name: String) = {
-    program.modules.find(_.name.name == owner).get.defs.collectFirst {
-      case fd@FunDef(fn, _, _, _) if fn.name == name => fd
+  // TODO HR : Remove this function in favour of a runtime environment
+  def findFunction(program: Program, fn : FunctionSymbol) =
+    program.modules.find(_.name == fn.owner).get.defs.collectFirst {
+      case fd@FunDef(_fn, _, _, _) if _fn == fn => fd
     }
-  }
 
   // Interprets a function, using evaluations for local variables contained in 'locals'
   // TODO HR: We will have to remove `program` as a parameter of this function
-  def interpret(expr: Expr, program: Program)(implicit locals: Map[Identifier, Value], ctx: Context): Value = {
+  // TODO HR : Remove locals in favour of a runtime environment
+  def interpret(expr: Expr, program: Program)(implicit locals: Map[Symbol, Value], ctx: Context): Value = {
+    val c = stdDef
     expr match {
       case Variable(name) =>
         locals.get(name) match
           case Some(value) => value
           case None =>
-            ctx.reporter.fatal(s"variable '$name' is not in scope or defined")
-      case FunRef(ref) =>
-        val owner = findFunctionOwner(ref)
-        builtIns.get(owner, ref.name) map {
+            reporter.fatal(s"variable '$name' is not in scope or defined")
+      case FunRef(ref : FunctionSymbol) =>
+        builtIns.get(ref) map {
           BuiltInFunctionValue
         } orElse {
-          findFunction(program, owner, ref.name) map { fd =>
+          findFunction(program, ref) map { fd =>
             FunctionValue(fd.params.map(_.name), fd.body)
           }
         } getOrElse {
@@ -62,46 +58,42 @@ object Interpreter extends Pipeline[Program, Unit] {
       case BooleanLiteral(b) => BooleanValue(b)
       case StringLiteral(s) => StringValue(s)
       case UnitLiteral() => UnitValue
-      case InfixCall(lhs, StdNames.+, rhs) =>
-        interpret(lhs, program) + interpret(rhs, program)
-      case InfixCall(lhs, StdNames.-, rhs) =>
-        interpret(lhs, program) - interpret(rhs, program)
-      case InfixCall(lhs, StdNames.*, rhs) =>
-        interpret(lhs, program) * interpret(rhs, program)
-      case InfixCall(lhs, StdNames./, rhs) =>
-        interpret(lhs, program) / interpret(rhs, program)
-      case InfixCall(lhs, StdNames.%, rhs) =>
-        interpret(lhs, program) % interpret(rhs, program)
-      case InfixCall(lhs, StdNames.<, rhs) =>
-        interpret(lhs, program) < interpret(rhs, program)
-      case InfixCall(lhs, StdNames.<=, rhs) =>
-        interpret(lhs, program) <= interpret(rhs, program)
-      case InfixCall(lhs, StdNames.&&, rhs) =>
-        interpret(lhs, program) && interpret(rhs, program)
-      case InfixCall(lhs, StdNames.||, rhs) =>
-        interpret(lhs, program) || interpret(rhs, program)
-      case InfixCall(lhs, StdNames.eq_==, rhs) =>
-        interpret(lhs, program) == interpret(rhs, program)
-      case InfixCall(lhs, StdNames.++ ,rhs) =>
-        interpret(lhs, program) ++ interpret(rhs, program)
+      case Call(c.binop_+, args) =>
+        interpret(args(0), program) + interpret(args(1), program)
+      case Call(c.binop_-, args) =>
+        interpret(args(0), program) - interpret(args(1), program)
+      case Call(c.binop_*, args) =>
+        interpret(args(0), program) * interpret(args(1), program)
+      case Call(c.binop_/, args) =>
+        interpret(args(0), program) / interpret(args(1), program)
+      case Call(c.binop_%, args) =>
+        interpret(args(0), program) % interpret(args(1), program)
+      case Call(c.binop_<, args) =>
+        interpret(args(0), program) < interpret(args(1), program)
+      case Call(c.binop_<=, args) =>
+        interpret(args(0), program) <= interpret(args(1), program)
+      case Call(c.binop_&&, args) =>
+        interpret(args(0), program) && interpret(args(1), program)
+      case Call(c.binop_||, args) =>
+        interpret(args(0), program) || interpret(args(1), program)
+      case Call(c.binop_==, args) =>
+        interpret(args(0), program) == interpret(args(1), program)
+      case Call(c.binop_++ ,args) =>
+        interpret(args(0), program) ++ interpret(args(1), program)
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot interpret operator $op")
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
-      case Call(qname, args) =>
-        val fn = symbols.getConstructor(qname) orElse {
-          locals.get(qname)
+      case Call(qname : ConstructorSymbol, args) =>
+        CaseClassValue(qname, args.map(interpret(_, program)))
+      case Call(qname : FunctionSymbol, args) =>
+        val fn = locals.get(qname) orElse {
+          builtIns.get(qname)
         } orElse {
-          val owner = findFunctionOwner(qname)
-          builtIns.get((owner, qname.name))
-        } orElse {
-          val owner = findFunctionOwner(qname)
-          findFunction(program, owner, qname.name)
+          findFunction(program, qname)
         }
         fn match
-          case Some(ConstrSig(_, _, _)) =>
-            CaseClassValue(qname, args.map(interpret(_, program)))
-          case Some(f: BuiltIns.BuiltInFunction) =>
+          case Some(f: BuiltinModule.BuiltInFunction) =>
             f(args.map(interpret(_, program)))
           case Some(BuiltInFunctionValue(f)) =>
             f(args.map(interpret(_, program)))
@@ -128,7 +120,7 @@ object Interpreter extends Pipeline[Program, Unit] {
           interpret(elze, program)
       case Match(scrut, cases) =>
         val evS = interpret(scrut, program)
-        def matchesPattern(v: Value, pat: Pattern): Option[List[(Identifier, Value)]] = {
+        def matchesPattern(v: Value, pat: Pattern): Option[List[(Symbol, Value)]] = {
           ((v, pat): @unchecked) match {
             case (_, WildcardPattern()) =>
               Some(Nil)
@@ -147,7 +139,7 @@ object Interpreter extends Pipeline[Program, Unit] {
                 None
               else
                 val zipped_parameters = realArgs zip formalArgs
-                var locals: List[(Identifier, Value)] = Nil
+                var locals: List[(Symbol, Value)] = Nil
                 for match_case <- zipped_parameters do
                   matchesPattern(match_case._1, match_case._2) match
                     case None =>
@@ -172,10 +164,3 @@ object Interpreter extends Pipeline[Program, Unit] {
         ctx.reporter.fatal(interpret(msg, program).asString)
     }
   }
-
-  def loadFunctions(mod: ModuleDef) =
-    val fn = for FunDef(name, param, _, body) <- mod.defs yield
-        (name, FunctionValue(param.map(_.name), body))
-    fn.toMap
-
-}

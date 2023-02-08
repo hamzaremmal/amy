@@ -1,9 +1,10 @@
 package amyc.backend.wasm.builtin
 
+import amyc.core.StdDefinitions.*
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.utils.Utils.error
 import amyc.{ctx, symbols}
-import amyc.core.{Context, StdNames}
+import amyc.core.Context
 import amyc.ast.SymbolicTreeModule.{ClassTypeTree, StringLiteral}
 
 
@@ -21,7 +22,7 @@ object unnamed extends BuiltInModule {
     symbols.addFunction(owner,
       "null",
       Nil,
-      ClassTypeTree(StdNames.IStringType)
+      ClassTypeTree(stdDef.StringType)
     )
 
   // Pointer to a null function

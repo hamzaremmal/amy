@@ -3,6 +3,9 @@ package analyzer
 
 import amyc.*
 import amyc.core.*
+import amyc.core.Types.*
+import amyc.core.StdDefinitions.*
+import amyc.core.StdTypes.*
 import amyc.utils.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 import amyc.analyzer.Transformer.*
@@ -18,8 +21,9 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
   override val name = "NameAnalyzer"
   override def run(p: N.Program)(using Context): S.Program = {
 
-    // Step 0: Initialize symbol table
+    // Step 0: Initialize symbol table and register module "<unnamed>"
     ctx.withSymTable(new SymbolTable)
+    registerUnnamed
 
     // Step 1: Add modules
     registerModules(p)
@@ -99,8 +103,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     */
   def registerTypes(mod: N.ModuleDef)(using Context) =
      for N.AbstractClassDef(name) <- mod.defs do
-       val id = symbols.addType(mod.name, name)
-       ctx._types += (id -> ClassType(id))
+       symbols.addType(mod.name, name)
 
   /**
     *
@@ -113,5 +116,27 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       if (defs.size > 1) {
          reporter.fatal(s"Two definitions named $name in module ${mod.name}", defs.head)
       }
+
+  private def registerUnnamed(using Context) =
+    val modName = "<unnamed>"
+    // register module
+    ctx.withScope(symbols.addModule(modName))
+    // register types
+    symbols.addType(modName, "Int")
+    symbols.addType(modName, "Boolean")
+    symbols.addType(modName, "Unit")
+    symbols.addType(modName, "String")
+    // register bin op
+    symbols.addInfixFunction(modName, "+",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "-",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "*",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "/",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "%",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
+    symbols.addInfixFunction(modName, "<",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
+    symbols.addInfixFunction(modName, "<=", List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
+    symbols.addInfixFunction(modName, "&&", List(S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
+    symbols.addInfixFunction(modName, "||", List(S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
+    symbols.addInfixFunction(modName, "==", List(S.TTypeTree(NoType), S.TTypeTree(NoType)), S.TTypeTree(NoType)) // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
+    symbols.addInfixFunction(modName, "++", List(S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType), S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)), S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType))
 
 }
