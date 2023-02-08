@@ -69,14 +69,6 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
       }
     }
 
-  lazy val primTypeToken : P =
-    word("Int") | word("Boolean") | word("String") | word("Unit")
-    |> { (cs, range) =>
-      withPosition(range._1) {
-        PrimTypeToken(cs.mkString)
-      }
-    }
-
   // Boolean literals,
   lazy val boolLitToken : P =
     word("true") | word("false")
@@ -181,7 +173,6 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
 
   lazy val lexer : L = Lexer(
     keywords,
-    primTypeToken,
     boolLitToken,
     operators,
     identifiers,
