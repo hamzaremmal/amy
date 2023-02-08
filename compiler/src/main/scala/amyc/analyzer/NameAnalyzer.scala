@@ -29,24 +29,24 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     registerModules(p)
 
     // Step 2: Check name uniqueness in modules
-    for mod <- p.modules do
-      checkModuleConsistency(mod)
+    for mod <- p.modules do checkModuleConsistency(mod)
 
     // Step 3: Discover types
-    for mod <- p.modules do
-      registerTypes(mod)
+    for mod <- p.modules do registerTypes(mod)
 
     // Step 4: Discover type constructors
-    for m <- p.modules do
-      registerConstructors(m)
+    for m <- p.modules do registerConstructors(m)
 
     // Step 5: Discover functions signatures.
-    for m <- p.modules do
-      registerFunctions(m)
+    for m <- p.modules do registerFunctions(m)
 
     // Step 6: We now know all definitions in the program.
     //         Reconstruct modules and analyse function bodies/ expressions
     transformProgram(p)
+
+    // TODO HR : Use statements in the tree are not necessary for here
+    // TODO HR : Drop them from the tree makes it easier to implement
+    // TODO HR : (no need to worry about type checking or code generation)
 
   }
 
@@ -55,7 +55,6 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
   // ==============================================================================================
 
   /**
-    *
     * @param mod
     * @param Context
     */
@@ -66,12 +65,11 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       symbols.addFunction(mod.name, name, argTypes, retType2)
 
   /**
-    *
     * @param mod
     * @param Context
     */
   def registerConstructors(mod: N.ModuleDef)(using Context) =
-    for cc@N.CaseClassDef(name, fields, parent) <- mod.defs do
+    for cc @ N.CaseClassDef(name, fields, parent) <- mod.defs do
       val argTypes = fields map (tt => transformType(tt, mod.name))
       val retType = symbols.getType(mod.name, parent).getOrElse {
         reporter.fatal(s"Parent class $parent not found", cc)
@@ -79,38 +77,40 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       symbols.addConstructor(mod.name, name, argTypes, retType)
 
   /**
-    *
     * @param prog
     * @param Context
     */
   def registerModules(prog: N.Program)(using Context) =
     val modNames = prog.modules.groupBy(_.name)
-    for (name, modules) <- modNames do
+    for(name, modules) <- modNames do
       if modules.size > 1 then
-        reporter.fatal(s"Two modules named $name in program", modules.head.position)
+        reporter.fatal(
+          s"Two modules named $name in program",
+          modules.head.position
+        )
     for mod <- modNames.keys.toList do
       val id = symbols.addModule(mod)
       ctx.withScope(id)
 
   /**
-    *
     * @param mod
     * @param Context
     */
   def registerTypes(mod: N.ModuleDef)(using Context) =
-     for N.AbstractClassDef(name) <- mod.defs do
-       symbols.addType(mod.name, name)
+    for N.AbstractClassDef(name) <- mod.defs do symbols.addType(mod.name, name)
 
   /**
-    *
     * @param mod
     * @param Context
     */
   def checkModuleConsistency(mod: N.ModuleDef)(using Context) =
-     val names = mod.defs.groupBy(_.name)
-     for (name, defs) <- names do
-      if (defs.size > 1) {
-         reporter.fatal(s"Two definitions named $name in module ${mod.name}", defs.head)
+    val names = mod.defs.groupBy(_.name)
+    for(name, defs) <- names do
+      if(defs.size > 1) {
+        reporter.fatal(
+          s"Two definitions named $name in module ${mod.name}",
+          defs.head
+        )
       }
 
   private def registerUnnamed(using Context) =
@@ -123,16 +123,101 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     symbols.addType(modName, "Unit")
     symbols.addType(modName, "String")
     // register bin op
-    symbols.addInfixFunction(modName, "+",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
-    symbols.addInfixFunction(modName, "-",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
-    symbols.addInfixFunction(modName, "*",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
-    symbols.addInfixFunction(modName, "/",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
-    symbols.addInfixFunction(modName, "%",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType))
-    symbols.addInfixFunction(modName, "<",  List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
-    symbols.addInfixFunction(modName, "<=", List(S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType), S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
-    symbols.addInfixFunction(modName, "&&", List(S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
-    symbols.addInfixFunction(modName, "||", List(S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)), S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType))
-    symbols.addInfixFunction(modName, "==", List(S.TTypeTree(NoType), S.TTypeTree(NoType)), S.TTypeTree(NoType)) // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
-    symbols.addInfixFunction(modName, "++", List(S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType), S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)), S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType))
+    symbols.addInfixFunction(
+      modName,
+      "+",
+      List(
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+      ),
+      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "-",
+      List(
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+      ),
+      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "*",
+      List(
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+      ),
+      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "/",
+      List(
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+      ),
+      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "%",
+      List(
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+      ),
+      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "<",
+      List(
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+      ),
+      S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "<=",
+      List(
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
+        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
+      ),
+      S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "&&",
+      List(
+        S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType),
+        S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
+      ),
+      S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "||",
+      List(
+        S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType),
+        S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
+      ),
+      S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
+    )
+    symbols.addInfixFunction(
+      modName,
+      "==",
+      List(S.TTypeTree(NoType), S.TTypeTree(NoType)),
+      S.TTypeTree(NoType)
+    ) // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
+    symbols.addInfixFunction(
+      modName,
+      "++",
+      List(
+        S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType),
+        S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)
+      ),
+      S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)
+    )
 
 }

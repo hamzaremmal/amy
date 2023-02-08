@@ -8,12 +8,12 @@ import amyc.utils.{Positioned, UniqueCounter}
 /**
   * A polymorphic module containing definitions of Amy trees.
   *
-  * This trait represents either nominal trees (where names have not been resolved)
-  * or symbolic trees (where names/qualified names) have been resolved to unique identifiers.
-  * This is done by having two type fields within the module,
-  * which will be instantiated differently by the two different modules.
+  * This trait represents either nominal trees (where names have not been
+  * resolved) or symbolic trees (where names/qualified names) have been resolved
+  * to unique identifiers. This is done by having two type fields within the
+  * module, which will be instantiated differently by the two different modules.
   */
-trait TreeModule :
+trait TreeModule:
 
   /** Represents the type for the name for this tree module. */
   type Name
@@ -22,10 +22,10 @@ trait TreeModule :
   type QualifiedName
 
   /** Base type for all the AST nodes */
-  sealed trait Tree extends Positioned :
+  sealed trait Tree extends Positioned:
     private var tpe_ : Type = NoType
     def tpe: Type = tpe_
-    final def withType(tpe: Type) : this.type =
+    final def withType(tpe: Type): this.type =
       tpe_ = tpe
       this
 
@@ -37,15 +37,25 @@ trait TreeModule :
   // ==============================================================================================
 
   /** TODO */
-  sealed trait Definition extends Tree :
+  sealed trait Definition extends Tree:
     val name: Name
 
-  case class ModuleDef(name: Name, defs: List[ClassOrFunDef], optExpr: Option[Expr]) extends Definition
+  case class ModuleDef(
+      name: Name,
+      defs: List[ClassOrFunDef],
+      optExpr: Option[Expr]
+  ) extends Definition
   trait ClassOrFunDef extends Definition
-  case class FunDef(name: Name, params: List[ParamDef], retType: TypeTree, body: Expr) extends ClassOrFunDef :
+  case class FunDef(
+      name: Name,
+      params: List[ParamDef],
+      retType: TypeTree,
+      body: Expr
+  ) extends ClassOrFunDef:
     def paramNames = params.map(_.name)
   case class AbstractClassDef(name: Name) extends ClassOrFunDef
-  case class CaseClassDef(name: Name, fields: List[TypeTree], parent: Name) extends ClassOrFunDef
+  case class CaseClassDef(name: Name, fields: List[TypeTree], parent: Name)
+      extends ClassOrFunDef
   case class ParamDef(name: Name, tt: TypeTree) extends Definition
 
   // ==============================================================================================
@@ -69,8 +79,8 @@ trait TreeModule :
   case class UnitLiteral() extends Literal(())
 
   /**
-    * Represents an Infix call to a function
-    * For now, we only use it for operators.
+    * Represents an Infix call to a function For now, we only use it for
+    * operators.
     *
     * It should be desugared to a Call(op, List(lhs, rhs))
     */
@@ -81,11 +91,13 @@ trait TreeModule :
 
   /** Represents a !(expr) */
   case class Not(e: Expr) extends Expr
+
   /** Represents a -(expr) */
   case class Neg(e: Expr) extends Expr
 
   /** The ; operator */
   case class Sequence(e1: Expr, e2: Expr) extends Expr
+
   /** Local variable definition */
   case class Let(df: ParamDef, value: Expr, body: Expr) extends Expr
 
@@ -112,7 +124,8 @@ trait TreeModule :
   case class WildcardPattern() extends Pattern // _
   case class IdPattern(name: Name) extends Pattern // x
   case class LiteralPattern[+T](lit: Literal[T]) extends Pattern // 42, true
-  case class CaseClassPattern(constr: QualifiedName, args: List[Pattern]) extends Pattern // C(arg1, arg2)
+  case class CaseClassPattern(constr: QualifiedName, args: List[Pattern])
+      extends Pattern // C(arg1, arg2)
 
   // ==============================================================================================
   // ======================================== TYPES ===============================================
@@ -124,7 +137,10 @@ trait TreeModule :
   /** Represent a ClassType such as O.Option or String */
   case class ClassTypeTree(qname: QualifiedName) extends TypeTree
 
+  case class UseStatement(use: QualifiedName) extends Expr
+
   case class TTypeTree(override val tpe: Type) extends TypeTree
 
   /** Represents a FunctionType such as (String) => String */
-  case class FunctionTypeTree(args: List[TypeTree], rte: TypeTree) extends TypeTree
+  case class FunctionTypeTree(args: List[TypeTree], rte: TypeTree)
+      extends TypeTree

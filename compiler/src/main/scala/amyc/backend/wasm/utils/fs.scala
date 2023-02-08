@@ -6,7 +6,7 @@ import amyc.core.Context
 import java.io.File
 
 // Interface with the file system
-object fs {
+object fs:
 
   val outDirName = "wasmout"
 
@@ -17,14 +17,11 @@ object fs {
   val html_ext: Extension = "html"
   val js_ext: Extension = "js"
 
-  def pathWithExt(module: Module, ext: Extension) = s"$outDirName/${nameWithExt(module, ext)}"
+  def pathWithExt(module: Module, ext: Extension) =
+    s"$outDirName/${nameWithExt(module, ext)}"
 
   def nameWithExt(module: Module, ext: Extension) = s"${module.name}.$ext"
 
   def mkOutputDirectory(using Context): Unit =
     val outDir = new File(outDirName)
-    if (!outDir.exists()) {
-      outDir.mkdir()
-    }
-
-}
+    if !outDir.exists() then outDir.mkdir()

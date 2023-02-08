@@ -77,6 +77,7 @@ object TypeAssigner extends Pipeline[Program, Program]{
       case t: IdPattern => assignIdPattern(t)
       case t: LiteralPattern[_] => assignLiteralPattern(t)
       case t: CaseClassPattern => assignCaseClassPattern(t)
+      case u: UseStatement => assignUseStatement(u)
       case p: Program => assignProgram(p)
       case m: ModuleDef => assignModule(m)
       case fn: FunDef => assignFunctionDefinition(fn)
@@ -174,6 +175,9 @@ object TypeAssigner extends Pipeline[Program, Program]{
     val LiteralPattern(lit) = expr
     assign(lit)
     infer(expr)
+
+  def assignUseStatement(stat: UseStatement)(using Context) =
+    stat
 
   def assignCaseClassPattern(expr: CaseClassPattern)(using Context) =
     val CaseClassPattern(_, patterns) = expr

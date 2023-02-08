@@ -11,11 +11,11 @@ object Instructions {
 
   sealed abstract class Instruction:
     @targetName("concat")
-    def <:>(i: Instruction): Code = (this, i) match
+    def <:> (i: Instruction): Code = (this, i) match
       case (Code(rhs), Code(lhs)) => Code(rhs ::: lhs)
-      case (Code(rhs), _) => Code(rhs :+ i)
-      case (_, Code(lhs)) => Code(this +: lhs)
-      case _ => Code(this :: i :: Nil)
+      case (Code(rhs), _)         => Code(rhs :+ i)
+      case (_, Code(lhs))         => Code(this +: lhs)
+      case _                      => Code(this :: i :: Nil)
 
   // Represents a sequence of instructions
   case class Code(instructions: List[Instruction]) extends Instruction
@@ -27,16 +27,17 @@ object Instructions {
   // =================== Useful implicit conversions to construct Code objects ====================
   // ==============================================================================================
 
-  implicit def is2c(is: List[Instruction]): Code = is.foldRight(Code(Nil))(_ <:> _)
+  implicit def is2c(is: List[Instruction]): Code =
+    is.foldRight(Code(Nil))(_ <:> _)
   implicit def cs2c(cs: List[Code]): Code = cs.foldRight(Code(Nil))(_ <:> _)
   implicit def i2c(i: Instruction): Code = i match
-    case c:Code => c
-    case _ => Code(List(i))
+    case c: Code => c
+    case _       => Code(List(i))
 
   // id
   opaque type id = String
   // TODO HR : Should check for allowed characters (https://webassembly.github.io/spec/core/text/values.html#text-id)
-  implicit def id(str: String) : id = s"$$$str"
+  implicit def id(str: String): id = s"$$$str"
 
   // ==============================================================================================
   // ============================= ??? ============================================================
@@ -44,9 +45,11 @@ object Instructions {
 
   // Control instructions
   @deprecated
-  case class Loop(label: String)  extends Instruction // A block of instructions with a label at the beginning
+  case class Loop(label: String)
+      extends Instruction // A block of instructions with a label at the beginning
   @deprecated
-  case class Block(label: String) extends Instruction // A block of instructions with a label at the end
+  case class Block(label: String)
+      extends Instruction // A block of instructions with a label at the end
 
   // ==============================================================================================
   //
@@ -79,7 +82,6 @@ object Instructions {
 
   object elem:
     case class drop(x: elemidx) extends Instruction
-
 
   /**
     * https://webassembly.github.io/spec/core/text/instructions.html#reference-instructions
@@ -134,12 +136,15 @@ object Instructions {
   // =================================== BLOCK INSTRUCTIONS =========================================
   // ================================================================================================
 
-  case class `if`(label: Option[id] = None, blocktype: Option[result] = None) extends Instruction
+  case class `if`(label: Option[id] = None, blocktype: Option[result] = None)
+      extends Instruction
   case class `else`(l: Option[id] = None) extends Instruction
 
   /**
-    * For Numeric Instructions : https://webassembly.github.io/spec/core/text/instructions.html#numeric-instructions
-    * For Memory Instructions : https://webassembly.github.io/spec/core/text/instructions.html#memory-instructions
+    * For Numeric Instructions :
+    * https://webassembly.github.io/spec/core/text/instructions.html#numeric-instructions
+    * For Memory Instructions :
+    * https://webassembly.github.io/spec/core/text/instructions.html#memory-instructions
     */
   case object i32 extends numtype:
     // === NUMERIC INSTRUCTIONS ===

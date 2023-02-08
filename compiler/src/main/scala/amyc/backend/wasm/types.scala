@@ -6,7 +6,7 @@ import amyc.backend.wasm.indices.typeidx
   * https://webassembly.github.io/spec/core/syntax/types.html
   */
 
-object types :
+object types:
   abstract class WasmType
 
   sealed abstract class valtype extends WasmType

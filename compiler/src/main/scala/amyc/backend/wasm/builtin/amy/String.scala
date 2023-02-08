@@ -9,14 +9,16 @@ import amyc.core.StdDefinitions.*
 import amyc.core.Context
 import amyc.symbols
 
-object String extends BuiltInModule {
+object String extends BuiltInModule:
 
   override val owner = "String"
 
   override lazy val onLoad: Context ?=> Unit = {
     // TODO HR : This patch should be remove when introducing native functions and this method should
     // TODO HR : Should be registered as a native method instead of adding it here
-    symbols.addModule("String") // This garanties not to fail since String is considered as a Keyword
+    symbols.addModule(
+      "String"
+    ) // This garanties not to fail since String is considered as a Keyword
     symbols.addFunction(
       "String",
       "concat",
@@ -25,7 +27,7 @@ object String extends BuiltInModule {
     )
   }
 
-  lazy val concat : BuiltIn =
+  lazy val concat: BuiltIn =
     builtInForSym("concat") {
       val ptrS = lh.getFreshLocal
       val ptrD = lh.getFreshLocal
@@ -67,16 +69,23 @@ object String extends BuiltInModule {
         //
         Loop(label) <:>
         // Write 0
-        local.get(ptrD) <:> i32.const(0) <:> i32.store8 <:>
+        local.get(ptrD) <:>
+        i32.const(0) <:>
+        i32.store8 <:>
         // Check if multiple of 4
-        local.get(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
+        local.get(ptrD) <:>
+        i32.const(4) <:>
+        i32.rem_s <:>
         // If not
         `if`() <:>
         // Increment pointer and go back
         incr(ptrD) <:>
-        br(label) <:> `else`() <:> end <:> end <:>
-        // Put string pointer to stack, set new memory boundary and return
-        global.get(memoryBoundary) <:> local.get(ptrD) <:> i32.const(1) <:> i32.add <:> global.set(memoryBoundary)
+        br(label) <:>
+        `else`() <:> end <:> end <:>
+      // Put string pointer to stack, set new memory boundary and return
+      global.get(memoryBoundary) <:>
+        local.get(ptrD) <:>
+        i32.const(1) <:>
+        i32.add <:>
+        global.set(memoryBoundary)
     }
-
-}

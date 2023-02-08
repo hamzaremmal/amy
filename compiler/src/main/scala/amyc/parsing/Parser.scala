@@ -284,7 +284,17 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
     }
   }
 
-  lazy val ifOrBinary: Syntax[Expr] = ifExpression | binaryExpression
+  lazy val ifOrBinary: Syntax[Expr] = ifExpression | binaryExpression | useStatement
+
+  lazy val useStatement : Syntax[Expr] =
+    (use ~>~  qualifiedName) map {
+      case qn: QualifiedName =>
+        UseStatement(qn)
+      case nme: Name =>
+        UseStatement(QualifiedName(None, nme))
+      case _ : FunRef =>
+        throw AmycFatalError("funref not allowed")
+    }
 
   lazy val binaryExpression: Syntax[Expr] =
     operators(termExpression)(

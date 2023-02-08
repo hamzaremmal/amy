@@ -2,7 +2,7 @@ package amyc.backend.wasm.wrapper
 
 import amyc.backend.wasm.Module
 
-object HTMLWrapper {
+object HTMLWrapper :
 
   def apply(moduleFile: String, module: Module): String =
     s"""|<!doctype html>
@@ -104,5 +104,3 @@ object HTMLWrapper {
        |  }
        |};
        |""".stripMargin
-
-}
