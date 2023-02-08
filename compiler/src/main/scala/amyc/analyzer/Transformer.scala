@@ -261,7 +261,7 @@ object Transformer {
             val case_class = symbols.getConstructor(mod, nme)
             val fn         = symbols.getFunction(mod, nme)
             // TODO HR : Add some checks here for unicity
-            S.UseStatement(fn.get._1)
+            S.UseStatement(fn.get)
     }
     res.setPos(expr)
   }
