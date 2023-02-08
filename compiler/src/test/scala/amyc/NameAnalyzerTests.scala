@@ -31,12 +31,12 @@ class NameAnalyzerTests extends TestSuite {
 
   @Test def testClasses = shouldOutput(List("Classes", "String"), "Classes")
   @Test def testConstructorVsIdPattern = shouldOutput(List("ConstructorVsIdPattern", "String"), "ConstructorVsIdPattern")
-  @Test def testDefOrder = shouldOutput("DefOrder")
-  @Test def testDuplicateClassParams = shouldOutput("DuplicateClassParams")
+  @Test def testDefOrder = shouldOutput(List("DefOrder", "String"), "DefOrder")
+  @Test def testDuplicateClassParams = shouldOutput(List("DuplicateClassParams", "String"), "DuplicateClassParams")
   @Test def testNotDuplicateLocals1 = shouldOutput(List("NotDuplicateLocals1", "String"), "NotDuplicateLocals1")
   @Test def testNotDuplicateLocals2 = shouldOutput(List("NotDuplicateLocals2", "String"), "NotDuplicateLocals2")
-  @Test def testParamAndLocal = shouldOutput("ParamAndLocal")
-  @Test def testRecursive = shouldOutput("Recursive")
+  @Test def testParamAndLocal = shouldOutput(List("ParamAndLocal", "String"), "ParamAndLocal")
+  @Test def testRecursive = shouldOutput(List("Recursive", "String"), "Recursive")
   @Test def testList = shouldOutput(List("List", "Std", "Option", "String"), "List")
   @Test def matchShadowParameter = shouldOutput(List("MatchShadowParameter", "String"), "MatchShadowParameter")
 
