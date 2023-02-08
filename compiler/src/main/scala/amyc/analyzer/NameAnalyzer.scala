@@ -22,9 +22,8 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
   override val name = "NameAnalyzer"
   override def run(p: N.Program)(using Context): S.Program = {
 
-    // Step 0: Initialize symbol table and register module "<unnamed>"
+    // Step 0: Initialize symbol table
     ctx.withSymTable(new SymbolTable)
-    registerUnnamed
 
     // Step 1: Add modules
     registerModules(p)
@@ -34,6 +33,8 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
 
     // Step 3: Discover types
     for mod <- p.modules do registerTypes(mod)
+    // Uses String type, we need it to be registered first
+    registerUnnamed
 
     // Step 4: Discover type constructors
     for m <- p.modules do registerConstructors(m)
@@ -118,7 +119,6 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     symbols.addType(modName, "Int")
     symbols.addType(modName, "Boolean")
     symbols.addType(modName, "Unit")
-    symbols.addType(modName, "String")
     //
     symbols.addFunction(
       owner,

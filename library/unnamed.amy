@@ -6,7 +6,6 @@ module <unnamed>
     // All builtin types
     abstract class Boolean
     abstract class Int
-    abstract class String
     abstract class Unit
 
     // All builtin operators
