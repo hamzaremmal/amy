@@ -29,10 +29,15 @@ class StdDefinitions(using Context) :
   lazy val Std_intToString   : FS = function(StdModule, "intToString")
   lazy val Std_digitToString : FS = function(StdModule, "digitToString")
 
+  // ---------------- String.amy ----------------
+
+  lazy val StringModule      : MS = module("String")
+
+  lazy val StringType        : TS = `type`(StringModule, "String")
+
   // ----------------- unnamed ------------------
   lazy val UnnamedModule     : MS = module("<unnamed>")
 
-  lazy val StringType        : TS = `type`(UnnamedModule, "String")
   lazy val UnitType          : TS = `type`(UnnamedModule, "Unit")
   lazy val IntType           : TS = `type`(UnnamedModule, "Int")
   lazy val BooleanType       : TS = `type`(UnnamedModule, "Boolean")

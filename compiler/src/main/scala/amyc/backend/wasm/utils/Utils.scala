@@ -58,7 +58,8 @@ object Utils {
     "Std_printString",
     "Std_digitToString",
     "Std_readInt",
-    "Std_readString"
+    "Std_readString",
+    "String_concat"
   )
 
   /** Utilities */

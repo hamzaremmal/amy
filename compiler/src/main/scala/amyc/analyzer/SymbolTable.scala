@@ -121,4 +121,5 @@ class SymbolTable :
       reporter.fatal(s"Definition of type $name in module $module is missing")
     }
 
-  def constructor(module: ModuleSymbol, name: String)(using Context): ConstructorSymbol = constructor(module.name, name)
+  def constructor(module: ModuleSymbol, name: String)(using Context): ConstructorSymbol = 
+    constructor(module.name, name)

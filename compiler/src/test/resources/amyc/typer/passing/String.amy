@@ -1,0 +1,12 @@
+module String
+
+    abstract class String
+
+    fn concat(lhs: String, rhs: String): String = {
+        error("Stub implementation")
+    }
+
+    // ALIAS FOR CONCAT
+    //fn ++ (lhs : String, rhs : String) : String
+
+end String

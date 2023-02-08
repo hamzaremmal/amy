@@ -261,4 +261,9 @@ module O_0
     }
   }
 end O_0
-
+module String_1
+  abstract class String_0
+  fn concat_1(lhs_0: String_0, rhs_0: String_0): String_0 = {
+    error("Stub implementation")
+  }
+end String_1
