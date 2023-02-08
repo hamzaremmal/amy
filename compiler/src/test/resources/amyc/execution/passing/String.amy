@@ -1,0 +1,7 @@
+module String
+
+    fn concat(lhs: String, rhs: String): String = {
+        error("Stub implementation")
+    }
+
+end String

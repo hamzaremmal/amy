@@ -13,18 +13,6 @@ object String extends BuiltInModule {
 
   override val owner = "String"
 
-  override lazy val onLoad: Context ?=> Unit = {
-    // TODO HR : This patch should be remove when introducing native functions and this method should
-    // TODO HR : Should be registered as a native method instead of adding it here
-    symbols.addModule("String") // This garanties not to fail since String is considered as a Keyword
-    symbols.addFunction(
-      "String",
-      "concat",
-      List.fill(2)(ClassTypeTree(stdDef.StringType)),
-      ClassTypeTree(stdDef.IntType)
-    )
-  }
-
   lazy val concat : BuiltIn =
     builtInForSym("concat") {
       val ptrS = lh.getFreshLocal
