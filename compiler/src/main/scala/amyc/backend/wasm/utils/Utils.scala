@@ -64,7 +64,7 @@ object Utils {
 
   /** Utilities */
   // A globally unique name for definitions
-  def fullName(owner: Identifier, df: Symbol): String = owner.name + "_" + df.name
+  def fullName(owner: Symbol, df: Symbol): String = owner.name + "_" + df.name
 
   // A fresh label name
   def getFreshLabel(name: String = "label") = {

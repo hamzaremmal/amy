@@ -5,6 +5,7 @@ import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.utils.Utils.error
 import amyc.{ctx, symbols}
 import amyc.core.Context
+import amyc.core.Symbols.*
 import amyc.ast.SymbolicTreeModule.{ClassTypeTree, StringLiteral}
 
 /**
@@ -12,11 +13,11 @@ import amyc.ast.SymbolicTreeModule.{ClassTypeTree, StringLiteral}
   */
 object unnamed extends BuiltInModule {
 
-  override val owner = "<unnamed>"
+  override lazy val owner : Context ?=> Symbol = stdDef.UnnamedModule
 
   // Pointer to a null function
   lazy val null_fn: BuiltIn =
-    builtInForSym("null") {
+    builtInForSymbol("null") {
       error(cgExpr(StringLiteral("Null function")))
     }
 

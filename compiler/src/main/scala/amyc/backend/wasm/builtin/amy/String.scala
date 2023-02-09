@@ -1,20 +1,21 @@
 package amyc.backend.wasm.builtin.amy
 
+import amyc.symbols
 import amyc.ast.SymbolicTreeModule.ClassTypeTree
+import amyc.core.Symbols.*
+import amyc.core.StdDefinitions.*
+import amyc.core.Context
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.Utils.{getFreshLabel, incr, memoryBoundary}
 import amyc.backend.wasm.utils.lh
-import amyc.core.StdDefinitions.*
-import amyc.core.Context
-import amyc.symbols
 
 object String extends BuiltInModule {
 
-  override val owner = "String"
+  override lazy val owner: Context ?=> Symbol = stdDef.StringModule
 
   lazy val concat : BuiltIn =
-    builtInForSym("concat") {
+    builtInForSymbol("concat") {
       val ptrS = lh.getFreshLocal
       val ptrD = lh.getFreshLocal
 

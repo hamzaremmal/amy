@@ -18,7 +18,6 @@ import amyc.backend.wasm.builtin.unnamed.null_fn
 import amyc.backend.wasm.types.{result, typeuse}
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 
-// TODO HR: Generate all wasm related files here
 object WASMCodeGenerator extends Pipeline[Program, Module]{
 
   override val name: String = "WASMCodeGenerator"
@@ -45,22 +44,22 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     val ModuleDef(name, defs, optExpr) = moduleDef
     // Generate code for all functions
     defs.collect {
-      case fd: FunDef if !builtInFunctions(fullName(name.id, fd.name)) =>
-        cgFunction(fd, name.id, false)
+      case fd: FunDef if !builtInFunctions(fullName(name, fd.name)) =>
+        cgFunction(fd, name, false)
     } ++
       // Generate code for the "main" function, which contains the module expression
       optExpr.toList.map { expr =>
         val mainFd = FunDef(FunctionSymbol(Identifier.fresh("main"), name.asInstanceOf), Nil, ClassTypeTree(stdDef.IntType), expr)
-        cgFunction(mainFd, name.id, true)
+        cgFunction(mainFd, name, true)
       }
   }
 
   // Generate code for a function in module 'owner'
-  def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): Function = {
+  def cgFunction(fd: FunDef, owner: Symbol, isMain: Boolean)(using Context): Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
     val sig = symbols.getFunction(owner.name, fd.name.name).map(_.signature.idx).getOrElse(0)
-    Function(fd, owner, isMain, sig) {
+    Function.forDefinition(fd, owner, isMain, sig) {
       val body = cgExpr(fd.body)
       withComment(fd.toString) {
         if isMain then
@@ -166,7 +165,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         args.map(cgExpr) <:> {
         lh(qname.id) match
           case -1 =>
-            call(fullName(qname.asInstanceOf[FunctionSymbol].owner.id, qname))
+            call(fullName(qname.asInstanceOf[FunctionSymbol].owner, qname))
           case idx =>
             local.get(idx) <:>
             call_indirect(typeuse(mkFunTypeName(args.size)))

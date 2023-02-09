@@ -6,7 +6,8 @@ import amyc.backend.wasm.utils.{LocalsHandler, lh}
 import amyc.backend.wasm.utils.Utils.*
 import amyc.core.{Context, Identifier}
 import amyc.ast.SymbolicTreeModule.FunDef
-import amyc.backend.wasm.types.{local, param}
+import amyc.backend.wasm.types.param
+import amyc.core.Symbols.*
 import amyc.symbols
 
 import scala.annotation.constructorOnly
@@ -32,7 +33,19 @@ case class Function private (name: String, params: List[param], locals: Int, cod
 
 object Function {
 
-  def apply(fd: FunDef, owner: Identifier, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
+  def forSymbol(sym: FunctionSymbol, isMain: Boolean)(code: LocalsHandler ?=> Code): Function =
+    given LocalsHandler = new LocalsHandler(sym.param.length, textmode = false)
+    val instructions = code
+    new Function(
+      fullName(sym.owner, sym),
+      sym.param.map(_ => param(None, i32)),
+      lh.locals,
+      instructions,
+      sym.idx,
+      isMain
+    )
+
+  def forDefinition(fd: FunDef, owner: Symbol, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
     given LocalsHandler = new LocalsHandler(fd.params.map(_.name.id), textmode = false)
     // Make code first, as it may increment the locals in lh
     val code = codeGen
@@ -44,12 +57,6 @@ object Function {
       idx,
       isMain
     )
-
-  def apply(name: String, args: Int, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
-    given lh: LocalsHandler = new LocalsHandler(args, false)
-    // Make code first, as it may increment the locals in lh
-    val code = codeGen
-    new Function(name, List.fill(lh.params)(param(None, i32)), lh.locals, code, idx, isMain)
 
 }
 

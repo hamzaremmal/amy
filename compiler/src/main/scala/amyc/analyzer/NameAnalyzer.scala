@@ -121,7 +121,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     symbols.addType(modName, "Unit")
     //
     symbols.addFunction(
-      owner,
+      modName,
       "null",
       Nil,
       S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)
