@@ -46,7 +46,7 @@ object Function {
     )
 
   def forDefinition(fd: FunDef, owner: Symbol, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
-    given LocalsHandler = new LocalsHandler(fd.params.map(_.name.id), textmode = false)
+    given LocalsHandler = new LocalsHandler(fd.params.map(_.name), textmode = false)
     // Make code first, as it may increment the locals in lh
     val code = codeGen
     new Function(

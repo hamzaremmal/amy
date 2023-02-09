@@ -78,7 +78,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def cgExpr(expr: Expr)(using LocalsHandler, Context): Code = {
     expr match {
       case Variable(name) =>
-        local.get(lh(name.id))
+        local.get(lh(name))
       case FunRef(ref : FunctionSymbol) => i32.const(ref.idx)
       case IntLiteral(i) => i32.const(i)
       case BooleanLiteral(b) => mkBoolean(b)
@@ -102,7 +102,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
             cgExpr(e2)
           }
       case Let(pdf, value, body) =>
-        val idx = lh.getFreshLocal(pdf.name.id)
+        val idx = lh.getFreshLocal(pdf.name)
         withComment(expr.toString) {
           setLocal(cgExpr(value), idx) <:>
             cgExpr(body)
@@ -163,7 +163,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(call(id(String.concat.name)))
       else
         args.map(cgExpr) <:> {
-        lh(qname.id) match
+        lh(qname) match
           case -1 =>
             call(fullName(qname.asInstanceOf[FunctionSymbol].owner, qname))
           case idx =>
@@ -235,7 +235,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def genIdPattern(id: Name)
                   (using LocalsHandler)
                   (using Context) =
-    val idLocal = lh.getFreshLocal(id.id)
+    val idLocal = lh.getFreshLocal(id)
     // HR : We return true as this pattern will be executed if encountered
     local.set(idLocal) <:> mkBoolean(true)
 
