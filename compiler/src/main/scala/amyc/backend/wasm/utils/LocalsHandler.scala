@@ -22,10 +22,7 @@ final class LocalsHandler (val params : Int, textmode : Boolean = false) :
     // Register all the arguments in the
     for arg <- args do getFreshLocal(arg)
 
-  def apply(id: Symbol)(using Context): localidx =
-  //locals_.getOrElse(id, {
-  //  reporter.fatal(s"Cannot find $id in the LocalsHandler")
-  //})
+  def fetch(id: Symbol)(using Context): localidx =
     locals_(id)
 
   def getFreshLocal(i: Symbol): localidx =
