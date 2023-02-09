@@ -4,7 +4,7 @@ import amyc.*
 import amyc.core.Context
 import amyc.utils.*
 import Instructions.*
-import amyc.backend.wasm.types.{result, typeuse}
+import amyc.backend.wasm.types.{result, typeuse, param}
 import amyc.backend.wasm.utils.Utils
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
@@ -32,6 +32,9 @@ object ModulePrinter {
       header :: elem
     }
 
+  def mkParam(p: param): Document =
+    p.id.map(id => s"(param $id ${p.tpe})").getOrElse(s"(param ${p.tpe})")
+
   def mkResult(res: result): Document =
     s"(result ${res.tpe})"
 
@@ -51,13 +54,7 @@ object ModulePrinter {
     val name = fh.name
     val isMain = fh.isMain
     val exportDoc: Document = if (isMain) s"""(export "$name" (func $$$name))""" else ""
-    val paramsDoc: Document = if (fh.args == 0) "" else {
-      Lined(List(
-        "(param ",
-        Lined(List.fill(fh.args)(Raw("i32")), " "),
-        ") "
-      ))
-    }
+    val paramsDoc: Document = Lined(fh.params.map(mkParam), " ")
     val resultDoc: Document = if (isMain) "" else "(result i32) "
     val localsDoc: Document =
       if (fh.locals > 0)

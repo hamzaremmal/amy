@@ -1,12 +1,13 @@
 package amyc.backend.wasm
 
+import amyc.backend.wasm.Instructions.id
 import amyc.backend.wasm.indices.typeidx
 
 /**
   * https://webassembly.github.io/spec/core/syntax/types.html
   */
 
-object types :
+object types:
   abstract class WasmType
 
   sealed abstract class valtype extends WasmType
@@ -15,5 +16,6 @@ object types :
   abstract class vectype extends valtype
   abstract class reftype extends valtype
 
+  case class param(id: Option[id], tpe: valtype)
   case class result(tpe: valtype)
   case class typeuse(x: typeidx)
