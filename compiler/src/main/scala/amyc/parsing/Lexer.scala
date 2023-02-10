@@ -87,11 +87,8 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
   lazy val identifiers: P =
     (elem(_.isUnicodeIdentifierStart) ~ many(elem(_.isUnicodeIdentifierPart))) |
       (oneOf("+-*%!<&|") ~ many(oneOf("=+-*/%!<&|"))) |
-      (oneOf("+-*/%!<&|") ~ many(
-        oneOf("=+-%!<&|")
-      )) | // Not allowing tokens such as // and /*
-      word("==") |
-      oneOf("+-!")
+      (oneOf("+-*/%!<&|") ~ many(oneOf("=+-%!<&|"))) | // Not allowing tokens such as // and /*
+      word("==") | oneOf("+-!")
       |> { (cs, range) =>
         withPosition(range._1) {
           cs.mkString match

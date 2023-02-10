@@ -48,34 +48,34 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ====================================== OPERATORS =============================================
   // ==============================================================================================
 
-  lazy val l0_op: Syntax[String] = accept(IdentifierKind("[^*/%+-:<>=!&^a-zA-Z$_].*".r)) {
+  lazy val l0_op: Syntax[String] = accept(IdentifierKind("^[^*/%+\\-:<>=!&|^a-zA-Z$_].*$".r)) {
     case IdentifierToken(value) => value
   }
-  lazy val l1_op : Syntax[String] = accept(IdentifierKind("[*/%].*".r)){
+  lazy val l1_op : Syntax[String] = accept(IdentifierKind("^[*/%].*$".r)){
     case IdentifierToken(value) => value
   }
-  lazy val l2_op : Syntax[String] = accept(IdentifierKind("[+-].*".r)) {
+  lazy val l2_op : Syntax[String] = accept(IdentifierKind("^[+-].*$".r)) {
     case IdentifierToken(value) => value
   }
-  lazy val l3_op: Syntax[String] = accept(IdentifierKind("[:].*".r)) {
+  lazy val l3_op: Syntax[String] = accept(IdentifierKind("^:.*$".r)) {
     case IdentifierToken(value) => value
   }
-  lazy val l4_op: Syntax[String] = accept(IdentifierKind("[<>].*".r)) {
+  lazy val l4_op: Syntax[String] = accept(IdentifierKind("^[<>].*$".r)) {
     case IdentifierToken(value) => value
   }
-  lazy val l5_op: Syntax[String] = accept(IdentifierKind("[=!].*".r)) {
+  lazy val l5_op: Syntax[String] = accept(IdentifierKind("^[=!].*$".r)) {
     case IdentifierToken(value) => value
   }
-  lazy val l6_op: Syntax[String] = accept(IdentifierKind("[&].*".r)) {
+  lazy val l6_op: Syntax[String] = accept(IdentifierKind("^&.*$".r)) {
     case IdentifierToken(value) => value
   }
-  lazy val l7_op: Syntax[String] = accept(IdentifierKind("[|].*".r)) {
+  lazy val l7_op: Syntax[String] = accept(IdentifierKind("^\\|.*$".r)) {
     case IdentifierToken(value) => value
   }
-  lazy val l8_op: Syntax[String] = accept(IdentifierKind("[^^].*".r)) {
+  lazy val l8_op: Syntax[String] = accept(IdentifierKind("^\\^.*$".r)) {
     case IdentifierToken(value) => value
   }
-  lazy val l9_op: Syntax[String] = accept(IdentifierKind("[a-zA-Z$_].*".r)) {
+  lazy val l9_op: Syntax[String] = accept(IdentifierKind("^[a-zA-Z$_].*$".r)) {
     case IdentifierToken(value) => value
   }
 
@@ -306,8 +306,8 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
       l7_op is LeftAssociative,
       l8_op is LeftAssociative,
       l9_op is LeftAssociative,
-    ) { case (lhs, op, rhs) =>
-      InfixCall(lhs, op, rhs)
+    ) {
+      case (lhs, op, rhs) => InfixCall(lhs, op, rhs)
     }
 
   // ------------------------- Third Level expressions ------------------------------
