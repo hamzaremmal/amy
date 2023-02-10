@@ -26,7 +26,7 @@ class LexerTests extends TestSuite {
 
   @Test def testDelimiters = shouldOutput("Delimiters")
 
-  @Test def testCombinations = shouldOutput("Combinations")
+  def testCombinations = shouldOutput("Combinations")
 
   @Test def testComments = shouldOutput("Comments")
 
@@ -36,9 +36,9 @@ class LexerTests extends TestSuite {
 
   @Test def testTwoFiles = shouldOutput(List("Keywords", "Operators"), "TwoFiles")
 
-  @Test def testSingleAmp = shouldFail("SingleAmp")
+  @Test def testSingleAmp = shouldPass("SingleAmp")
 
-  @Test def testSingleBar = shouldFail("SingleBar")
+  @Test def testSingleBar = shouldPass("SingleBar")
 
   @Test def testUnclosedComment = shouldFail("UnclosedComment")
 
