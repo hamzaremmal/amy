@@ -298,7 +298,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
       // Defines the different operators, by decreasing priority.
       l0_op is LeftAssociative,
       l1_op is LeftAssociative,
-      l2_op is LeftAssociative,
+      l2_op | plus | minus is LeftAssociative,
       l3_op is LeftAssociative,
       l4_op is LeftAssociative,
       l5_op is LeftAssociative,
