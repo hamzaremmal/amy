@@ -1,3 +1,2 @@
-OperatorToken(*)(4:3)
-OperatorToken(/)(4:4)
+IdentifierToken(*/)(4:3)
 EOFToken()(4:5)

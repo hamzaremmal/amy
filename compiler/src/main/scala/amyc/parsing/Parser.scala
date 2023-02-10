@@ -34,13 +34,9 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   inline def inParenthesis[A](inline syntax: Syntax[A]): Syntax[A] =
     "(" ~>~ syntax ~<~ ")"
 
-  inline def op(string: String): Syntax[Token] = elem(OperatorKind(string))
-  implicit inline def kw(inline k: Keyword): Syntax[Token] = elem(
-    KeywordKind(k.toString)
-  )
-  implicit inline def delimiter(inline string: String): Syntax[Token] = elem(
-    DelimiterKind(string)
-  )
+  inline def op(string: String): Syntax[Token] = elem(IdentifierKind(string))
+  implicit inline def kw(inline k: Keyword): Syntax[Token] = elem(KeywordKind(k.toString))
+  implicit inline def delimiter(inline string: String): Syntax[Token] = elem(DelimiterKind(string))
 
   // ==============================================================================================
   // ========================================== EOF ===============================================
@@ -52,27 +48,40 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ====================================== OPERATORS =============================================
   // ==============================================================================================
 
-  // Rename operators to their names plus --> +
-  @targetName("plus") lazy val plus: Syntax[String] = op("+") map (_ => "+")
-  @targetName("minus") lazy val minus: Syntax[String] = op("-") map (_ => "-")
-  @targetName("times") lazy val times: Syntax[String] = op("*") map (_ => "*")
-  @targetName("div") lazy val div: Syntax[String] = op("/") map (_ => "/")
-  @targetName("not") lazy val not: Syntax[String] = op("!") map (_ => "!")
-  @targetName("mod") lazy val mod: Syntax[String] = op("%") map { _ => "%" }
-  @targetName("lessThan") lazy val lessThan: Syntax[String] = op("<") map { _ =>
-    "<"
+  lazy val l0_op: Syntax[String] = accept(IdentifierKind("^[^*/%+\\-:<>=!&|^a-zA-Z$_].*$".r)) {
+    case IdentifierToken(value) => value
   }
-  @targetName("lessThanEq") lazy val lessThanEq: Syntax[String] = op("<=") map {
-    _ => "<="
+  lazy val l1_op : Syntax[String] = accept(IdentifierKind("^[*/%].*$".r)){
+    case IdentifierToken(value) => value
   }
-  @targetName("and") lazy val and: Syntax[String] = op("&&") map { _ => "&&" }
-  @targetName("or") lazy val or: Syntax[String] = op("||") map { _ => "||" }
-  @targetName("equals") lazy val equals: Syntax[String] = op("==") map { _ =>
-    "=="
+  lazy val l2_op : Syntax[String] = accept(IdentifierKind("^[+-].*$".r)) {
+    case IdentifierToken(value) => value
   }
-  @targetName("concat") lazy val concat: Syntax[String] = op("++") map { _ =>
-    "++"
+  lazy val l3_op: Syntax[String] = accept(IdentifierKind("^:.*$".r)) {
+    case IdentifierToken(value) => value
   }
+  lazy val l4_op: Syntax[String] = accept(IdentifierKind("^[<>].*$".r)) {
+    case IdentifierToken(value) => value
+  }
+  lazy val l5_op: Syntax[String] = accept(IdentifierKind("^[=!].*$".r)) {
+    case IdentifierToken(value) => value
+  }
+  lazy val l6_op: Syntax[String] = accept(IdentifierKind("^&.*$".r)) {
+    case IdentifierToken(value) => value
+  }
+  lazy val l7_op: Syntax[String] = accept(IdentifierKind("^\\|.*$".r)) {
+    case IdentifierToken(value) => value
+  }
+  lazy val l8_op: Syntax[String] = accept(IdentifierKind("^\\^.*$".r)) {
+    case IdentifierToken(value) => value
+  }
+  lazy val l9_op: Syntax[String] = accept(IdentifierKind("^[a-zA-Z$_].*$".r)) {
+    case IdentifierToken(value) => value
+  }
+
+  @targetName("plus") lazy val plus: Syntax[String] = elem(OperatorKind("+")) map (_ => "+")
+  @targetName("minus") lazy val minus: Syntax[String] = elem(OperatorKind("-")) map (_ => "-")
+  @targetName("not") lazy val not: Syntax[String] = elem(OperatorKind("!")) map (_ => "!")
 
   // ==============================================================================================
   // ================================== TOP LEVEL - PROGRAM =======================================
@@ -98,9 +107,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
       `end` ~ identifier) map { case obj ~ id ~ defs ~ body ~ _ ~ id1 =>
       if id == id1 then ModuleDef(id, defs.toList, body).setPos(obj)
       else
-        throw AmycFatalError(
-          s"Begin and end module names do not match: $id and $id1"
-        )
+        throw AmycFatalError(s"Begin and end module names do not match: $id and $id1")
     }
 
   // ==============================================================================================
@@ -145,7 +152,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ==============================================================================================
 
   // An identifier.
-  val identifier: Syntax[String] = accept(IdentifierKind) {
+  val identifier: Syntax[String] = accept(IdentifierKind(".*".r)) {
     case IdentifierToken(name) => name
   }
   // A QualifiedName (identifier.identifier)
@@ -289,15 +296,18 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   lazy val binaryExpression: Syntax[Expr] =
     operators(termExpression)(
       // Defines the different operators, by decreasing priority.
-      times | div | mod is LeftAssociative,
-      plus | minus | concat is LeftAssociative,
-      lessThan is LeftAssociative,
-      lessThanEq is LeftAssociative,
-      equals is LeftAssociative,
-      and is LeftAssociative,
-      or is LeftAssociative
-    ) { case (lhs, op, rhs) =>
-      InfixCall(lhs, op, rhs)
+      l0_op is LeftAssociative,
+      l1_op is LeftAssociative,
+      l2_op | plus | minus is LeftAssociative,
+      l3_op is LeftAssociative,
+      l4_op is LeftAssociative,
+      l5_op is LeftAssociative,
+      l6_op is LeftAssociative,
+      l7_op is LeftAssociative,
+      l8_op is LeftAssociative,
+      l9_op is LeftAssociative,
+    ) {
+      case (lhs, op, rhs) => InfixCall(lhs, op, rhs)
     }
 
   // ------------------------- Third Level expressions ------------------------------

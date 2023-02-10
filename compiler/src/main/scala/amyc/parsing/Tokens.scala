@@ -3,6 +3,8 @@ package parsing
 
 import amyc.utils.Positioned
 
+import scala.util.matching.Regex
+
 sealed trait Token extends Positioned with Product:
   override def toString: String =
     s"$productPrefix${productIterator.mkString("(", ",", ")")}(${position.withoutFile})"
@@ -30,7 +32,17 @@ sealed abstract class TokenKind(representation: String):
 
 object TokenKinds {
   final case class KeywordKind(value: String) extends TokenKind(value)
-  case object IdentifierKind extends TokenKind("<Identifier>")
+  final case class IdentifierKind(value: String | Regex) extends TokenKind(value.toString):
+    // TODO HR : Find a better way to generate hashcode
+    override def hashCode: Int = 0
+
+    override def equals(obj: Any): Boolean =
+      (this, obj) match
+        case (IdentifierKind(s1: String), IdentifierKind(s2: String)) => s1 == s2
+        case (IdentifierKind(s: String), IdentifierKind(reg: Regex)) => reg matches s
+        case (IdentifierKind(reg: Regex), IdentifierKind(s: String)) => reg matches s
+        case _ => false
+
   case object LiteralKind extends TokenKind("<Literal>")
   final case class DelimiterKind(value: String) extends TokenKind(value)
   final case class OperatorKind(value: String) extends TokenKind(value)
@@ -44,12 +56,12 @@ object TokenKind:
 
   def of(token: Token): TokenKind =
     token match
-      case KeywordToken(value)   => KeywordKind(value)
-      case IdentifierToken(_)    => IdentifierKind
-      case BoolLitToken(_)       => LiteralKind
-      case IntLitToken(_)        => LiteralKind
-      case StringLitToken(_)     => LiteralKind
-      case DelimiterToken(value) => DelimiterKind(value)
-      case OperatorToken(value)  => OperatorKind(value)
-      case EOFToken()            => EOFKind
-      case _                     => NoKind
+      case KeywordToken(value)    => KeywordKind(value)
+      case IdentifierToken(value) => IdentifierKind(value)
+      case BoolLitToken(_)        => LiteralKind
+      case IntLitToken(_)         => LiteralKind
+      case StringLitToken(_)      => LiteralKind
+      case DelimiterToken(value)  => DelimiterKind(value)
+      case OperatorToken(value)   => OperatorKind(value)
+      case EOFToken()             => EOFKind
+      case _                      => NoKind
