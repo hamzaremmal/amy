@@ -34,14 +34,13 @@ object TokenKinds {
   final case class KeywordKind(value: String) extends TokenKind(value)
   final case class IdentifierKind(value: String | Regex) extends TokenKind(value.toString):
     // TODO HR : Find a better way to generate hashcode
-    override def hashCode(): Int = 0
+    override def hashCode: Int = 0
 
     override def equals(obj: Any): Boolean =
       (this, obj) match
         case (IdentifierKind(s1: String), IdentifierKind(s2: String)) => s1 == s2
         case (IdentifierKind(s: String), IdentifierKind(reg: Regex)) => reg matches s
         case (IdentifierKind(reg: Regex), IdentifierKind(s: String)) => reg matches s
-        case (IdentifierKind(_: Regex), IdentifierKind(_: Regex)) => ???
         case _ => false
 
   case object LiteralKind extends TokenKind("<Literal>")
