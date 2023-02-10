@@ -179,8 +179,8 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
 
   lazy val lexer: L = Lexer(
     keywords,
-    identifiers,
     boolLitToken,
+    identifiers,
     intLitToken,
     stringLitToken,
     delimiters,
