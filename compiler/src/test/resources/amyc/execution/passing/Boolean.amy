@@ -1,0 +1,3 @@
+module Boolean
+    abstract class Boolean
+end Boolean

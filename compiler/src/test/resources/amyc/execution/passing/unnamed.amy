@@ -1,0 +1,19 @@
+// Module that should be included every time
+// This is a draft of a module that should exist in the Context and every file should have access to it
+// This can be implemented after the `use`-statement feature
+module unnamed
+
+    // All builtin operators
+    fn + (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    fn - (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    fn * (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    fn / (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    fn % (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    fn < (lhs : Int, rhs : Int) : Boolean = { error("Stub Implementation") }
+    fn <= (lhs : Int, rhs : Int) : Boolean = { error("Stub Implementation") }
+    fn && (lhs : Boolean, rhs : Boolean) : Boolean = { error("Stub Implementation") }
+    fn || (lhs : Boolean, rhs : Boolean) : Boolean = { error("Stub Implementation") }
+    //fn == (lhs : Any, rhs : Any) : Boolean = { error("Stub Implementation") }
+    fn ++ (lhs : String, rhs : String) : String = { error("Stub Implementation") }
+
+end unnamed

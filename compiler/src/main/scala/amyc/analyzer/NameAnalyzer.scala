@@ -9,7 +9,6 @@ import amyc.core.StdTypes.*
 import amyc.utils.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 import amyc.analyzer.Transformer.*
-import amyc.core.Types.ClassType
 
 // Name analyzer for Amy
 // Takes a nominal program (names are plain string, qualified names are string pairs)

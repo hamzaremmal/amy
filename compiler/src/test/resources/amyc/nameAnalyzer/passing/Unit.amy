@@ -1,0 +1,3 @@
+module Unit
+    abstract class Unit
+end Unit
