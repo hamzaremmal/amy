@@ -80,7 +80,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
 
   // Operators, !
   lazy val operators : P =
-    oneOf("+-*/%!<") | word("&&") | word("||") | word("==") | word("++") | word("<=")
+    oneOf("+-!")
     |> { (cs, range) =>
       withPosition(range._1) {
         OperatorToken(cs.mkString)
@@ -88,8 +88,9 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
     }
 
   // Identifiers,
+  // TODO HR : Only accepts pairs or =
   lazy val identifiers : P =
-    elem(_.isUnicodeIdentifierStart) ~ many(elem(_.isUnicodeIdentifierPart))
+    (elem(_.isUnicodeIdentifierStart) ~ many(elem(_.isUnicodeIdentifierPart))) | many1(oneOf("+-*/%!<&|") | word("=="))
     |> { (cs, range) =>
       withPosition(range._1) {
         IdentifierToken(cs.mkString)

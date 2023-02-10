@@ -34,13 +34,9 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   inline def inParenthesis[A](inline syntax: Syntax[A]): Syntax[A] =
     "(" ~>~ syntax ~<~ ")"
 
-  inline def op(string: String): Syntax[Token] = elem(OperatorKind(string))
-  implicit inline def kw(inline k: Keyword): Syntax[Token] = elem(
-    KeywordKind(k.toString)
-  )
-  implicit inline def delimiter(inline string: String): Syntax[Token] = elem(
-    DelimiterKind(string)
-  )
+  inline def op(string: String): Syntax[Token] = elem(IdentifierKind(string))
+  implicit inline def kw(inline k: Keyword): Syntax[Token] = elem(KeywordKind(k.toString))
+  implicit inline def delimiter(inline string: String): Syntax[Token] = elem(DelimiterKind(string))
 
   // ==============================================================================================
   // ========================================== EOF ===============================================
@@ -53,11 +49,11 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ==============================================================================================
 
   // Rename operators to their names plus --> +
-  @targetName("plus") lazy val plus: Syntax[String] = op("+") map (_ => "+")
-  @targetName("minus") lazy val minus: Syntax[String] = op("-") map (_ => "-")
+  @targetName("plus") lazy val plus: Syntax[String] = elem(OperatorKind("+")) map (_ => "+")
+  @targetName("minus") lazy val minus: Syntax[String] = elem(OperatorKind("-")) map (_ => "-")
   @targetName("times") lazy val times: Syntax[String] = op("*") map (_ => "*")
   @targetName("div") lazy val div: Syntax[String] = op("/") map (_ => "/")
-  @targetName("not") lazy val not: Syntax[String] = op("!") map (_ => "!")
+  @targetName("not") lazy val not: Syntax[String] = elem(OperatorKind("!")) map (_ => "!")
   @targetName("mod") lazy val mod: Syntax[String] = op("%") map { _ => "%" }
   @targetName("lessThan") lazy val lessThan: Syntax[String] = op("<") map { _ =>
     "<"
@@ -98,9 +94,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
       `end` ~ identifier) map { case obj ~ id ~ defs ~ body ~ _ ~ id1 =>
       if id == id1 then ModuleDef(id, defs.toList, body).setPos(obj)
       else
-        throw AmycFatalError(
-          s"Begin and end module names do not match: $id and $id1"
-        )
+        throw AmycFatalError(s"Begin and end module names do not match: $id and $id1")
     }
 
   // ==============================================================================================
@@ -145,7 +139,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ==============================================================================================
 
   // An identifier.
-  val identifier: Syntax[String] = accept(IdentifierKind) {
+  val identifier: Syntax[String] = accept(IdentifierKind(".*".r)) {
     case IdentifierToken(name) => name
   }
   // A QualifiedName (identifier.identifier)
