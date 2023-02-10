@@ -140,7 +140,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   /**
     */
   lazy val funDef: Syntax[FunDef] =
-    (`fn` ~>~ identifier ~ inParenthesis(
+    (`fn` ~>~ (identifier | plus | minus | not) ~ inParenthesis(
       parameters
     ) ~<~ ":" ~ typeTree ~<~ "=" ~ inBrace(expr)) map {
       case funcName ~ params ~ tpe ~ expr =>
