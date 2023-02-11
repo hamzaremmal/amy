@@ -261,9 +261,50 @@ module O_0
     }
   }
 end O_0
+module Unit_1
+  abstract class Unit_0
+end Unit_1
+module Int_1
+  abstract class Int_0
+end Int_1
+module Boolean_1
+  abstract class Boolean_0
+end Boolean_1
+module unnamed_0
+  fn +_0(lhs_0: Int_0, rhs_0: Int_0): Int_0 = {
+    error("Stub Implementation")
+  }
+  fn -_0(lhs_1: Int_0, rhs_1: Int_0): Int_0 = {
+    error("Stub Implementation")
+  }
+  fn *_0(lhs_2: Int_0, rhs_2: Int_0): Int_0 = {
+    error("Stub Implementation")
+  }
+  fn /_0(lhs_3: Int_0, rhs_3: Int_0): Int_0 = {
+    error("Stub Implementation")
+  }
+  fn %_0(lhs_4: Int_0, rhs_4: Int_0): Int_0 = {
+    error("Stub Implementation")
+  }
+  fn <_0(lhs_5: Int_0, rhs_5: Int_0): Boolean_0 = {
+    error("Stub Implementation")
+  }
+  fn <=_0(lhs_6: Int_0, rhs_6: Int_0): Boolean_0 = {
+    error("Stub Implementation")
+  }
+  fn &&_0(lhs_7: Boolean_0, rhs_7: Boolean_0): Boolean_0 = {
+    error("Stub Implementation")
+  }
+  fn ||_0(lhs_8: Boolean_0, rhs_8: Boolean_0): Boolean_0 = {
+    error("Stub Implementation")
+  }
+  fn ++_0(lhs_9: String_0, rhs_9: String_0): String_0 = {
+    error("Stub Implementation")
+  }
+end unnamed_0
 module String_1
   abstract class String_0
-  fn concat_1(lhs_0: String_0, rhs_0: String_0): String_0 = {
+  fn concat_1(lhs_10: String_0, rhs_10: String_0): String_0 = {
     error("Stub implementation")
   }
 end String_1

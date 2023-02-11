@@ -29,16 +29,16 @@ class NameAnalyzerTests extends TestSuite {
   // ====================================== TESTS =================================================
   // ==============================================================================================
 
-  @Test def testClasses = shouldOutput(List("Classes", "String"), "Classes")
-  @Test def testConstructorVsIdPattern = shouldOutput(List("ConstructorVsIdPattern", "String"), "ConstructorVsIdPattern")
-  @Test def testDefOrder = shouldOutput(List("DefOrder", "String"), "DefOrder")
-  @Test def testDuplicateClassParams = shouldOutput(List("DuplicateClassParams", "String"), "DuplicateClassParams")
-  @Test def testNotDuplicateLocals1 = shouldOutput(List("NotDuplicateLocals1", "String"), "NotDuplicateLocals1")
-  @Test def testNotDuplicateLocals2 = shouldOutput(List("NotDuplicateLocals2", "String"), "NotDuplicateLocals2")
-  @Test def testParamAndLocal = shouldOutput(List("ParamAndLocal", "String"), "ParamAndLocal")
-  @Test def testRecursive = shouldOutput(List("Recursive", "String"), "Recursive")
-  @Test def testList = shouldOutput(List("List", "Std", "Option", "String"), "List")
-  @Test def matchShadowParameter = shouldOutput(List("MatchShadowParameter", "String"), "MatchShadowParameter")
+  @Test def testClasses = shouldOutput(List("Classes", "Unit", "Int", "Boolean","unnamed", "String"), "Classes")
+  @Test def testConstructorVsIdPattern = shouldOutput(List("ConstructorVsIdPattern", "Unit", "Int", "Boolean","unnamed", "String"), "ConstructorVsIdPattern")
+  @Test def testDefOrder = shouldOutput(List("DefOrder", "Unit", "Int", "Boolean","unnamed", "String"), "DefOrder")
+  @Test def testDuplicateClassParams = shouldOutput(List("DuplicateClassParams", "Unit", "Int", "Boolean","unnamed", "String"), "DuplicateClassParams")
+  @Test def testNotDuplicateLocals1 = shouldOutput(List("NotDuplicateLocals1", "Unit", "Int", "Boolean","unnamed", "String"), "NotDuplicateLocals1")
+  @Test def testNotDuplicateLocals2 = shouldOutput(List("NotDuplicateLocals2", "Unit", "Int", "Boolean","unnamed", "String"), "NotDuplicateLocals2")
+  @Test def testParamAndLocal = shouldOutput(List("ParamAndLocal", "Unit", "Int", "Boolean","unnamed", "String"), "ParamAndLocal")
+  @Test def testRecursive = shouldOutput(List("Recursive", "Unit", "Int", "Boolean","unnamed", "String"), "Recursive")
+  @Test def testList = shouldOutput(List("List", "Std", "Option", "Unit", "Int", "Boolean","unnamed", "String"), "List")
+  @Test def matchShadowParameter = shouldOutput(List("MatchShadowParameter", "Unit", "Int", "Boolean","unnamed", "String"), "MatchShadowParameter")
 
   @Test def testArgumentNumberFunction = shouldFail("ArgumentNumberFunction")
   @Test def testArgumentNumberConstructor = shouldFail("ArgumentNumberConstructor")

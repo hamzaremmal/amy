@@ -27,7 +27,9 @@ class SymbolTable :
   // ====================================== REGISTER METHODS ======================================
 
   /* register a new module */
-  def addModule(name: String): ModuleSymbol =
+  def addModule(name: String)(using Context): ModuleSymbol =
+    if modules.contains(name) then
+      reporter.fatal(s"module $name is already defined")
     val sym = ModuleSymbol(Identifier.fresh(name))
     modules += name -> sym
     sym

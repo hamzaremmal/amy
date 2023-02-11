@@ -9,8 +9,6 @@ import amyc.core.StdTypes.*
 import amyc.utils.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 import amyc.analyzer.Transformer.*
-import amyc.backend.wasm.builtin.unnamed.owner
-import amyc.core.Types.ClassType
 
 // Name analyzer for Amy
 // Takes a nominal program (names are plain string, qualified names are string pairs)
@@ -60,7 +58,10 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     for N.FunDef(name, params, retType1, _) <- mod.defs do
       val argTypes = params map (p => transformType(p.tt, mod.name))
       val retType2 = transformType(retType1, mod.name)
-      symbols.addFunction(mod.name, name, argTypes, retType2)
+      if mod.name == "unnamed" then
+        symbols.addInfixFunction(mod.name, name, argTypes, retType2)
+      else
+        symbols.addFunction(mod.name, name, argTypes, retType2)
 
   /**
     * @param mod
@@ -112,116 +113,13 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       }
 
   private def registerUnnamed(using Context) =
-    val modName = "<unnamed>"
-    // register module
-    ctx.withScope(symbols.addModule(modName))
-    // register types
-    symbols.addType(modName, "Int")
-    symbols.addType(modName, "Boolean")
-    symbols.addType(modName, "Unit")
-    //
-    symbols.addFunction(
-      owner,
-      "null",
-      Nil,
-      S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)
-    )
-    // register bin op
-    symbols.addInfixFunction(
-      modName,
-      "+",
-      List(
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-      ),
-      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-    )
-    symbols.addInfixFunction(
-      modName,
-      "-",
-      List(
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-      ),
-      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-    )
-    symbols.addInfixFunction(
-      modName,
-      "*",
-      List(
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-      ),
-      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-    )
-    symbols.addInfixFunction(
-      modName,
-      "/",
-      List(
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-      ),
-      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-    )
-    symbols.addInfixFunction(
-      modName,
-      "%",
-      List(
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-      ),
-      S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-    )
-    symbols.addInfixFunction(
-      modName,
-      "<",
-      List(
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-      ),
-      S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
-    )
-    symbols.addInfixFunction(
-      modName,
-      "<=",
-      List(
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType),
-        S.ClassTypeTree(stdDef.IntType).withType(stdType.IntType)
-      ),
-      S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
-    )
-    symbols.addInfixFunction(
-      modName,
-      "&&",
-      List(
-        S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType),
-        S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
-      ),
-      S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
-    )
-    symbols.addInfixFunction(
-      modName,
-      "||",
-      List(
-        S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType),
-        S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
-      ),
-      S.ClassTypeTree(stdDef.BooleanType).withType(stdType.BooleanType)
-    )
+    val modName = "unnamed"
+    symbols.addFunction(modName, "null", Nil, S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType))
+    // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
     symbols.addInfixFunction(
       modName,
       "==",
       List(S.TTypeTree(NoType), S.TTypeTree(NoType)),
       S.TTypeTree(NoType)
-    ) // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
-    symbols.addInfixFunction(
-      modName,
-      "++",
-      List(
-        S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType),
-        S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)
-      ),
-      S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType)
     )
-
 }

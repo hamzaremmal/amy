@@ -1,0 +1,3 @@
+module Int
+    abstract class Int
+end Int
