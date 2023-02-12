@@ -11,19 +11,18 @@ import amyc.core.StdDefinitions.*
 import amyc.utils.Pipeline
 import amyc.backend.wasm.*
 import amyc.backend.wasm.utils.*
-import amyc.backend.wasm.utils.Utils.*
 import amyc.backend.wasm.builtin.BuiltIn.*
-import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.Instructions.{i32, *}
 import amyc.backend.wasm.builtin.amy.*
 import unnamed.null_fn
 import amyc.backend.wasm.types.{result, typeuse}
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 
-object WASMCodeGenerator extends Pipeline[Program, Module]{
+object WASMCodeGenerator extends Pipeline[Program, Module] :
 
   override val name: String = "WASMCodeGenerator"
-
   override def run(program: Program)(using Context): Module =
+    given ModuleHandler = new ModuleHandler
     val fn = wasmFunctions ++ (program.modules flatMap cgModule)
     Module(
       program.modules.last.name.name,
@@ -33,15 +32,19 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       fn
     )
 
-  def cgTable(fn: List[Function])(using Context): Option[Table]=
+  // ==============================================================================================
+  // ===================================== TRANSFORMER ============================================
+  // ==============================================================================================
+
+  def cgTable(fn: List[Function])(using Context)(using ModuleHandler): Option[Table] =
     if fn.isEmpty then
       None
     else
-      val f = resolveOrder(fn.filterNot(_.result.isEmpty), null_fn)
-      Some(Table(f.size, f))
+      //val f = resolveOrder(fn.filterNot(_.result.isEmpty), null_fn)
+      Some(Table(0, Nil))
 
   // Generate code for an Amy module
-  private def cgModule(moduleDef: ModuleDef)(using Context): List[Function] = {
+  private def cgModule(moduleDef: ModuleDef)(using Context)(using ModuleHandler): List[Function] = {
     val ModuleDef(name, defs, optExpr) = moduleDef
     // Generate code for all functions
     defs.collect {
@@ -57,11 +60,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   }
 
   // Generate code for a function in module 'owner'
-  def cgFunction(fd: FunDef, owner: Symbol, result : Option[result])(using Context): Function = {
+  def cgFunction(fd: FunDef, owner: Symbol, result : Option[result])(using Context)(using ModuleHandler): Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
-    val sig = fd.name.asInstanceOf[FunctionSymbol].idx
-    Function.forDefinition(fd, owner, result, sig) {
+    Function.forDefinition(fd, owner, result) {
       val body = cgExpr(fd.body)
       withComment(fd.toString) {
         if result.isEmpty then
@@ -74,17 +76,14 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   }
 
     // Generate code for an expression expr.
-    // Additional arguments are a mapping from identifiers (parameters and variables) to
-    // their index in the wasm local variables, and a LocalsHandler which will generate
-    // fresh local slots as required.
-    def cgExpr(expr: Expr)(using LocalsHandler, Context): Code = {
+    def cgExpr(expr: Expr)(using Context)(using LocalsHandler): Code = {
       expr match {
         case Variable(name) =>
           val idx = lh.fetch(name)
           if idx == -1 then
             reporter.error(s"cannot find $name")
           local.get(idx)
-        case FunRef(ref: FunctionSymbol) => i32.const(ref.idx)
+        case FunRef(ref: FunctionSymbol) => i32.const(lh.function(ref))
         case IntLiteral(i) => i32.const(i)
         case BooleanLiteral(b) => mkBoolean(b)
         case StringLiteral(s) => mkString(s)
@@ -115,7 +114,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         case Ite(cond, thenn, elze) =>
           ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
         case Match(scrut, cases) =>
-          val l = lh.getFreshLocal
+          val l = lh(using ???).getFreshLocal
           setLocal(cgExpr(scrut), l) <:> {
             for
               c <- cases
@@ -135,7 +134,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
         case Error(msg) =>
           error(cgExpr(msg))
         case _ =>
-          ctx.reporter.fatal(s"Cannot generate wasm code for $expr", expr.position)
+          reporter.fatal(s"Cannot generate wasm code for $expr", expr.position)
       }
     }
 
@@ -143,7 +142,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     // ==================================== GENERATE APPLICATIONS ===================================
     // ==============================================================================================
 
-    def genFunctionCall(args: List[Expr], qname: Symbol)(using LocalsHandler, Context) =
+    def genFunctionCall(args: List[Expr], qname: Symbol)(using Context)(using LocalsHandler) =
       if qname == stdDef.binop_+ then
         mkBinOp(cgExpr(args.head), cgExpr(args(1)))(i32.add)
       else if qname == stdDef.binop_- then
@@ -165,10 +164,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
       else if qname == stdDef.binop_== then
         equ(cgExpr(args(0)), cgExpr(args(1)))
       else if qname == stdDef.binop_++ then
-        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(call(String.concat.name))
+        mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(call(String.concat(using ctx, lh.mh).name))
       else
         args.map(cgExpr) <:> {
-          lh.fetch(qname) match
+          lh(using ???).fetch(qname) match
             case -1 =>
               call(fullName(qname.asInstanceOf[FunctionSymbol].owner, qname))
             case idx =>
@@ -178,8 +177,8 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
 
 
 
-  def genConstructorCall(sym: ConstructorSymbol, args: List[Expr])(using LocalsHandler, Context) = {
-    val ConstrSig(_, _, index) = sym.signature
+  def genConstructorCall(sym: ConstructorSymbol, args: List[Expr])(using Context)(using LocalsHandler) = {
+    val index = lh.constructor(sym)
     val l = lh.getFreshLocal // ref to object, should contain the name
 
     global.get(memoryBoundary) <:>
@@ -207,85 +206,31 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   // Checks if a value matches a pattern.
   // Assumes value is on top of stack (and CONSUMES it)
   // Returns the code to check the value, and a map of bindings.
-  def matchAndBind(pat: Pattern)(using LocalsHandler, Context): Code = pat match {
-    case WildcardPattern() => genWildCardPattern
-    case IdPattern(id) => genIdPattern(id)
-    case LiteralPattern(lit) => genLiteralPattern(lit)
-    case CaseClassPattern(constr, args) => genCaseClassPattern(constr, args)
-    case _ => ???
-  }
-
-  /**
-    *
-    * @param locals
-    * @param lh
-    * @param table
-    * @param Context
-    * @return
-    */
-  def genWildCardPattern(using LocalsHandler)(using Context) =
-  // HR : We return true as this pattern will be executed if encountered
-    drop <:> mkBoolean(true)
-
-  /**
-    *
-    * @param id
-    * @param locals
-    * @param lh
-    * @param table
-    * @param Context
-    * @return
-    */
-  def genIdPattern(id: Name)(using LocalsHandler)(using Context) =
-    val idLocal = lh.getFreshLocal(id)
-    // HR : We return true as this pattern will be executed if encountered
-    local.set(idLocal) <:> mkBoolean(true)
-
-  /**
-    *
-    * @param lit
-    * @param locals
-    * @param lh
-    * @param table
-    * @param Context
-    * @return
-    */
-  def genLiteralPattern(lit: Literal[_])
-                       (using LocalsHandler)
-                       (using Context) =
-    cgExpr(lit) <:> i32.eq
-
-  /**
-    *
-    * @param constr
-    * @param args
-    * @param locals
-    * @param lh
-    * @param table
-    * @param Context
-    * @return
-    */
-  def genCaseClassPattern(constr: QualifiedName, args: List[Pattern])
-                         (using LocalsHandler)
-                         (using Context) = {
-    val idx = lh.getFreshLocal
-    val code = args.map(matchAndBind).zipWithIndex.map {
-      p => adtField(local.get(idx), p._2) <:> i32.load <:> p._1
-    }
-
-    // HR : Setting the constructor index we are checking as a local variable
-    local.set(idx) <:>
-    ift({
-      // HR : First check if the primary constructor is the same
-      equ(loadLocal(idx), constructor(constr.asInstanceOf[ConstructorSymbol].signature))
-    }, {
-      // HR : Check if all the pattern applies
-      // HR : if the constructor has no parameters the foldLeft returns true
-      code.foldLeft(mkBoolean(true))((acc, c) => and(c._1, acc))
-    }, {
-      mkBoolean(false) // HR : Signal that the scrut does not follow this pattern
-    })
-  }
-
-
-}
+  def matchAndBind(pat: Pattern)(using Context)(using LocalsHandler): Code =
+    pat match
+      case WildcardPattern() =>
+        // HR : We return true as this pattern will be executed if encountered
+        drop <:> mkBoolean(true)
+      case IdPattern(id) =>
+        // HR : We return true as this pattern will be executed if encountered
+        val idLocal = lh(using ???).getFreshLocal(id)
+        local.set(idLocal) <:> mkBoolean(true)
+      case LiteralPattern(lit) =>
+        cgExpr(lit) <:> i32.eq
+      case CaseClassPattern(constr, args) =>
+        val idx = lh(using ???).getFreshLocal
+        val code = args.map(matchAndBind).zipWithIndex.map {
+          p => adtField(local.get(idx), p._2) <:> i32.load <:> p._1
+        }
+        // HR : Setting the constructor index we are checking as a local variable
+        local.set(idx) <:>
+          ift({
+            // HR : First check if the primary constructor is the same
+            equ(loadLocal(idx), constructor(constr.asInstanceOf)(using lh.mh))
+          }, {
+            // HR : Check if all the pattern applies
+            // HR : if the constructor has no parameters the foldLeft returns true
+            code.foldLeft(mkBoolean(true))((acc, c) => and(c._1, acc))
+          }, {
+            mkBoolean(false) // HR : Signal that the scrut does not follow this pattern
+          })

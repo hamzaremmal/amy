@@ -2,9 +2,8 @@ package amyc.backend.wasm
 
 import amyc.utils.Preconditions.*
 import Instructions.{Code, i32, id}
-import amyc.backend.wasm.utils.{LocalsHandler, lh}
-import amyc.backend.wasm.utils.Utils.*
-import amyc.core.{Context, Identifier}
+import amyc.backend.wasm.utils.*
+import amyc.core.*
 import amyc.ast.SymbolicTreeModule.FunDef
 import amyc.backend.wasm.types.*
 import amyc.core.Symbols.*
@@ -32,8 +31,8 @@ case class Function private(name: id, params: List[param], result: Option[result
 
 object Function {
 
-  def forSymbol(sym: FunctionSymbol, result: Option[result])(code: LocalsHandler ?=> Code)(using Context): Function =
-    given LocalsHandler = new LocalsHandler(sym, textmode = true)
+  def forSymbol(sym: FunctionSymbol, result: Option[result])(code: LocalsHandler ?=> Code)(using ModuleHandler): Function =
+    given LocalsHandler = new LocalsHandler(sym, mh, textmode = true)
     val instructions = code
     new Function(
       fullName(sym.owner, sym),
@@ -41,11 +40,11 @@ object Function {
       result,
       lh.locals,
       instructions,
-      sym.idx
+      mh.function(sym)
     )
 
-  def forDefinition(fd: FunDef, owner: Symbol, result: Option[result], idx: Int)(codeGen: LocalsHandler ?=> Code)(using Context): Function =
-    given LocalsHandler = new LocalsHandler(fd.name.asInstanceOf, textmode = true)
+  def forDefinition(fd: FunDef, owner: Symbol, result: Option[result])(codeGen: LocalsHandler ?=> Code)(using ModuleHandler): Function =
+    given LocalsHandler = new LocalsHandler(fd.name.asInstanceOf, mh, textmode = true)
     // Make code first, as it may increment the locals in lh
     val code = codeGen
     new Function(
@@ -54,7 +53,7 @@ object Function {
       result,
       lh.locals,
       code,
-      idx
+      mh.function(fd.name)
     )
 
 }

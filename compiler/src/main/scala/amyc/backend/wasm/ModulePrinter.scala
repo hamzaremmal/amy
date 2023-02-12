@@ -5,7 +5,7 @@ import amyc.core.Context
 import amyc.utils.*
 import Instructions.*
 import amyc.backend.wasm.types.{local as tlocal, param, result, typeuse}
-import amyc.backend.wasm.utils.Utils
+import amyc.backend.wasm.utils.*
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
 
@@ -18,7 +18,7 @@ object ModulePrinter {
     Indented(Stacked(mod.imports map mkImport)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
     Indented(mkTable(mod.table.get)),
-    Indented(Stacked(Utils.defaultFunTypes.map(s2d))),
+    Indented(Stacked(defaultFunTypes.map(s2d))),
     Indented(Stacked(mod.functions map mkFun)),
     ")"
   )

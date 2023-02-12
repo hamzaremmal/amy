@@ -10,7 +10,10 @@ import amyc.core.Signatures.*
 import amyc.reporter
 
 // Utilities for CodeGen
-object Utils {
+
+  inline def lh(using LocalsHandler): LocalsHandler = summon
+
+  inline def mh(using ModuleHandler): ModuleHandler = summon
 
   // The index of the global variable that represents the free memory boundary
   val memoryBoundary: Int = 0
@@ -140,8 +143,8 @@ object Utils {
   inline def setLocal(inline code: Code, inline idx: localidx): Code =
     code <:> local.set(idx)
 
-  inline def constructor(inline const: ConstrSig) : Code =
-    i32.const(const.idx)
+  inline def constructor(inline const: ConstructorSymbol)(using ModuleHandler) : Code =
+    i32.const(mh.constructor(const))
 
   inline def error(inline msg: Code) : Code =
     msg <:> call("Std_printString") <:> unreachable
@@ -158,5 +161,3 @@ object Utils {
       fn.find(_.idx == idx).getOrElse(n)
     val size = fn.map(_.idx).max
     for i <- (0 to size).toList yield resolve(i)
-
-}

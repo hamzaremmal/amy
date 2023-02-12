@@ -14,11 +14,7 @@ import scala.collection.mutable
 
 // A class that represents a dictionary of symbols for an Amy program
 class SymbolTable :
-  /* Atomic counters to index constructors and functions */
-  /* TODO HR : Remove both counters as those are specific to wasm backend */
-  private val constrIndexes = new UniqueCounter[Symbol]
-  private val funIndexes = new AtomicInteger
-
+  
   // map a definition (owner, def) to its symbol
   private val defsByName : mutable.HashMap[(String, String), Symbol] =
     mutable.HashMap.empty
@@ -48,7 +44,7 @@ class SymbolTable :
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
     val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner)
     defsByName += (owner, name) -> sym
-    sym.signature(ConstrSig(argTypes, parent, constrIndexes.next(parent)))
+    sym.signature(ConstrSig(argTypes, parent))
     sym
 
   /* register a new function */
@@ -61,9 +57,8 @@ class SymbolTable :
   */
   def addFunction(owner: ModuleSymbol, name: String, mods: List[String], params: List[ParamDef], rte: TypeTree)
                  (using Context): FunctionSymbol=
-    val idx = funIndexes.incrementAndGet()
     val id = Identifier.fresh(name)
-    val sym = FunctionSymbol(id, owner, mods, idx)
+    val sym = FunctionSymbol(id, owner, mods)
     defsByName += (owner.name, name) -> sym
     val paramsym = params.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner.name)))
     sym.info(paramsym, rte)

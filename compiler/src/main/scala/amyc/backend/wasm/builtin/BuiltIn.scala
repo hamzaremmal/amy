@@ -3,7 +3,6 @@ package amyc.backend.wasm.builtin
 import amyc.*
 import amyc.ast.SymbolicTreeModule.StringLiteral
 import amyc.backend.wasm.*
-import amyc.backend.wasm.utils.Utils.*
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.builtin.amy.{Std, unnamed}
 import Instructions.*
@@ -12,7 +11,7 @@ import amyc.core.{Context, Identifier}
 
 object BuiltIn :
 
-  lazy val wasmFunctions: Context ?=> List[Function] =
+  lazy val wasmFunctions: (Context, ModuleHandler) ?=> List[Function] =
     unnamed.null_fn ::
     amy.String.concat ::
     Std.digitToString ::
