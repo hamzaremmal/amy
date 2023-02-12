@@ -22,33 +22,19 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
 
   override val name: String = "WASMCodeGenerator"
   override def run(program: Program)(using Context): Module =
-    given ModuleHandler = new ModuleHandler
+    given ModuleHandler = new ModuleHandler(program.modules.last.name.name)
     val fn = wasmFunctions ++ (program.modules flatMap cgModule)
     Module(
       program.modules.last.name.name,
       globalsNo,
       defaultImports,
-      cgTable(fn),
+      Some(mh.table),
       fn
     )
 
   // ==============================================================================================
   // ===================================== TRANSFORMER ============================================
   // ==============================================================================================
-
-  /**
-    *
-    * @param fn
-    * @param Context
-    * @param ModuleHandler
-    * @return
-    */
-  def cgTable(fn: List[Function])(using Context)(using ModuleHandler): Option[Table] =
-    if fn.isEmpty then
-      None
-    else
-      //val f = resolveOrder(fn.filterNot(_.result.isEmpty), null_fn)
-      Some(Table(0, Nil))
 
   /**
     *

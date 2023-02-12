@@ -58,7 +58,6 @@ object Function {
 
 }
 
-case class Table(size: Int, elems: List[Function])(using Context):
-  require(elems.size == size)
+case class Table(elems: List[FunctionSymbol])
 
 case class Import(elem: String)

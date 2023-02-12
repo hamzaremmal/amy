@@ -14,7 +14,7 @@ object ModulePrinter {
   private implicit def s2d(s: String): Raw = Raw(s)
 
   private def mkMod(mod: Module)(using Context): Document = Stacked(
-    "(module ",
+    s"(module ${id(mod.name)}",
     Indented(Stacked(mod.imports map mkImport)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
     Indented(mkTable(mod.table.get)),
@@ -24,9 +24,9 @@ object ModulePrinter {
   )
 
   def mkTable(table: Table): Document =
-    val elem: List[Document] = (for f <- table.elems yield Indented(s"${f.name} ")) ::: Raw(")") :: Nil
+    val elem: List[Document] = (for f <- table.elems yield Indented(s"${id(fullName(f.owner, f))} ")) ::: Raw(")") :: Nil
     val header = Stacked(
-      s"(table ${table.size} funcref)",
+      s"(table ${table.elems.size} funcref)",
       "(elem (i32.const 0)")
     Stacked{
       header :: elem
