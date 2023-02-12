@@ -4,6 +4,7 @@ import amyc.*
 import amyc.core.*
 import amyc.core.Types.*
 import amyc.core.StdDefinitions.*
+import amyc.core.Symbols.*
 import amyc.core.StdTypes.*
 import amyc.utils.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
@@ -54,10 +55,10 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     * @param Context
     */
   def registerFunctions(mod: N.ModuleDef)(using Context) =
-    for fd@N.FunDef(name, params, retType1, _) <- mod.defs do
-      val argTypes = params map (p => transformType(p.tt, mod.name))
+    // TODO HR: This function should not append info
+    for fd@N.FunDef(name, _, retType1, _) <- mod.defs do
       val retType2 = transformType(retType1, mod.name)
-      symbols.addFunction(mod.name, name, argTypes, retType2, fd.mods)
+      symbols.addFunction(symbols.module(mod.name), name, fd.mods, fd.params, retType2)
 
   /**
     * @param mod
@@ -109,14 +110,13 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       }
 
   private def registerUnnamed(using Context) =
-    val modName = "unnamed"
-    symbols.addFunction(modName, "null", Nil, S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType), Nil)
+    symbols.addFunction(stdDef.UnnamedModule, "null", Nil, Nil, S.TTypeTree(stdType.UnitType))
     // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
     symbols.addFunction(
-      modName,
+      stdDef.UnnamedModule,
       "==",
-      List(S.TTypeTree(NoType), S.TTypeTree(NoType)),
-      S.TTypeTree(NoType),
-      List("infix")
+      List("infix"),
+      List(N.ParamDef("lhs", N.TTypeTree(NoType)), N.ParamDef("rhs", N.TTypeTree(NoType))),
+      S.TTypeTree(stdType.BooleanType)
     )
 }
