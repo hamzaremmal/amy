@@ -6,7 +6,7 @@ import amyc.backend.wasm.utils.{LocalsHandler, lh}
 import amyc.backend.wasm.utils.Utils.*
 import amyc.core.{Context, Identifier}
 import amyc.ast.SymbolicTreeModule.FunDef
-import amyc.backend.wasm.types.param
+import amyc.backend.wasm.types.*
 import amyc.core.Symbols.*
 import amyc.symbols
 
@@ -27,35 +27,34 @@ case class Module(name: String,
 // A web assembly type (i32, i64, f32, f64)
 abstract class Type
 
-// If isMain = false, represents a function which returns an i32 and will not be exported to js
-// If isMain = true , represents a function which does not return a value, and will be exported to js
-case class Function private (name: String, params: List[param], locals: Int, code: Code, idx: Int, isMain: Boolean)
+// TODO HR : replace Function with F
+case class Function private(name: id, params: List[param], result: Option[result], locals: List[local], code: Code, idx: Int)
 
 object Function {
 
-  def forSymbol(sym: FunctionSymbol, isMain: Boolean)(code: LocalsHandler ?=> Code): Function =
-    given LocalsHandler = new LocalsHandler(sym.info.length, textmode = false)
+  def forSymbol(sym: FunctionSymbol, result: Option[result])(code: LocalsHandler ?=> Code)(using Context): Function =
+    given LocalsHandler = new LocalsHandler(sym, textmode = true)
     val instructions = code
     new Function(
       fullName(sym.owner, sym),
-      sym.info.map(p => param(Some(p.name), i32)),
+      lh.params,
+      result,
       lh.locals,
       instructions,
-      sym.idx,
-      isMain
+      sym.idx
     )
 
-  def forDefinition(fd: FunDef, owner: Symbol, isMain: Boolean, idx: Int)(codeGen: LocalsHandler ?=> Code): Function =
-    given LocalsHandler = new LocalsHandler(fd.params.map(_.name), textmode = false)
+  def forDefinition(fd: FunDef, owner: Symbol, result: Option[result], idx: Int)(codeGen: LocalsHandler ?=> Code)(using Context): Function =
+    given LocalsHandler = new LocalsHandler(fd.name.asInstanceOf, textmode = true)
     // Make code first, as it may increment the locals in lh
     val code = codeGen
     new Function(
       fullName(owner, fd.name),
-      fd.params.map(df => param(Some(df.name.name), i32)),
+      lh.params,
+      result,
       lh.locals,
       code,
-      idx,
-      isMain
+      idx
     )
 
 }

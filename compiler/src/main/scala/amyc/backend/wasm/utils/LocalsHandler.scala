@@ -1,39 +1,66 @@
 package amyc.backend.wasm.utils
 
-import amyc.backend.wasm.Instructions.id
+import amyc.backend.wasm.Instructions.{i32, id}
 import amyc.backend.wasm.indices.localidx
+import amyc.backend.wasm.types.{local, param}
 import amyc.core.Symbols.*
-import amyc.core.Context
-import amyc.reporter
+import amyc.core.{Context, Identifier}
+import amyc.{reporter, symbols}
 
 import scala.collection.mutable
 import java.util.concurrent.atomic.AtomicInteger
 
-final class LocalsHandler (val params : Int, textmode : Boolean = false) :
+final class LocalsHandler(val sym: FunctionSymbol, textmode: Boolean = true):
 
-  private val locals_ = mutable.HashMap.empty[Symbol, localidx].withDefaultValue(-1)
-  private val locals_counter : AtomicInteger = AtomicInteger(params)
+  // HR: Had to switch from HashMap to ListBuffer to keep the order
+  private val params_ =
+    mutable.ListBuffer.empty[(Symbol, localidx)]
+  private val locals_ =
+    mutable.ListBuffer.empty[(Symbol, localidx)]
+  private val locals_counter: AtomicInteger = AtomicInteger(0)
 
-  // Scala restriction : cannot have more two overloaded constructors with default parameters
-  def this(args : List[Symbol], textmode : Boolean) =
-    this(args.size, textmode)
-    // reset the counter to start create locals from 0
-    locals_counter.set(0)
-    // Register all the arguments in the
-    for arg <- args do getFreshLocal(arg)
-
-  def fetch(id: Symbol)(using Context): localidx =
-    locals_(id)
-
-  def getFreshLocal(i: Symbol): localidx =
-    locals_.getOrElseUpdate(i, {
-      val v = getFreshLocal // increment the global counter
-      if textmode then id(i.name) else v
+  // Register all parameters
+  for p <- sym.info do
+    params_ += (p -> {
+      val v = locals_counter.getAndIncrement // increment the global counter
+      if textmode then id(p.fullName) else v
     })
 
+  // ==============================================================================================
+  // =========================================== API ==============================================
+  // ==============================================================================================
 
-  def getFreshLocal : localidx =
-    locals_counter.getAndIncrement()
+  def fetch(id: Symbol)(using Context): localidx =
+    params_.toMap.getOrElse(id, locals_.toMap.getOrElse(id, -1))
 
-  /* Number of defined locals in the scope of the handler */
-  def locals: Int = locals_counter.get() - params
+  def getFreshLocal(i: Symbol): localidx =
+    params_.toMap.getOrElse(
+      i,
+      locals_.toMap.getOrElse(
+        i, {
+          val entry: (Symbol, localidx) = i -> {
+            val v =
+              locals_counter.getAndIncrement // increment the global counter
+            if textmode then id(i.fullName) else v
+          }
+          locals_ += entry
+          entry._2
+        }
+      )
+    )
+
+  // Generate a synthetic symbol, guarantied to have different name
+  def getFreshLocal: localidx =
+    getFreshLocal(LocalSymbol(Identifier.fresh("x")))
+
+  def params(using Context): List[param] =
+    if textmode then
+      params_.map(l => param(Some(l._2.asInstanceOf[id]), i32)).toList
+    else
+      params_.map(_ => param(None, i32)).toList
+
+  def locals(using Context): List[local] =
+    if textmode then
+      locals_.map(l => local(Some(l._2.asInstanceOf[id]), i32)).toList
+    else
+      locals_.map(_ => local(None, i32)).toList

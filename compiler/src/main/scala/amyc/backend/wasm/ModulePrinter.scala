@@ -4,7 +4,7 @@ import amyc.*
 import amyc.core.Context
 import amyc.utils.*
 import Instructions.*
-import amyc.backend.wasm.types.{result, typeuse, param}
+import amyc.backend.wasm.types.{local as tlocal, param, result, typeuse}
 import amyc.backend.wasm.utils.Utils
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
@@ -24,7 +24,7 @@ object ModulePrinter {
   )
 
   def mkTable(table: Table): Document =
-    val elem: List[Document] = (for f <- table.elems yield Indented(s"$$${f.name} ")) ::: Raw(")") :: Nil
+    val elem: List[Document] = (for f <- table.elems yield Indented(s"${f.name} ")) ::: Raw(")") :: Nil
     val header = Stacked(
       s"(table ${table.size} funcref)",
       "(elem (i32.const 0)")
@@ -38,6 +38,9 @@ object ModulePrinter {
   def mkResult(res: result): Document =
     s"(result ${res.tpe})"
 
+  def mkLocal(p: tlocal): Document =
+    p.id.map(id => s"(local $id ${p.tpe})").getOrElse(s"(local ${p.tpe})")
+
   def mkTypeUse(tpe: typeuse): Document =
     s"(type ${tpe.x})"
 
@@ -46,19 +49,14 @@ object ModulePrinter {
 
   private def mkFun(fh: Function): Document = {
     val name = fh.name
-    val isMain = fh.isMain
-    val exportDoc: Document = if (isMain) s"""(export "$name" (func $$$name))""" else ""
+    val exportDoc: Document = s"""(export "$name" (func $name))"""
     val paramsDoc: Document = Lined(fh.params.map(mkParam), " ")
-    val resultDoc: Document = if (isMain) "" else "(result i32) "
-    val localsDoc: Document =
-      if (fh.locals > 0)
-        "(local " <:> Lined(List.fill(fh.locals)(Raw("i32")), " ") <:> ")"
-      else
-        ""
+    val resultDoc: Document = fh.result.map(mkResult).getOrElse("")
+    val localsDoc: Document = Lined(fh.locals.map(mkLocal), " ")
 
     Stacked(
       exportDoc,
-      Lined(List(s"(func $$${fh.name} ", paramsDoc, resultDoc, localsDoc)),
+      Lined(List(s"(func ${fh.name} ", paramsDoc, resultDoc, localsDoc)),
       Indented(Stacked(mkCode(fh.code))),
       ")"
     )

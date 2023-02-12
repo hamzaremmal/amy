@@ -40,7 +40,7 @@ object HTMLWrapper {
         |
         |      fetchAndInstantiate('$moduleFile', importObject).then(function(instance) {
         |""".stripMargin ++
-      module.functions.filter(_.isMain).map { f =>
+      module.functions.filter(_.result.isEmpty).map { f =>
         s"        instance.exports.${f.name}();\n"
       }.mkString ++
       """|      });

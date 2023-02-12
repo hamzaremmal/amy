@@ -16,6 +16,8 @@ object types:
   abstract class vectype extends valtype
   abstract class reftype extends valtype
 
+  case class local(id: Option[id], tpe: valtype)
+
   case class param(id: Option[id], tpe: valtype)
   case class result(tpe: valtype)
   case class typeuse(x: typeidx)
