@@ -9,7 +9,6 @@ import amyc.backend.wasm.builtin.amy.{Std, unnamed}
 import Instructions.*
 import amyc.backend.wasm.utils.*
 import amyc.core.{Context, Identifier}
-import amyc.core.Signatures.FunSig
 
 object BuiltIn :
 

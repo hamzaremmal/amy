@@ -50,7 +50,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     } ++
       // Generate code for the "main" function, which contains the module expression
       optExpr.toList.map { expr =>
-        val mainFd = FunDef(FunctionSymbol(Identifier.fresh("main"), name.asInstanceOf, Nil), Nil, ClassTypeTree(stdDef.IntType), expr)
+        val mainFd = FunDef(FunctionSymbol(Identifier.fresh("main"), name.asInstanceOf, Nil, -1), Nil, ClassTypeTree(stdDef.IntType), expr)
         cgFunction(mainFd, name.id, true)
       }
   }
@@ -59,7 +59,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
   def cgFunction(fd: FunDef, owner: Identifier, isMain: Boolean)(using Context): Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
-    val sig = symbols.getFunction(owner.name, fd.name.name).map(_.signature.idx).getOrElse(0)
+    val sig = fd.name.asInstanceOf[FunctionSymbol].idx
     Function(fd, owner, isMain, sig) {
       val body = cgExpr(fd.body)
       withComment(fd.toString) {

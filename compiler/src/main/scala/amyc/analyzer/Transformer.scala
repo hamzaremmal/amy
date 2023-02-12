@@ -60,6 +60,8 @@ object Transformer {
         symbols.getType(pre getOrElse inModule, name) map S.ClassTypeTree.apply getOrElse{
           reporter.fatal(s"Could not find type $qn", tt)
         }
+      case N.TTypeTree(tpe) =>
+        S.TTypeTree(tpe)
   }
 
   /**
@@ -79,15 +81,12 @@ object Transformer {
       }
     }
 
-    val paramNames = params.map(_.name)
-
-    val newParams = params zip sym.asInstanceOf[FunctionSymbol].param map {
-      case (pd@N.ParamDef(name, tt), tpe) =>
-        val s = LocalSymbol(Identifier.fresh(name))
-        S.ParamDef(s, tpe.setPos(tt)).setPos(pd)
+    val newParams = params zip sym.info map {
+      case (pd@N.ParamDef(_, tt), sym) =>
+        S.ParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
     }
 
-    val paramsMap = paramNames.zip(newParams.map(_.name)).toMap
+    val paramsMap = sym.info.map(s => (s.name, s)).toMap
 
     S.FunDef(
       sym,
@@ -163,7 +162,7 @@ object Transformer {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
           case Some(sym: FunctionSymbol) =>
-            if (sym.param.size != args.size) {
+            if (sym.info.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
             S.Call(sym, args.map(transformExpr(_)))

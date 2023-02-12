@@ -23,7 +23,7 @@ abstract class BuiltInModule {
         )
       }
       .asInstanceOf[FunctionSymbol]
-    Function(fullName(sym.owner.id, sym), sym.param.length, false, sym.idx) {
+    Function(fullName(sym.owner.id, sym), sym.info.length, false, sym.idx) {
       code
     }
 
