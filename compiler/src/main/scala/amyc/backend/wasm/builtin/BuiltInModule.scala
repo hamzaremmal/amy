@@ -14,7 +14,7 @@ abstract class BuiltInModule {
 
   final type BuiltIn = (Context, ModuleHandler) ?=> Function
 
-  def builtInForSymbol(name: String)(code: LocalsHandler ?=> Code)(using Context)(using ModuleHandler): BuiltIn =
+  def builtInForSymbol(name: String)(code: LocalsHandler ?=> Code): BuiltIn =
     val sym = symbols.function(owner, name)
     Function.forSymbol(sym, Some(result(i32)))(code)
 

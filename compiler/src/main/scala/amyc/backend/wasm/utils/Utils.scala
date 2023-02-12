@@ -143,7 +143,7 @@ import amyc.reporter
   inline def setLocal(inline code: Code, inline idx: localidx): Code =
     code <:> local.set(idx)
 
-  inline def constructor(inline const: ConstructorSymbol)(using ModuleHandler) : Code =
+  def constructor(const: ConstructorSymbol)(using ModuleHandler) : Code =
     i32.const(mh.constructor(const))
 
   inline def error(inline msg: Code) : Code =
