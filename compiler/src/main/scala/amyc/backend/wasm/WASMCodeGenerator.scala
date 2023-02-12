@@ -29,6 +29,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
       globalsNo,
       defaultImports,
       Some(mh.table),
+      mh.strpool,
       fn
     )
 
@@ -98,7 +99,8 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
       case FunRef(ref: FunctionSymbol) => i32.const(lh.function(ref))
       case IntLiteral(i) => i32.const(i)
       case BooleanLiteral(b) => mkBoolean(b)
-      case StringLiteral(s) => mkString(s)
+      case StringLiteral(s) =>
+        i32.const(lh.mh.string(s)) //<:> i32.load8_u
       case UnitLiteral() => mkUnit
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot generate wasm code for operator, should not appear here $op")
@@ -141,7 +143,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
           // Last bloc will be concatenated with the Match error below and the
           // match error case there
         } <:>
-          error(mkString("Match error!" + scrut.toString)) <:>
+          i32.const(lh.mh.string(s"Match error!$scrut")) <:>
           cases.map(_ => end) // HR: Autant de End que de cases
       case Error(msg) =>
         error(cgExpr(msg))

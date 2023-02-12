@@ -4,7 +4,7 @@ import amyc.*
 import amyc.core.Context
 import amyc.utils.*
 import Instructions.*
-import amyc.backend.wasm.types.{local as tlocal, param, result, typeuse}
+import amyc.backend.wasm.types.{local as tlocal, *}
 import amyc.backend.wasm.utils.*
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
@@ -16,6 +16,7 @@ object ModulePrinter {
   private def mkMod(mod: Module)(using Context): Document = Stacked(
     s"(module ${id(mod.name)}",
     Indented(Stacked(mod.imports map mkImport)),
+    Indented(Stacked(mod.data map mkData)),
     Indented("(global (mut i32) i32.const 0) " * mod.globals),
     Indented(mkTable(mod.table.get)),
     Indented(Stacked(defaultFunTypes.map(s2d))),
@@ -40,6 +41,9 @@ object ModulePrinter {
 
   def mkLocal(p: tlocal): Document =
     p.id.map(id => s"(local $id ${p.tpe})").getOrElse(s"(local ${p.tpe})")
+
+  def mkData(p: Data): Document =
+    s"""(data (i32.const ${p.offset}) "${p.str}\\00")"""
 
   def mkTypeUse(tpe: typeuse): Document =
     s"(type ${tpe.x})"

@@ -21,6 +21,7 @@ case class Module(name: String,
                   globals: Int,
                   imports: List[String],
                   table: Option[Table],
+                  data: List[Data],
                   functions: List[Function])
 
 // A web assembly type (i32, i64, f32, f64)
@@ -59,5 +60,7 @@ object Function {
 }
 
 case class Table(elems: List[FunctionSymbol])
+
+case class Data(offset: Int, str: String)
 
 case class Import(elem: String)
