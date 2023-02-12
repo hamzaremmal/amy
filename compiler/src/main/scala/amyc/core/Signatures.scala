@@ -21,7 +21,7 @@ object Signatures{
     *                 This is useful for code generation, where we need a runtime representation of which
     *                 instance of the parent type a value represents.
     */
-  case class ConstrSig(argTypes: List[TypeTree], parent: Symbol, idx: Int) extends Signature[ClassTypeTree] {
+  case class ConstrSig(argTypes: List[TypeTree], parent: Symbol) extends Signature[ClassTypeTree] {
     override val retType: ClassTypeTree = ClassTypeTree(parent)
   }
 

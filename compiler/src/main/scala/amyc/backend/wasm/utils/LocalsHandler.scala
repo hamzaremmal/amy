@@ -10,7 +10,7 @@ import amyc.{reporter, symbols}
 import scala.collection.mutable
 import java.util.concurrent.atomic.AtomicInteger
 
-final class LocalsHandler(val sym: FunctionSymbol, textmode: Boolean = true):
+final class LocalsHandler(val sym: FunctionSymbol, val mh: ModuleHandler, textmode: Boolean = true):
 
   // HR: Had to switch from HashMap to ListBuffer to keep the order
   private val params_ =
@@ -30,7 +30,7 @@ final class LocalsHandler(val sym: FunctionSymbol, textmode: Boolean = true):
   // =========================================== API ==============================================
   // ==============================================================================================
 
-  def fetch(id: Symbol)(using Context): localidx =
+  def fetch(id: Symbol): localidx =
     params_.toMap.getOrElse(id, locals_.toMap.getOrElse(id, -1))
 
   def getFreshLocal(i: Symbol): localidx =
@@ -53,14 +53,17 @@ final class LocalsHandler(val sym: FunctionSymbol, textmode: Boolean = true):
   def getFreshLocal: localidx =
     getFreshLocal(LocalSymbol(Identifier.fresh("x")))
 
-  def params(using Context): List[param] =
+  def params: List[param] =
     if textmode then
       params_.map(l => param(Some(l._2.asInstanceOf[id]), i32)).toList
     else
       params_.map(_ => param(None, i32)).toList
 
-  def locals(using Context): List[local] =
+  def locals: List[local] =
     if textmode then
       locals_.map(l => local(Some(l._2.asInstanceOf[id]), i32)).toList
     else
       locals_.map(_ => local(None, i32)).toList
+
+object LocalsHandler:
+  implicit def lh2mh(lh: LocalsHandler): ModuleHandler = lh.mh

@@ -6,14 +6,13 @@ import amyc.core.Symbols.*
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.{Code, i32}
 import amyc.backend.wasm.types.result
-import amyc.backend.wasm.utils.LocalsHandler
-import amyc.backend.wasm.utils.Utils.fullName
+import amyc.backend.wasm.utils.*
 
 abstract class BuiltInModule {
 
   lazy val owner: Context ?=> Symbol
 
-  final type BuiltIn = Context ?=> Function
+  final type BuiltIn = (Context, ModuleHandler) ?=> Function
 
   def builtInForSymbol(name: String)(code: LocalsHandler ?=> Code): BuiltIn =
     val sym = symbols.function(owner, name)

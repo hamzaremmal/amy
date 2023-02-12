@@ -7,7 +7,7 @@ import amyc.backend.wasm
 import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.utils.Utils.memoryBoundary
+import amyc.backend.wasm.utils.memoryBoundary
 
 object Std extends BuiltInModule {
 

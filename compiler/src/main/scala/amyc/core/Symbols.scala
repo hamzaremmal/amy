@@ -25,8 +25,7 @@ object Symbols:
   case class FunctionSymbol(
       override val id: Identifier,
       owner: ModuleSymbol,
-      private val mods: List[String],
-      idx: Int
+      private val mods: List[String]
   ) extends Symbol(id, owner):
     private var _param: List[ParameterSymbol] = compiletime.uninitialized
     private var _rte: TypeTree = compiletime.uninitialized
@@ -58,8 +57,6 @@ object Symbols:
     final def param: List[TypeTree] = signature.argTypes
 
     final def rte: TypeTree = signature.retType
-
-    final def idx: Int = signature.idx
 
   /**
     * Used for function parameters
