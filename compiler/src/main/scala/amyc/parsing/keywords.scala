@@ -12,11 +12,9 @@ object keywords :
 
   private val kw: ListBuffer[Keyword] = ListBuffer.empty
 
-  private def register(k: Keyword) =
-    kw += k
-
   sealed abstract class Keyword:
-    register(this)
+    kw += this
+    override def toString: String
 
   case object `abstract` extends Keyword
   case object `case`     extends Keyword
@@ -51,5 +49,3 @@ object keywords :
 
   /* fetch the corresponding Keyword object */
   def of(str: String) : Option[Keyword] = ???
-
-end keywords

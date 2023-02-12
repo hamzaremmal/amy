@@ -50,18 +50,9 @@ class SymbolTable :
     sym
 
   /* register a new function */
-  def addFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
+  def addFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree, mods: List[String]): Symbol =
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
-    val sym = FunctionSymbol(Identifier.fresh(name), sym_owner)
-    val idx = funIndexes.incrementAndGet()
-    defsByName += (owner, name) -> sym
-    sym.signature(FunSig(argTypes, retType, idx))
-    sym
-
-  /* register a new infix function (trick for now to implement binary operators) */
-  def addInfixFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
-    val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
-    val sym = FunctionSymbol(Identifier.fresh(name), sym_owner, true)
+    val sym = FunctionSymbol(Identifier.fresh(name), sym_owner, mods)
     val idx = funIndexes.incrementAndGet()
     defsByName += (owner, name) -> sym
     sym.signature(FunSig(argTypes, retType, idx))

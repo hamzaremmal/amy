@@ -83,6 +83,15 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   @targetName("minus") lazy val minus: Syntax[String] = elem(OperatorKind("-")) map (_ => "-")
   @targetName("not") lazy val not: Syntax[String] = elem(OperatorKind("!")) map (_ => "!")
 
+
+ // ===============================================================================================
+ // ======================================= MODIFIERS =============================================
+ // ===============================================================================================
+
+  lazy val modifier: Syntax[String] = accept(ModifierKind){
+    case ModifierToken(value) => value
+  }
+
   // ==============================================================================================
   // ================================== TOP LEVEL - PROGRAM =======================================
   // ==============================================================================================
@@ -140,11 +149,9 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   /**
     */
   lazy val funDef: Syntax[FunDef] =
-    (`fn` ~>~ (identifier | plus | minus | not) ~ inParenthesis(
-      parameters
-    ) ~<~ ":" ~ typeTree ~<~ "=" ~ inBrace(expr)) map {
-      case funcName ~ params ~ tpe ~ expr =>
-        FunDef(funcName, params, tpe, expr)
+    (many(modifier) ~<~ `fn` ~ (identifier | plus | minus | not) ~ inParenthesis(parameters) ~<~ ":" ~ typeTree ~<~ "=" ~ inBrace(expr)) map {
+      case mods ~ funcName ~ params ~ tpe ~ expr =>
+        FunDef(funcName, params, tpe, expr).mods(mods.toList)
     }
 
   // ==============================================================================================

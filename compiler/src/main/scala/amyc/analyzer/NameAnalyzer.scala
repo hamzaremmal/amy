@@ -1,5 +1,4 @@
-package amyc
-package analyzer
+package amyc.analyzer
 
 import amyc.*
 import amyc.core.*
@@ -55,13 +54,10 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     * @param Context
     */
   def registerFunctions(mod: N.ModuleDef)(using Context) =
-    for N.FunDef(name, params, retType1, _) <- mod.defs do
+    for fd@N.FunDef(name, params, retType1, _) <- mod.defs do
       val argTypes = params map (p => transformType(p.tt, mod.name))
       val retType2 = transformType(retType1, mod.name)
-      if mod.name == "unnamed" then
-        symbols.addInfixFunction(mod.name, name, argTypes, retType2)
-      else
-        symbols.addFunction(mod.name, name, argTypes, retType2)
+      symbols.addFunction(mod.name, name, argTypes, retType2, fd.mods)
 
   /**
     * @param mod
@@ -114,12 +110,13 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
 
   private def registerUnnamed(using Context) =
     val modName = "unnamed"
-    symbols.addFunction(modName, "null", Nil, S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType))
+    symbols.addFunction(modName, "null", Nil, S.ClassTypeTree(stdDef.StringType).withType(stdType.StringType), Nil)
     // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
-    symbols.addInfixFunction(
+    symbols.addFunction(
       modName,
       "==",
       List(S.TTypeTree(NoType), S.TTypeTree(NoType)),
-      S.TTypeTree(NoType)
+      S.TTypeTree(NoType),
+      List("infix")
     )
 }

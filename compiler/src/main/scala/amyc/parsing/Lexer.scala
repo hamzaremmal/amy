@@ -1,13 +1,13 @@
 package amyc
 package parsing
 
-import amyc.core
+import amyc.{core, parsing}
 import amyc.utils.*
+import amyc.utils.Position
+import amyc.utils.Position.withPosition
 
 import java.io.File
 import silex.*
-import amyc.utils.Position
-import amyc.utils.Position.withPosition
 
 // The lexer for Amy.
 object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
@@ -72,6 +72,14 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
           KeywordToken(cs.mkString)
         }
       }
+
+  lazy val modifiers: P =
+    parsing.modifiers.map(mod => word(mod.toString)).reduce(_ | _)
+    |> { (cs, range) =>
+      withPosition(range._1){
+        ModifierToken(cs.mkString)
+      }
+    }
 
   // Boolean literals,
   lazy val boolLitToken: P =
@@ -176,6 +184,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
 
   lazy val lexer: L = Lexer(
     keywords,
+    modifiers,
     boolLitToken,
     identifiers,
     intLitToken,

@@ -19,7 +19,7 @@ object Symbols:
 
   /* Used for functions */
 
-  case class FunctionSymbol(override val id: Identifier, owner : ModuleSymbol, is_infix : Boolean = false) extends Symbol(id, owner):
+  case class FunctionSymbol(override val id: Identifier, owner : ModuleSymbol, private val mods: List[String]) extends Symbol(id, owner):
     private var _sig : FunSig = compiletime.uninitialized
     def signature(fs : FunSig): FunctionSymbol =
       _sig = fs
@@ -31,6 +31,9 @@ object Symbols:
     final def idx: Int = signature.idx
 
     override val toString: String = id.name
+
+    infix def is (mod: String): Boolean =
+      mods contains mod
 
   /* Used for constructors */
   case class ConstructorSymbol(override val id: Identifier, owner: ModuleSymbol) extends Symbol(id, owner):
