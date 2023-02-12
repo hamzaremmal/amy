@@ -34,11 +34,11 @@ case class Function private (name: String, params: List[param], locals: Int, cod
 object Function {
 
   def forSymbol(sym: FunctionSymbol, isMain: Boolean)(code: LocalsHandler ?=> Code): Function =
-    given LocalsHandler = new LocalsHandler(sym.param.length, textmode = false)
+    given LocalsHandler = new LocalsHandler(sym.info.length, textmode = false)
     val instructions = code
     new Function(
       fullName(sym.owner, sym),
-      sym.param.map(_ => param(None, i32)),
+      sym.info.map(_ => param(None, i32)),
       lh.locals,
       instructions,
       sym.idx,

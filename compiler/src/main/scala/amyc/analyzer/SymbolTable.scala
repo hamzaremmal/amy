@@ -4,6 +4,8 @@ import amyc.*
 import amyc.core.*
 import amyc.core.Signatures.*
 import amyc.core.Symbols.*
+import amyc.analyzer.Transformer.*
+import amyc.ast.NominalTreeModule.ParamDef
 import amyc.ast.SymbolicTreeModule.TypeTree
 import amyc.utils.UniqueCounter
 
@@ -27,7 +29,9 @@ class SymbolTable :
   // ====================================== REGISTER METHODS ======================================
 
   /* register a new module */
-  def addModule(name: String): ModuleSymbol =
+  def addModule(name: String)(using Context): ModuleSymbol =
+    if modules.contains(name) then
+      reporter.fatal(s"module $name is already defined")
     val sym = ModuleSymbol(Identifier.fresh(name))
     modules += name -> sym
     sym
@@ -48,21 +52,21 @@ class SymbolTable :
     sym
 
   /* register a new function */
-  def addFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
-    val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
-    val sym = FunctionSymbol(Identifier.fresh(name), sym_owner)
+  /*
+    - OWNER
+    - NAME
+    - MODS
+    - PARAM INFO
+    - RET
+  */
+  def addFunction(owner: ModuleSymbol, name: String, mods: List[String], params: List[ParamDef], rte: TypeTree)
+                 (using Context): FunctionSymbol=
     val idx = funIndexes.incrementAndGet()
-    defsByName += (owner, name) -> sym
-    sym.signature(FunSig(argTypes, retType, idx))
-    sym
-
-  /* register a new infix function (trick for now to implement binary operators) */
-  def addInfixFunction(owner: String, name: String, argTypes: List[TypeTree], retType: TypeTree): Symbol =
-    val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
-    val sym = FunctionSymbol(Identifier.fresh(name), sym_owner, true)
-    val idx = funIndexes.incrementAndGet()
-    defsByName += (owner, name) -> sym
-    sym.signature(FunSig(argTypes, retType, idx))
+    val id = Identifier.fresh(name)
+    val sym = FunctionSymbol(id, owner, mods, idx)
+    defsByName += (owner.name, name) -> sym
+    val paramsym = params.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner.name)))
+    sym.info(paramsym, rte)
     sym
 
   // ====================================== SAFE METHODS ==========================================
@@ -113,13 +117,13 @@ class SymbolTable :
 
   def function(module: String, name: String)(using Context): FunctionSymbol =
     getFunction(module, name) getOrElse {
-      reporter.fatal(s"Definition of type $name in module $module is missing")
+      reporter.fatal(s"Definition of function $name in module $module is missing")
     }
 
   def constructor(module: String, name: String)(using Context): ConstructorSymbol =
     getConstructor(module, name) getOrElse {
-      reporter.fatal(s"Definition of type $name in module $module is missing")
+      reporter.fatal(s"Definition of constructor $name in module $module is missing")
     }
 
-  def constructor(module: ModuleSymbol, name: String)(using Context): ConstructorSymbol = 
+  def constructor(module: ModuleSymbol, name: String)(using Context): ConstructorSymbol =
     constructor(module.name, name)

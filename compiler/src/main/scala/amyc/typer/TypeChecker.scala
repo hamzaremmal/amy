@@ -135,7 +135,7 @@ object TypeChecker extends Pipeline[Program, Program]{
       args.foreach(check)
       qname match
         case f: FunctionSymbol =>
-          args zip f.param map ((arg, tpe) => =:=(arg, tpe.tpe))
+          args zip f.info map ((arg, param) => =:=(arg, param.tpe.tpe))
           =:=(expr, f.rte.tpe)
         case f: ConstructorSymbol =>
           args zip f.param map ((arg, tpe) => =:=(arg, tpe.tpe))

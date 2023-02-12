@@ -41,7 +41,12 @@ trait TreeModule :
     val name: Name
 
   case class ModuleDef(name: Name, defs: List[ClassOrFunDef], optExpr: Option[Expr]) extends Definition
-  trait ClassOrFunDef extends Definition
+  trait ClassOrFunDef extends Definition:
+    private var _mods: List[String] = compiletime.uninitialized
+    def mods(mods: List[String]): this.type =
+      _mods = mods
+      this
+    def mods: List[String] = _mods
   case class FunDef(name: Name, params: List[ParamDef], retType: TypeTree, body: Expr) extends ClassOrFunDef :
     def paramNames = params.map(_.name)
   case class AbstractClassDef(name: Name) extends ClassOrFunDef

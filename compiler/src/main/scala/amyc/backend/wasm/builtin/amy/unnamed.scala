@@ -1,12 +1,14 @@
-package amyc.backend.wasm.builtin
+package amyc.backend.wasm.builtin.amy
 
-import amyc.core.StdDefinitions.*
+import amyc.ast.SymbolicTreeModule.{ClassTypeTree, StringLiteral}
 import amyc.backend.wasm.WASMCodeGenerator.cgExpr
+import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.utils.Utils.error
-import amyc.{ctx, symbols}
 import amyc.core.Context
 import amyc.core.Symbols.*
 import amyc.ast.SymbolicTreeModule.{ClassTypeTree, StringLiteral}
+import amyc.core.StdDefinitions.*
+import amyc.{ctx, symbols}
 
 /**
   * Unnamed Amy module
