@@ -46,6 +46,7 @@ trait TreeModule :
     def mods(mods: List[String]): this.type =
       _mods = mods
       this
+    def mods: List[String] = _mods
   case class FunDef(name: Name, params: List[ParamDef], retType: TypeTree, body: Expr) extends ClassOrFunDef :
     def paramNames = params.map(_.name)
   case class AbstractClassDef(name: Name) extends ClassOrFunDef

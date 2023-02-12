@@ -50,7 +50,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module]{
     } ++
       // Generate code for the "main" function, which contains the module expression
       optExpr.toList.map { expr =>
-        val mainFd = FunDef(FunctionSymbol(Identifier.fresh("main"), name.asInstanceOf), Nil, ClassTypeTree(stdDef.IntType), expr)
+        val mainFd = FunDef(FunctionSymbol(Identifier.fresh("main"), name.asInstanceOf, Nil), Nil, ClassTypeTree(stdDef.IntType), expr)
         cgFunction(mainFd, name.id, true)
       }
   }
