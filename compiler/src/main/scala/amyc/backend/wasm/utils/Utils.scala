@@ -3,7 +3,7 @@ package amyc.backend.wasm.utils
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.indices.{globalidx, localidx}
-import amyc.backend.wasm.types.*
+import amyc.backend.wasm.types.{local as l, *}
 import amyc.core.{Context, Identifier}
 import amyc.core.Symbols.*
 import amyc.core.Signatures.*
@@ -64,7 +64,7 @@ object Utils {
 
   /** Utilities */
   // A globally unique name for definitions
-  def fullName(owner: Identifier, df: Symbol): String = owner.name + "_" + df.name
+  def fullName(owner: Symbol, df: Symbol): String = owner.name + "_" + df.name
 
   // A fresh label name
   def getFreshLabel(name: String = "label") = {

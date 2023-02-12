@@ -117,12 +117,12 @@ class SymbolTable :
 
   def function(module: String, name: String)(using Context): FunctionSymbol =
     getFunction(module, name) getOrElse {
-      reporter.fatal(s"Definition of type $name in module $module is missing")
+      reporter.fatal(s"Definition of function $name in module $module is missing")
     }
 
   def constructor(module: String, name: String)(using Context): ConstructorSymbol =
     getConstructor(module, name) getOrElse {
-      reporter.fatal(s"Definition of type $name in module $module is missing")
+      reporter.fatal(s"Definition of constructor $name in module $module is missing")
     }
 
   def constructor(module: ModuleSymbol, name: String)(using Context): ConstructorSymbol =
