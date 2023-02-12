@@ -41,12 +41,6 @@ object ModulePrinter {
   def mkTypeUse(tpe: typeuse): Document =
     s"(type ${tpe.x})"
 
-
-  private def registerFunction(fn: List[Function])(using Context): Document =
-    val names = for f <- fn.sorted(_.idx - _.idx) yield s"$$${f.name}"
-    reporter.info(s"${fn.map(_.idx)}")
-    Raw(s"(elem (i32.const 0) ${names.mkString(" ")})")
-
   private def mkImport(s: String): Document =
     Lined(List("(import ", s, ")"))
 

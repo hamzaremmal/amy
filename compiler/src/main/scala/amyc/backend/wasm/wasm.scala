@@ -38,7 +38,7 @@ object Function {
     val instructions = code
     new Function(
       fullName(sym.owner, sym),
-      sym.info.map(_ => param(None, i32)),
+      sym.info.map(p => param(Some(p.name), i32)),
       lh.locals,
       instructions,
       sym.idx,
@@ -51,7 +51,7 @@ object Function {
     val code = codeGen
     new Function(
       fullName(owner, fd.name),
-      fd.params.map(df => param(Some(id(df.name.name)), i32)),
+      fd.params.map(df => param(Some(df.name.name), i32)),
       lh.locals,
       code,
       idx,
