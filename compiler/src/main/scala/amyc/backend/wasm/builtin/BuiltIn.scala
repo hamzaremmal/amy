@@ -12,6 +12,7 @@ import amyc.core.{Context, Identifier}
 object BuiltIn :
 
   lazy val wasmFunctions: (Context, ModuleHandler) ?=> List[Function] =
+    String.length ::
     String.concat ::
     Std.digitToString ::
     Std.readString ::

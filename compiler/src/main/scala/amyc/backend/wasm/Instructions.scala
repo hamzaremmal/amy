@@ -1,7 +1,7 @@
 package amyc.backend.wasm
 
 import amyc.backend.wasm.indices.*
-import amyc.backend.wasm.types.{numtype, result, typeuse}
+import amyc.backend.wasm.types.{numtype, result, typeuse, valtype}
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
@@ -44,7 +44,7 @@ object Instructions {
 
   // Control instructions
   @deprecated
-  case class Loop(label: String)  extends Instruction // A block of instructions with a label at the beginning
+  case class Loop(label: String, tpe: Option[result] = None)  extends Instruction // A block of instructions with a label at the beginning
   @deprecated
   case class Block(label: String) extends Instruction // A block of instructions with a label at the end
 

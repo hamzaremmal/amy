@@ -78,7 +78,7 @@ object ModulePrinter {
       case _ : end.type =>
         Unindented(mkInstr(h)) ::
         (mkCode(t) map Unindented.apply)
-      case `if`(_, _) | Block(_) | Loop(_) =>
+      case `if`(_, _) | Block(_) | Loop(_, _) =>
         mkInstr(h) ::
         (mkCode(t) map Indented.apply)
       case _ =>
@@ -106,7 +106,10 @@ object ModulePrinter {
       case `if`(label, tpe) => Lined(List(s"if", tpe.map(mkResult).getOrElse("")), " ")
       case `else`(id) => s"else ${id.getOrElse("")}"
       case Block(label) => s"block $$$label"
-      case Loop(label) => s"loop $$$label"
+      case Loop(label, tpe) =>
+        tpe match
+          case None => s"loop $$$label"
+          case Some(t) => Lined(s"loop $$$label" :: mkResult(t) :: Nil, " ")
       case br(label)=> s"br $label"
       case _ : `return`.type => "ret"
       case _ : end.type => "end"
@@ -121,6 +124,7 @@ object ModulePrinter {
       case i32.load => "i32.load"
       case i32.store8 => "i32.store8"
       case i32.load8_u => "i32.load8_u"
+      case _ : i32.ne.type => "i32.ne"
       case Comment(s) =>
         var first = true;
         Stacked(s.split('\n').toList.map(s =>

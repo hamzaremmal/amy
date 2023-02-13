@@ -22,7 +22,9 @@ object BuiltIns :
     stdDef.Std_readString    -> Std.readString,
     stdDef.Std_readInt       -> Std.readInt,
     stdDef.Std_intToString   -> Std.intToString,
-    stdDef.Std_digitToString -> Std.digitToString
+    stdDef.Std_digitToString -> Std.digitToString,
+    stdDef.String_length     -> String.length,
+    // TODO HR : Add String::concat here
   )
 
   // ==============================================================================================

@@ -307,4 +307,7 @@ module String_1
   fn concat_1(lhs_10: String_0, rhs_10: String_0): String_0 = {
     error("Stub implementation")
   }
+  fn length_1(str_0: String_0): Int_0 = {
+    error("Stub implementation")
+  }
 end String_1

@@ -57,7 +57,8 @@ import amyc.reporter
     "Std_digitToString",
     "Std_readInt",
     "Std_readString",
-    "String_concat"
+    "String_concat",
+    "String_length"
   )
 
   /** Utilities */
@@ -123,7 +124,7 @@ import amyc.reporter
   inline def error(inline msg: Code) : Code =
     msg <:> call("Std_printString") <:> unreachable
 
-  inline def ift(inline cond: Code, inline thenn: Code, elze: Code) =
+  inline def ift(inline cond: Code, inline thenn: Code, inline elze: Code): Code  =
     cond <:>
     `if`(None, Some(result(i32))) <:>
     thenn <:>

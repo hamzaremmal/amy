@@ -6,6 +6,10 @@ module String
         error("Stub implementation")
     }
 
+    fn length(str: String): Int = {
+        error("Stub implementation")
+    }
+
     // ALIAS FOR CONCAT
     //fn ++ (lhs : String, rhs : String) : String
 
