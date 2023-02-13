@@ -1,0 +1,7 @@
+module str_length
+
+    val str: String = "Hello World";
+    val size: Int = String.length(str);
+    Std.printInt(size)
+
+end str_length

@@ -7,9 +7,11 @@ import amyc.core.StdDefinitions.*
 import amyc.core.Context
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.utils.{lh, getFreshLabel, incr}
+import amyc.backend.wasm.indices.localidx
+import amyc.backend.wasm.types.result
+import amyc.backend.wasm.utils.{getFreshLabel, ift, incr, lh}
 
-object String extends BuiltInModule {
+object String extends BuiltInModule :
 
   override lazy val owner: Context ?=> Symbol = stdDef.StringModule
 
@@ -81,4 +83,43 @@ object String extends BuiltInModule {
         global.get(memoryBoundary) <:> local.get(ptrD) <:> i32.const(1) <:> i32.add <:> global.set(memoryBoundary)
     }
 
-}
+    /*
+    fn length(str: String): Int =
+      val size = 0
+      val offset = 0
+      label:
+        if str[offset] != 0 then
+          size++
+          offset++
+          br label
+        else
+          return size
+      }
+    */
+  lazy val length: BuiltIn =
+    builtInForSymbol("length"){
+      val str : localidx = 0 // string is stored in the first parameter
+      val size: localidx = lh.getFreshLocal // allocate space to store the size to return
+      val offset : localidx = lh.getFreshLocal // allocate space to store the offset
+      val label = getFreshLabel()
+      Loop(label, Some(result(i32))) <:>
+      ift(
+        {
+        local.get(str) <:>
+        local.get(offset) <:>
+        i32.add <:>
+        i32.load <:>
+        i32.const(0) <:>
+        i32.ne
+        },
+        {
+          incr(size) <:>
+          incr(offset) <:>
+          br(label) <:>
+          i32.const(0) // HR: trick to satisfy typechecking of wat2wasm
+        },
+        {
+          local.get(size)
+        }
+      ) <:> end
+    }

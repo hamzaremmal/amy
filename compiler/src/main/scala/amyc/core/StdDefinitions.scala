@@ -32,6 +32,9 @@ class StdDefinitions(using Context) :
   // ---------------- String.amy ----------------
   lazy val StringModule      : MS = module("String")
   lazy val StringType        : TS = `type`(StringModule, "String")
+  
+  lazy val String_length     : FS = function(StringModule, "length")
+  
   // ----------------- Boolean.amy --------------
   lazy val BooleanModule     : MS = module("Boolean")
   lazy val BooleanType       : TS = `type`(BooleanModule, "Boolean")
