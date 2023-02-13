@@ -56,7 +56,7 @@ object Interpreter extends Pipeline[Program, Unit] :
         }
       case IntLiteral(i) => IntValue(i)
       case BooleanLiteral(b) => BooleanValue(b)
-      case StringLiteral(s) => StringValue(s)
+      case StringLiteral(s) => StringValue(s, lit = true)
       case UnitLiteral() => UnitValue
       case Call(c.binop_+, args) =>
         interpret(args(0), program) + interpret(args(1), program)
@@ -130,7 +130,7 @@ object Interpreter extends Pipeline[Program, Unit] :
               if i1 != i2 then None else Some(Nil)
             case (BooleanValue(b1), LiteralPattern(BooleanLiteral(b2))) =>
               if b1 != b2 then None else Some(Nil)
-            case (StringValue(_), LiteralPattern(StringLiteral(_))) =>
+            case (StringValue(_, _), LiteralPattern(StringLiteral(_))) =>
               None
             case (UnitValue, LiteralPattern(UnitLiteral())) =>
               Some(Nil)

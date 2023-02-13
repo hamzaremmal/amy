@@ -21,7 +21,11 @@ abstract class Value {
     // TODO HR : Handle if the effective type is not the same in lhs and rhs
     // TODO HR : by doing (_, ...) and (..., _) in some of the match cases
     (this, value) match
-      case (StringValue(_), StringValue(_)) => BooleanValue(this eq value)
+      case (StringValue(_, lit1), StringValue(_, lit2)) =>
+        if lit1 && lit2 then
+          BooleanValue(this == value)
+        else
+          BooleanValue(this eq value)
       case (CaseClassValue(_, _), CaseClassValue(_, _)) => BooleanValue(this eq value)
       case (IntValue(a), IntValue(b)) => BooleanValue(a == b)
       case (a: BooleanValue, b: BooleanValue) => BooleanValue(a == b)
@@ -30,7 +34,7 @@ abstract class Value {
   override def toString: String = this match {
     case IntValue(i) => i.toString
     case b:BooleanValue => b.b.toString
-    case StringValue(s) => s
+    case StringValue(s, _) => s
     case UnitValue => "()"
     case CaseClassValue(constructor, args) =>
       constructor.name + "(" + args.map(_.toString).mkString(", ") + ")"
@@ -102,7 +106,7 @@ case class BooleanValue(b: Boolean) extends Value {
 }
 
 // ====================================== STRING VALUES ===========================================
-case class StringValue(s: String) extends Value {
+case class StringValue(s: String, lit: Boolean = false) extends Value {
   infix def ++(ss: StringValue) = StringValue(s + ss.s)
 }
 
