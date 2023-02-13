@@ -93,27 +93,6 @@ import amyc.reporter
   inline def withComment(inline comment : String)(inline code: Code) : Code =
     Comment(comment) <:> code
 
-  // Creates a known string constant s in memory
-  def mkString(s: String): Code = {
-    val size = s.length
-    val padding = 4 - size % 4
-
-    val completeS = s + 0.toChar.toString * padding
-
-    val setChars = for ((c, ind) <- completeS.zipWithIndex.toList) yield {
-      global.get(memoryBoundary) <:> i32.const(ind) <:> i32.add <:>
-        i32.const(c.toInt) <:> i32.store8
-    }
-
-    val setMemory =
-      global.get(memoryBoundary) <:> global.get(memoryBoundary) <:> i32.const(size + padding) <:> i32.add <:>
-        global.set(memoryBoundary)
-
-    withComment(s"mkString: $s"){
-      setChars <:> setMemory
-    }
-  }
-
   inline def mkBoolean(inline b : Boolean): Code =
     i32.const(if b then 1 else 0)
 
@@ -155,9 +134,3 @@ import amyc.reporter
     thenn <:>
     `else`() <:>
     elze <:> end
-
-  def resolveOrder(fn: List[Function], n: => Function)(using Context): List[Function] =
-    def resolve(idx: Int) =
-      fn.find(_.idx == idx).getOrElse(n)
-    val size = fn.map(_.idx).max
-    for i <- (0 to size).toList yield resolve(i)
