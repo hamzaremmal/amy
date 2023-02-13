@@ -15,11 +15,6 @@ import amyc.reporter
 
   inline def mh(using ModuleHandler): ModuleHandler = summon
 
-  // The index of the global variable that represents the free memory boundary
-  val memoryBoundary: Int = 0
-  // # of global variables
-  val globalsNo = 1
-
   // Max number of parameters supporter for wwasm
   val maxParamsInFun = 5
 
@@ -82,9 +77,9 @@ import amyc.reporter
   // will point at its field in index (and consume the ADT).
   // 'index' MUST be 0-based.
   inline def adtField(inline base: Code, inline index: Int): Code =
-    withComment(s"adtField index: $index from base : $base"){
-      base <:> i32.const(4* (index + 1)) <:> i32.add
-    }
+    base <:>
+    i32.const(4* (index + 1)) <:>
+    i32.add
 
   // Increment a local variable
   inline def incr(l: localidx) =

@@ -25,7 +25,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     val fn = wasmFunctions ++ (program.modules flatMap cgModule)
     Module(
       program.modules.last.name.name,
-      Global(mh.boundary) :: Nil,
+      Global(mh.static_boundary) :: Nil,
       defaultImports,
       Some(mh.table),
       mh.strpool,
@@ -208,10 +208,9 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     val index = lh.constructor(sym)
     val l = lh.getFreshLocal // ref to object, should contain the name
 
-    global.get(memoryBoundary) <:>
+    // Dynamically allocate space for the object in memory
+    lh.mh.dynamic_alloc(args.size) <:>
     local.set(l) <:>
-    adtField(global.get(memoryBoundary), args.size) <:>
-    global.set(memoryBoundary) <:>
     local.get(l) <:>
     i32.const(index) <:>
     i32.store <:> {

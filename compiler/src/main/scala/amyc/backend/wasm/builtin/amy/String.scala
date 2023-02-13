@@ -7,15 +7,29 @@ import amyc.core.StdDefinitions.*
 import amyc.core.Context
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.utils.{lh, getFreshLabel, incr, memoryBoundary}
+import amyc.backend.wasm.utils.{lh, getFreshLabel, incr}
 
 object String extends BuiltInModule {
 
   override lazy val owner: Context ?=> Symbol = stdDef.StringModule
 
+  /* TODO HR : To be removed after implementing String::length */
+  @deprecated
+  private val memoryBoundary : Int = 0
+
+  /**
+    * Steps :
+    * 1- Allocate enough space to store both strings (length(lhs) + length(rhs) + 1)
+    * 2- Copy the first string without the '\0' character
+    * 3- Copy the second string without the '\0' character
+    * 4- Append '\0' character
+    * 5- Return the base address of the String
+    */
   lazy val concat : BuiltIn =
     builtInForSymbol("concat") {
+      // Pointer to the source String
       val ptrS = lh.getFreshLocal
+      // Pointer to the destination String
       val ptrD = lh.getFreshLocal
 
       val label = getFreshLabel()
