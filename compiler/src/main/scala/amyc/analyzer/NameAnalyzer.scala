@@ -55,22 +55,27 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     * @param Context
     */
   def registerFunctions(mod: N.ModuleDef)(using Context) =
-    // TODO HR: This function should not append info
-    for fd@N.FunDef(name, _, retType1, _) <- mod.defs do
-      val retType2 = transformType(retType1, mod.name)
-      symbols.addFunction(symbols.module(mod.name), name, fd.mods, fd.params, retType2)
+    for fd @ N.FunDef(name, _, retType1, _) <- mod.defs do
+      symbols.addFunction(
+        symbols.module(mod.name),
+        name,
+        fd.mods,
+        fd.params,
+        transformType(retType1, mod.name)
+      )
 
   /**
     * @param mod
     * @param Context
     */
   def registerConstructors(mod: N.ModuleDef)(using Context) =
-    for cc @ N.CaseClassDef(name, fields, parent) <- mod.defs do
-      val argTypes = fields map (tt => transformType(tt, mod.name))
-      val retType = symbols.getType(mod.name, parent).getOrElse {
-        reporter.fatal(s"Parent class $parent not found", cc)
-      }
-      symbols.addConstructor(mod.name, name, argTypes, retType)
+    for N.CaseClassDef(name, fields, parent) <- mod.defs do
+      symbols.addConstructor(
+        mod.name,
+        name,
+        fields map (tt => transformType(tt, mod.name)),
+        symbols.`type`(mod.name, parent)
+      )
 
   /**
     * @param prog
@@ -110,13 +115,15 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       }
 
   private def registerUnnamed(using Context) =
-    symbols.addFunction(stdDef.UnnamedModule, "null", Nil, Nil, S.TTypeTree(stdType.UnitType))
     // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
     symbols.addFunction(
       stdDef.UnnamedModule,
       "==",
       List("infix"),
-      List(N.ParamDef("lhs", N.TTypeTree(NoType)), N.ParamDef("rhs", N.TTypeTree(NoType))),
+      List(
+        N.ParamDef("lhs", N.TTypeTree(NoType)),
+        N.ParamDef("rhs", N.TTypeTree(NoType))
+      ),
       S.TTypeTree(stdType.BooleanType)
     )
 }

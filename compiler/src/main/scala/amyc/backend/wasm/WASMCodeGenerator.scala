@@ -14,7 +14,6 @@ import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.Instructions.{i32, *}
 import amyc.backend.wasm.builtin.amy.*
-import unnamed.null_fn
 import amyc.backend.wasm.types.{result, typeuse}
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 
