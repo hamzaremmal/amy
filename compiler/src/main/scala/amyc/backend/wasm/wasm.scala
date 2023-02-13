@@ -18,7 +18,7 @@ import scala.annotation.constructorOnly
 
 // A WebAssembly module
 case class Module(name: String,
-                  globals: Int,
+                  globals: List[Global],
                   imports: List[String],
                   table: Option[Table],
                   data: List[Data],
@@ -62,5 +62,7 @@ object Function {
 case class Table(elems: List[FunctionSymbol])
 
 case class Data(offset: Int, str: String)
+
+case class Global(value: Int)
 
 case class Import(elem: String)

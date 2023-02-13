@@ -13,7 +13,8 @@ class ModuleHandler(val name: String) :
   /* Atomic counter for constructors and functions */
   private val constrIndexes = new AtomicInteger
   private val funIndexes = new AtomicInteger
-  private val strIndexes = new AtomicInteger
+  
+  private val _freemem = new AtomicInteger
   
   private val _constr: mutable.HashMap[Symbol, Int] = mutable.HashMap.empty
   private val _fun: mutable.HashMap[Symbol, Int] = mutable.HashMap.empty
@@ -32,10 +33,26 @@ class ModuleHandler(val name: String) :
   def table: Table =
     val syms = _fun.toList.sorted((lhs, rhs) => lhs._2 - rhs._2).map(_._1.asInstanceOf[FunctionSymbol])
     Table(syms)
+    
+  // ==============================================================================================
+  // ===================================== MEMORY MANAGEMENT ======================================
+  // ==============================================================================================
+  
+  /* allocate memory */
+  def alloc(size: Int): Int = 
+    assert(size >= 0)
+    _freemem.getAndAdd(size)
+  
+  /* allocating memory of size 0 will return the offset to the next free memory */
+  def boundary : Int = alloc(0)
+  
+  // ==============================================================================================
+  // ===================================== STRING MANAGEMENT ======================================
+  // ==============================================================================================
 
   /* Find the reference in memory to the string or create a new one */
   def string(str: String) : Int =
-    _strpool.getOrElseUpdate(str, strIndexes.getAndAdd(str.length + 1))
+    _strpool.getOrElseUpdate(str, alloc(str.length + 1))
 
   def strpool: List[Data] =
     _strpool.toList.map(s => Data(s._2, s._1))

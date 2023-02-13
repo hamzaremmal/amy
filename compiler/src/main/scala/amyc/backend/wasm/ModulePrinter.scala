@@ -17,7 +17,7 @@ object ModulePrinter {
     s"(module ${id(mod.name)}",
     Indented(Stacked(mod.imports map mkImport)),
     Indented(Stacked(mod.data map mkData)),
-    Indented("(global (mut i32) i32.const 0) " * mod.globals),
+    Indented(Stacked(mod.globals.map(mkGlobal))),
     Indented(mkTable(mod.table.get)),
     Indented(Stacked(defaultFunTypes.map(s2d))),
     Indented(Stacked(mod.functions map mkFun)),
@@ -32,6 +32,9 @@ object ModulePrinter {
     Stacked{
       header :: elem
     }
+
+  def mkGlobal(global: Global): Document =
+    s"(global ${id("free_mem")} (mut i32) i32.const ${global.value})"
 
   def mkParam(p: param): Document =
     p.id.map(id => s"(param $id ${p.tpe})").getOrElse(s"(param ${p.tpe})")

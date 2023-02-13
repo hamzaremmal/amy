@@ -26,7 +26,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     val fn = wasmFunctions ++ (program.modules flatMap cgModule)
     Module(
       program.modules.last.name.name,
-      globalsNo,
+      Global(mh.boundary) :: Nil,
       defaultImports,
       Some(mh.table),
       mh.strpool,
