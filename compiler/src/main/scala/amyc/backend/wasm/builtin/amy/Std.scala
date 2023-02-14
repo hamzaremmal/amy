@@ -19,7 +19,7 @@ object Std extends BuiltInModule {
       // we pass the old memory boundary and get the new one.
       // In the end we have to return the old, where the fresh string lies.
       mh.dynamic_boundary <:>
-      mh.dynamic_boundary{
+      mh.dynamic_boundary {
         mh.dynamic_boundary <:>
           // This function will allocate the space
           // This function return the next free space in memory
@@ -34,10 +34,10 @@ object Std extends BuiltInModule {
       // Leave the base address in the stack
       mh.dynamic_boundary <:>
       // Allocate space for one letter
-      mh.dynamic_alloc(4) <:>
+      mh.dynamic_alloc(1) <:>
       // Compute the ASCII code for the character
       local.get(0) <:> i32.const('0'.toInt) <:> i32.add <:>
-      // Store the ASCII code in memeory
+      // Store the ASCII code in memory
       i32.store
     }
 

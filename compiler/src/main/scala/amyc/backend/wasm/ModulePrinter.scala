@@ -95,6 +95,7 @@ object ModulePrinter {
       case i32.mul => "i32.mul"
       case i32.div_s => "i32.div_s"
       case i32.rem_s => "i32.rem_s"
+      case i32.rem_u => "i32.rem_u"
       case i32.and => "i32.and"
       case i32.or  => "i32.or"
       case i32.xor => "i32.xor"
