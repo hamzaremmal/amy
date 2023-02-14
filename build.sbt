@@ -1,8 +1,6 @@
 import sbt.Def.spaceDelimited
 
-organization := "ch.epfl.lara"
-
-ThisBuild / scalaVersion := "3.1.3"
+ThisBuild / scalaVersion := "3.2.0"
 ThisBuild / version := "1.0"
 ThisBuild / scalacOptions ++= Seq("-feature", "-language:implicitConversions")
 ThisBuild / shellPrompt := (Project.extract(_).currentRef.project + "> ")
