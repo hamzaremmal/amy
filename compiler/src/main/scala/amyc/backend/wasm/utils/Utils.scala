@@ -83,7 +83,7 @@ import amyc.reporter
     i32.add
 
   // Increment a local variable
-  inline def incr(l: localidx) =
+  inline def incr(inline l: localidx) =
     local.get(l) <:> i32.const(1) <:> i32.add <:> local.set(l)
 
   inline def withComment(inline comment : String)(inline code: Code) : Code =

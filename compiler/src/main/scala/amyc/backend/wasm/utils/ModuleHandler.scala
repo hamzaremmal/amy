@@ -1,7 +1,7 @@
 package amyc.backend.wasm.utils
 
 import amyc.backend.wasm.*
-import amyc.backend.wasm.Instructions.{Code, Comment, global, id, local}
+import amyc.backend.wasm.Instructions.{Code, Comment, global, i32, id, local}
 import amyc.core.Context
 import amyc.core.Symbols.*
 import amyc.utils.UniqueCounter
@@ -69,6 +69,31 @@ case class ModuleHandler(name: String) :
     static_alloc(0)
 
   /**
+    * Allocate dynamically memory
+    *
+    * It assumes the size is in the stack and leaves the base address there.
+    * @return
+    */
+  def dynamic_alloc(using LocalsHandler) : Code =
+    val size = lh.getFreshLocal
+    // Store the size in a local variable (formula for adtField)
+    i32.const(1) <:>
+    i32.add <:>
+    i32.const(4) <:>
+    i32.mul <:>
+    local.set(size) <:>
+    Comment(s"dynamically allocating memory") <:>
+    // Leave the base address in the stack
+    global.get(_freemem_id) <:>
+    // Computing the new offset of free memory
+    global.get(_freemem_id) <:>
+    local.get(size) <:>
+    i32.add <:>
+    // Storing the new size in memory
+    global.set(_freemem_id) <:>
+    Comment(s"end of dynamic allocation")
+
+  /**
     * Allocate dynamically memory.
     *
     * It leaves in the stack the base address for the object
@@ -76,15 +101,9 @@ case class ModuleHandler(name: String) :
     * @return (Code) - code to execute to allocate memory dynamically
     *         leaves in the stack the base address (i32)
     */
-  def dynamic_alloc(size: Int): Code =
-    withComment(s"dynamically allocating memory - size: $size"){
-      global.get(_freemem_id) <:>
-      // Computing the size of the object in memory
-      adtField(global.get(_freemem_id), size) <:>
-      // Storing the new size in memory
-      global.set(_freemem_id) <:>
-      Comment(s"end of dynamic allocation - size: $size")
-    }
+  def dynamic_alloc(size: Int)(using LocalsHandler): Code =
+    i32.const(size) <:>
+    dynamic_alloc
 
 
   /**

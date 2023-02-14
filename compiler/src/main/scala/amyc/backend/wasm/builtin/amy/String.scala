@@ -15,72 +15,102 @@ object String extends BuiltInModule :
 
   override lazy val owner: Context ?=> Symbol = stdDef.StringModule
 
-  /* TODO HR : To be removed after implementing String::length */
-  @deprecated
-  private val memoryBoundary : Int = 0
-
-  /**
-    * Steps :
-    * 1- Allocate enough space to store both strings (length(lhs) + length(rhs) + 1)
-    * 2- Copy the first string without the '\0' character
-    * 3- Copy the second string without the '\0' character
-    * 4- Append '\0' character
-    * 5- Return the base address of the String
-    */
+  /*
+     fn concat(str1, str2) =
+       val dest = dynamic_alloc(String.length(str1) + String.length(str2) + 1)
+       val dest_offset = 0
+       val base = str1
+       val src_offset = 0
+       label1:
+         if base[src_offset] != 0 then
+           dest[dest_offset] = base[src_offset]
+           src_offset++
+           dest_offset++
+           br_if label1
+         else
+           end
+       base = str2
+       src_offset = 0
+       label2:
+         if base[src_offset] != 0 then
+           dest[dest_offset] = base[src_offset]
+           src_offset++
+           dest_offset++
+           br_if label2
+         else
+           end
+       dest[dest_offset] = '\0'
+       dest
+   */
   lazy val concat : BuiltIn =
     builtInForSymbol("concat") {
-      // Pointer to the source String
-      val ptrS = lh.getFreshLocal
-      // Pointer to the destination String
-      val ptrD = lh.getFreshLocal
+      val lhs = local.get(0)
+      val rhs = local.get(1)
+      val dest = lh.getFreshLocal
+      val dest_offset = lh.getFreshLocal
+      val base = lh.getFreshLocal
+      val base_offset = lh.getFreshLocal
 
-      val label = getFreshLabel()
-
-      def mkLoop: Code = {
+      def loop =
         val label = getFreshLabel()
-        Loop(label) <:>
-          // Load current character
-          local.get(ptrS) <:> i32.load8_u <:>
-          // If != 0
-          `if`() <:>
-          // Copy to destination
-          local.get(ptrD) <:>
-          local.get(ptrS) <:> i32.load8_u <:>
-          i32.store8 <:>
-          // Increment pointers
-          incr(ptrD) <:> incr(ptrS) <:>
-          // Jump to loop
-          br(label) <:>
-          `else`() <:> end <:> end
-      }
+        Loop(label, Some(result(i32))) <:>
+          ift(
+            {
+              local.get(base) <:>
+              local.get(base_offset) <:>
+              i32.add <:>
+              i32.load8_u <:>
+              i32.const(0) <:>
+              i32.ne
+            },
+            {
+              local.get(dest) <:>
+              local.get(dest_offset) <:>
+              i32.add <:>
+              local.get(base) <:>
+              local.get(base_offset) <:>
+              i32.add <:>
+              i32.load8_u <:>
+              i32.store8 <:>
+              incr(base_offset) <:>
+              incr(dest_offset) <:>
+              br(label) <:>
+              i32.const(0) // HR: trick to satisfy typechecking of wat2wasm
+            },
+            {
+            i32.const(0)
+            }
+          ) <:> end <:>
+          drop
 
-      // Instantiate ptrD to previous memory, ptrS to first string
-      global.get(memoryBoundary) <:>
-        local.set(ptrD) <:>
-        local.get(0) <:>
-        local.set(ptrS) <:>
-        // Copy first string
-        mkLoop <:>
-        // Set ptrS to second string
-        local.get(1) <:>
-        local.set(ptrS) <:>
-        // Copy second string
-        mkLoop <:>
-        //
-        // Pad with zeros until multiple of 4
-        //
-        Loop(label) <:>
-        // Write 0
-        local.get(ptrD) <:> i32.const(0) <:> i32.store8 <:>
-        // Check if multiple of 4
-        local.get(ptrD) <:> i32.const(4) <:> i32.rem_s <:>
-        // If not
-        `if`() <:>
-        // Increment pointer and go back
-        incr(ptrD) <:>
-        br(label) <:> `else`() <:> end <:> end <:>
-        // Put string pointer to stack, set new memory boundary and return
-        global.get(memoryBoundary) <:> local.get(ptrD) <:> i32.const(1) <:> i32.add <:> global.set(memoryBoundary)
+      // Compute the size and allocate memory
+      lhs <:>
+      call(id("String_length")) <:>
+      rhs <:>
+      call(id("String_length")) <:>
+      i32.add <:>
+      i32.const(1) <:>
+      i32.add <:>
+      lh.mh.dynamic_alloc <:>
+      local.set(dest) <:>
+      // Set the base to the lhs
+      lhs <:>
+      local.set(base) <:>
+      loop <:> // copy the first String
+      // Set the base to rhs and reset the base_offset
+      rhs <:>
+      local.set(base) <:>
+      i32.const(0) <:>
+      local.set(base_offset) <:>
+      loop <:> // copy the second String
+      // Store the null character add dest[dest_offset]
+      local.get(dest) <:>
+      local.get(dest_offset) <:>
+      i32.add <:>
+      i32.const(0) <:> // '\0'
+      i32.store8 <:>
+      // return the base address
+      local.get(dest)
     }
 
     /*
@@ -108,7 +138,7 @@ object String extends BuiltInModule :
         local.get(str) <:>
         local.get(offset) <:>
         i32.add <:>
-        i32.load <:>
+        i32.load8_u <:>
         i32.const(0) <:>
         i32.ne
         },
