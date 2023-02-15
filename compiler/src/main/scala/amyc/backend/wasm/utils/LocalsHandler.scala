@@ -10,7 +10,7 @@ import amyc.{reporter, symbols}
 import scala.collection.mutable
 import java.util.concurrent.atomic.AtomicInteger
 
-final class LocalsHandler(val sym: FunctionSymbol, val mh: ModuleHandler, textmode: Boolean = true):
+final class LocalsHandler(val sym: ApplicationSymbol, val mh: ModuleHandler, textmode: Boolean = true):
 
   // HR: Had to switch from HashMap to ListBuffer to keep the order
   private val params_ =
