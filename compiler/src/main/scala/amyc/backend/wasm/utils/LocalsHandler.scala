@@ -20,7 +20,7 @@ final class LocalsHandler(val sym: FunctionSymbol, val mh: ModuleHandler, textmo
   private val locals_counter: AtomicInteger = AtomicInteger(0)
 
   // Register all parameters
-  for p <- sym.info do
+  for p <- sym.param do
     params_ += (p -> {
       val v = locals_counter.getAndIncrement // increment the global counter
       if textmode then id(p.fullName) else v

@@ -4,7 +4,6 @@ import amyc.analyzer.SymbolTable
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.{Context, Identifier}
 import amyc.core.Types.*
-import amyc.core.Signatures.*
 import amyc.core.StdDefinitions.*
 import amyc.core.StdTypes.*
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
@@ -135,10 +134,10 @@ object TypeChecker extends Pipeline[Program, Program]{
       args.foreach(check)
       qname match
         case f: FunctionSymbol =>
-          args zip f.info map ((arg, param) => =:=(arg, param.tpe.tpe))
+          args zip f.param map ((arg, param) => =:=(arg, param.tpe.tpe))
           =:=(expr, f.rte.tpe)
         case f: ConstructorSymbol =>
-          args zip f.param map ((arg, tpe) => =:=(arg, tpe.tpe))
+          args zip f.param map ((arg, pd) => =:=(arg, pd.tpe.tpe))
           =:=(expr, ctx.tpe(f.rte))
       expr
 
@@ -210,9 +209,9 @@ object TypeChecker extends Pipeline[Program, Program]{
 
   def checkCaseClassPattern(expr: CaseClassPattern, scrut: Type)(using Context) =
     val CaseClassPattern(constr, args) = expr
-      if ClassType(constr.id) =:= scrut || ClassType(constr.asInstanceOf[ConstructorSymbol].signature.parent.id) =:= scrut then
+      if ClassType(constr.id) =:= scrut || ClassType(constr.asInstanceOf[ConstructorSymbol].parent.id) =:= scrut then
         // TODO HR : Need to have a symbol as the type not a qualified name
-        (args zip constr.asInstanceOf[ConstructorSymbol].param) foreach ((p, t) => checkPattern(p, t.tpe))
+        (args zip constr.asInstanceOf[ConstructorSymbol].param) foreach ((p, pd) => checkPattern(p, pd.tpe.tpe))
       else
         reporter.error(s"found $constr instead of $scrut")
     expr

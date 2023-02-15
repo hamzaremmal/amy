@@ -40,7 +40,7 @@ trait Printer(highlighter: Highlighter) {
     case CaseClassDef(name, fields, parent) =>
       def printField(f: TypeTree) = "v: " <:> toDoc(f)
 
-      "case class " <:> name <:> "(" <:> Lined(fields map printField, ", ") <:> ") : " <:> parent
+      "case class " <:> name <:> "(" <:> Lined(fields.map(_.tt) map printField, ", ") <:> ") : " <:> parent
 
     case FunDef(name, params, retType, body) =>
       Stacked(

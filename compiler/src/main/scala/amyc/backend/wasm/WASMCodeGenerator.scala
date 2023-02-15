@@ -5,7 +5,6 @@ import amyc.ast.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.core.*
 import amyc.core.Symbols.*
-import amyc.core.Signatures.*
 import amyc.core.StdTypes.*
 import amyc.core.StdDefinitions.*
 import amyc.utils.Pipeline

@@ -2,11 +2,10 @@ package amyc.analyzer
 
 import amyc.*
 import amyc.core.*
-import amyc.core.Signatures.*
 import amyc.core.Symbols.*
 import amyc.analyzer.Transformer.*
 import amyc.ast.NominalTreeModule.ParamDef
-import amyc.ast.SymbolicTreeModule.TypeTree
+import amyc.ast.SymbolicTreeModule.{TypeTree, ClassTypeTree}
 import amyc.utils.UniqueCounter
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -40,11 +39,15 @@ class SymbolTable :
     sym
 
   /* register a new constructor */
-  def addConstructor(owner: String, name: String, argTypes: List[TypeTree], parent: Symbol): Symbol =
+  def addConstructor(owner: String, name: String, params: List[ParamDef], parent: Symbol)
+                    (using Context): Symbol =
     val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
-    val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner)
+    val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner, parent)
     defsByName += (owner, name) -> sym
-    sym.signature(ConstrSig(argTypes, parent))
+    sym.info{
+      for p <- params yield
+        ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner))
+    }
     sym
 
   /* register a new function */

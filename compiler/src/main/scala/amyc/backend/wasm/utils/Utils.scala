@@ -6,7 +6,6 @@ import amyc.backend.wasm.indices.{globalidx, localidx}
 import amyc.backend.wasm.types.{local as l, *}
 import amyc.core.{Context, Identifier}
 import amyc.core.Symbols.*
-import amyc.core.Signatures.*
 import amyc.reporter
 
 // Utilities for CodeGen

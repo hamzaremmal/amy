@@ -3,7 +3,6 @@ package amyc.analyzer
 import amyc.*
 import amyc.core.*
 import amyc.core.Symbols.*
-import amyc.core.Signatures.*
 import amyc.core.StdDefinitions.*
 import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 
@@ -73,7 +72,7 @@ object Transformer {
     */
   def transformFunDef(fd: N.FunDef, module: String)(using Context): S.FunDef = {
     val N.FunDef(name, params, retType, body) = fd
-    val Some(sym) = symbols.getFunction(module, name)
+    val sym = symbols.function(module, name)
 
     params.groupBy(_.name).foreach { case (name, ps) =>
       if (ps.size > 1) {
@@ -81,12 +80,12 @@ object Transformer {
       }
     }
 
-    val newParams = params zip sym.info map {
+    val newParams = params zip sym.param map {
       case (pd@N.ParamDef(_, tt), sym) =>
         S.ParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
     }
 
-    val paramsMap = sym.info.map(s => (s.name, s)).toMap
+    val paramsMap = sym.param.map(s => (s.name, s)).toMap
 
     S.FunDef(
       sym,
@@ -107,9 +106,13 @@ object Transformer {
     df match {
       case N.AbstractClassDef(name) =>
         S.AbstractClassDef(symbols.getType(module, name).get)
-      case N.CaseClassDef(name, _, _) =>
-        val Some(sym : ConstructorSymbol) = symbols.getConstructor(module, name)
-        S.CaseClassDef(sym, sym.param, sym.signature.parent)
+      case N.CaseClassDef(name, params, _) =>
+        val sym = symbols.constructor(module, name)
+        val newParams = params zip sym.param map {
+          case (pd@N.ParamDef(_, tt), sym) =>
+            S.ParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
+        }
+        S.CaseClassDef(sym, newParams, sym.parent)
       case fd: N.FunDef =>
         transformFunDef(fd, module)
     }
@@ -162,7 +165,7 @@ object Transformer {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
           case Some(sym: FunctionSymbol) =>
-            if (sym.info.size != args.size) {
+            if (sym.param.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
             S.Call(sym, args.map(transformExpr(_)))
@@ -227,7 +230,7 @@ object Transformer {
                 .getOrElse {
                   reporter.fatal(s"Constructor $constr not found", pat)
                 }
-              if (sym.signature.argTypes.size != args.size) {
+              if (sym.param.size != args.size) {
                 reporter.fatal(s"Wrong number of args for constructor $constr", pat)
               }
               val (newPatts, moreLocals0) = (args map transformPattern).unzip

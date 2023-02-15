@@ -3,7 +3,6 @@ package amyc.core
 import amyc.ast.SymbolicTreeModule
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Identifier
-import amyc.core.Signatures.ConstrSig
 import amyc.core.Types.Type
 
 object Symbols:
@@ -20,13 +19,21 @@ object Symbols:
   case class TypeSymbol(override val id: Identifier, owner: ModuleSymbol)
       extends Symbol(id, owner)
 
-  /* Used for functions */
+  // ==============================================================================================
+  // =================================== APPLICATION SYMBOLS ======================================
+  // ==============================================================================================
 
-  case class FunctionSymbol(
+  abstract class ApplicationSymbol(id: Identifier, owner: ModuleSymbol) extends Symbol(id, owner):
+    def param: List[ParameterSymbol]
+    def rte : TypeTree
+
+  /* Used for functions */
+  final case class FunctionSymbol(
       override val id: Identifier,
       owner: ModuleSymbol,
       private val mods: List[String]
-  ) extends Symbol(id, owner):
+  ) extends ApplicationSymbol(id, owner):
+
     private var _param: List[ParameterSymbol] = compiletime.uninitialized
     private var _rte: TypeTree = compiletime.uninitialized
 
@@ -35,8 +42,8 @@ object Symbols:
       _rte = rte
       this
 
-    def info: List[ParameterSymbol] = _param
-    final def rte: TypeTree = _rte
+    override def param: List[ParameterSymbol] = _param
+    override def rte: TypeTree = _rte
 
     override val toString: String = id.name
 
@@ -44,19 +51,23 @@ object Symbols:
       mods contains mod
 
   /* Used for constructors */
-  case class ConstructorSymbol(override val id: Identifier, owner: ModuleSymbol)
-      extends Symbol(id, owner):
-    private var _sig: ConstrSig = compiletime.uninitialized
+  final case class ConstructorSymbol(override val id: Identifier, owner: ModuleSymbol, parent: Symbol)
+      extends ApplicationSymbol(id, owner):
 
-    def signature(fs: ConstrSig): ConstructorSymbol =
-      _sig = fs
+    private var _param: List[ParameterSymbol] = compiletime.uninitialized
+
+    def info(param: List[ParameterSymbol]): this.type =
+      _param = param
       this
 
-    def signature: ConstrSig = _sig
+    override def param: List[ParameterSymbol] = _param
 
-    final def param: List[TypeTree] = signature.argTypes
+    override def rte: TypeTree = ClassTypeTree(parent)
 
-    final def rte: TypeTree = signature.retType
+  // ==============================================================================================
+  // ===================================== LOCAL SYMBOLS ==========================================
+  // ==============================================================================================
+
 
   /**
     * Used for function parameters
@@ -66,7 +77,7 @@ object Symbols:
     */
   case class ParameterSymbol(
       override val id: Identifier,
-      owner: FunctionSymbol,
+      owner: ApplicationSymbol,
       tpe: TypeTree
   ) extends Symbol(id, owner)
 

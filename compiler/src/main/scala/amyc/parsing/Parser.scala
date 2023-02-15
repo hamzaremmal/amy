@@ -143,7 +143,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
       parameters
     ) ~ ":" ~ identifier) map {
       case _ ~ _ ~ className ~ params ~ _ ~ superClassName =>
-        CaseClassDef(className, params.map(_.tt), superClassName)
+        CaseClassDef(className, params, superClassName)
     }
 
   /**
