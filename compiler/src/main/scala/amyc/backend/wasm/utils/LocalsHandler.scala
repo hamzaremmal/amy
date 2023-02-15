@@ -10,7 +10,7 @@ import amyc.{reporter, symbols}
 import scala.collection.mutable
 import java.util.concurrent.atomic.AtomicInteger
 
-final class LocalsHandler(val sym: FunctionSymbol, val mh: ModuleHandler, textmode: Boolean = true):
+final class LocalsHandler(val sym: ApplicationSymbol, val mh: ModuleHandler, textmode: Boolean = true):
 
   // HR: Had to switch from HashMap to ListBuffer to keep the order
   private val params_ =
@@ -20,7 +20,7 @@ final class LocalsHandler(val sym: FunctionSymbol, val mh: ModuleHandler, textmo
   private val locals_counter: AtomicInteger = AtomicInteger(0)
 
   // Register all parameters
-  for p <- sym.info do
+  for p <- sym.param do
     params_ += (p -> {
       val v = locals_counter.getAndIncrement // increment the global counter
       if textmode then id(p.fullName) else v
@@ -30,8 +30,8 @@ final class LocalsHandler(val sym: FunctionSymbol, val mh: ModuleHandler, textmo
   // =========================================== API ==============================================
   // ==============================================================================================
 
-  def fetch(id: Symbol): localidx =
-    params_.toMap.getOrElse(id, locals_.toMap.getOrElse(id, -1))
+  def fetch(id: Symbol)(using Context): localidx =
+    params_.toMap.getOrElse(id, locals_.toMap.getOrElse(id, reporter.fatal("symbol was not found by LocalsHandler")))
 
   def getFreshLocal(i: Symbol): localidx =
     params_.toMap.getOrElse(

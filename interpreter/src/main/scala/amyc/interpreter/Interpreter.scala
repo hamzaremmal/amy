@@ -5,7 +5,6 @@ import amyc.utils.*
 import amyc.core.Context
 import amyc.core.StdDefinitions.*
 import amyc.core.Symbols.*
-import amyc.core.Signatures.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.analyzer.SymbolTable
 import amyc.interpreter.*

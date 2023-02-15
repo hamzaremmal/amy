@@ -50,7 +50,7 @@ trait TreeModule :
   case class FunDef(name: Name, params: List[ParamDef], retType: TypeTree, body: Expr) extends ClassOrFunDef :
     def paramNames = params.map(_.name)
   case class AbstractClassDef(name: Name) extends ClassOrFunDef
-  case class CaseClassDef(name: Name, fields: List[TypeTree], parent: Name) extends ClassOrFunDef
+  case class CaseClassDef(name: Name, fields: List[ParamDef], parent: Name) extends ClassOrFunDef
   case class ParamDef(name: Name, tt: TypeTree) extends Definition
 
   // ==============================================================================================

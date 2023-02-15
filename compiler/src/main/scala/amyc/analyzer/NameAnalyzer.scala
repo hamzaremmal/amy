@@ -73,7 +73,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       symbols.addConstructor(
         mod.name,
         name,
-        fields map (tt => transformType(tt, mod.name)),
+        fields,
         symbols.`type`(mod.name, parent)
       )
 

@@ -5,7 +5,6 @@ import amyc.ast.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.core.*
 import amyc.core.Symbols.*
-import amyc.core.Signatures.*
 import amyc.core.StdTypes.*
 import amyc.core.StdDefinitions.*
 import amyc.utils.Pipeline
@@ -21,7 +20,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
 
   override val name: String = "WASMCodeGenerator"
   override def run(program: Program)(using Context): Module =
-    given ModuleHandler = new ModuleHandler(program.modules.last.name.name)
+    given ModuleHandler = ModuleHandler(program.modules.last.name.name)
     val fn = wasmFunctions ++ (program.modules flatMap cgModule)
     Module(
       program.modules.last.name.name,
@@ -45,16 +44,37 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     */
   def cgModule(moduleDef: ModuleDef)(using Context)(using ModuleHandler): List[Function] =
     val ModuleDef(name, defs, optExpr) = moduleDef
+    defs.collect {
+      case cd@CaseClassDef(sym, params, _) =>
+        Function.forDefinition(cd){
+          val index = lh.constructor(sym)
+          val l = lh.getFreshLocal // ref to object, should contain the name
+
+          // Dynamically allocate space for the object in memory
+          lh.mh.dynamic_alloc(params.size) <:>
+          local.set(l) <:>
+          local.get(l) <:>
+          i32.const(index) <:>
+          i32.store <:> {
+            // HR: Store each of the constructor parameter
+            for offset <- (0 to params.size).toList yield
+              adtField(local.get(l), offset) <:> // Compute the offset to store in
+              local.get(offset) <:> // Fetch the data to store
+              i32.store
+          } <:>
+          local.get(l)
+        }
+    } ++
     // Generate code for all functions
     defs.collect {
       case fd: FunDef if !builtInFunctions(fullName(name, fd.name)) =>
-        cgFunction(fd, name, Some(result(i32)))
+        cgFunction(fd, Some(result(i32)))
     } ++
       // Generate code for the "main" function, which contains the module expression
       optExpr.toList.map { expr =>
         val sym = symbols.addFunction(name.asInstanceOf, "main", Nil, Nil, TTypeTree(stdType.IntType))
         val mainFd = FunDef(sym, Nil, ClassTypeTree(stdDef.IntType), expr)
-        cgFunction(mainFd, name, None)
+        cgFunction(mainFd, None)
       }
 
   /**
@@ -66,10 +86,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     * @param ModuleHandler
     * @return
     */
-  def cgFunction(fd: FunDef, owner: Symbol, result : Option[result])(using Context)(using ModuleHandler): Function = {
+  def cgFunction(fd: FunDef, result : Option[result])(using Context)(using ModuleHandler): Function = {
     // Note: We create the wasm function name from a combination of
     // module and function name, since we put everything in the same wasm module.
-    Function.forDefinition(fd, owner, result) {
+    Function.forDefinition(fd, result) {
       val body = cgExpr(fd.body)
       withComment(fd.toString) {
         if result.isEmpty then
@@ -108,22 +128,23 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
       case Neg(e) =>
         mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
       case AmyCall(sym: ConstructorSymbol, args) =>
-        genConstructorCall(sym, args)
-      case AmyCall(qname, args) =>
+        args.map(cgExpr) <:>
+        call(fullName(sym.owner, sym))
+      case AmyCall(sym: (LocalSymbol | ParameterSymbol), args) =>
+        args.map(cgExpr) <:>
+        local.get(lh.fetch(sym)) <:>
+        call_indirect(typeuse(mkFunTypeName(args.size)))
+      case AmyCall(qname : FunctionSymbol, args) =>
         genFunctionCall(args, qname)
       case Sequence(e1, e2) =>
-        withComment(e1.toString) {
-          cgExpr(e1)
-        } <:> drop <:>
-          withComment(e2.toString) {
-            cgExpr(e2)
-          }
+        cgExpr(e1) <:>
+        drop <:>
+        cgExpr(e2)
       case Let(pdf, value, body) =>
         val idx = lh.getFreshLocal(pdf.name)
-        withComment(expr.toString) {
-          setLocal(cgExpr(value), idx) <:>
-            cgExpr(body)
-        }
+        cgExpr(value) <:>
+        local.set(idx) <:>
+        cgExpr(body)
       case Ite(cond, thenn, elze) =>
         ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
       case Match(scrut, cases) =>
@@ -163,7 +184,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     * @param LocalsHandler
     * @return
     */
-  def genFunctionCall(args: List[Expr], qname: Symbol)(using Context)(using LocalsHandler) =
+  def genFunctionCall(args: List[Expr], qname: FunctionSymbol)(using Context)(using LocalsHandler) =
     if qname == stdDef.binop_+ then
       mkBinOp(cgExpr(args.head), cgExpr(args(1)))(i32.add)
     else if qname == stdDef.binop_- then
@@ -187,14 +208,9 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     else if qname == stdDef.binop_++ then
       mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(call(String.concat(using ctx, lh.mh).name))
     else
-      args.map(cgExpr) <:> {
-        lh.fetch(qname) match
-          case -1 =>
-            call(fullName(qname.asInstanceOf[FunctionSymbol].owner, qname))
-          case idx =>
-            local.get(idx) <:>
-              call_indirect(typeuse(mkFunTypeName(args.size)))
-      }
+      // Any other function without any special treatment
+      args.map(cgExpr) <:>
+      call(fullName(qname.owner, qname))
 
   /**
     *
@@ -204,24 +220,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     * @param LocalsHandler
     * @return
     */
-  def genConstructorCall(sym: ConstructorSymbol, args: List[Expr])(using Context)(using LocalsHandler) = {
-    val index = lh.constructor(sym)
-    val l = lh.getFreshLocal // ref to object, should contain the name
-
-    // Dynamically allocate space for the object in memory
-    lh.mh.dynamic_alloc(args.size) <:>
-    local.set(l) <:>
-    local.get(l) <:>
-    i32.const(index) <:>
-    i32.store <:> {
-    // HR: Store each of the constructor parameter
-    for (arg, idx) <- args.zipWithIndex yield
-      adtField(local.get(l), idx) <:> // Compute the offset to store in
-      cgExpr(arg) <:> // Compute the data to store
-      i32.store
-    } <:>
-    local.get(l)
-  }
+  def genConstructorCall(sym: ConstructorSymbol, args: List[Expr])(using Context)(using LocalsHandler) =
+    // Generating all the arguments
+    args.map(cgExpr) <:>
+    call(fullName(sym.owner, sym))
 
   // ==============================================================================================
   // =============================== GENERATE PATTERN MATCHING ====================================

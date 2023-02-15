@@ -4,7 +4,7 @@ import amyc.utils.Preconditions.*
 import Instructions.{Code, i32, id}
 import amyc.backend.wasm.utils.*
 import amyc.core.*
-import amyc.ast.SymbolicTreeModule.FunDef
+import amyc.ast.SymbolicTreeModule.{FunDef, CaseClassDef}
 import amyc.backend.wasm.types.*
 import amyc.core.Symbols.*
 import amyc.symbols
@@ -44,17 +44,30 @@ object Function {
       mh.function(sym)
     )
 
-  def forDefinition(fd: FunDef, owner: Symbol, result: Option[result])(codeGen: LocalsHandler ?=> Code)(using ModuleHandler): Function =
+  def forDefinition(fd: FunDef, result: Option[result])(codeGen: LocalsHandler ?=> Code)(using ModuleHandler): Function =
     given LocalsHandler = new LocalsHandler(fd.name.asInstanceOf, mh, textmode = true)
     // Make code first, as it may increment the locals in lh
     val code = codeGen
     new Function(
-      fullName(owner, fd.name),
+      fullName(fd.name.asInstanceOf[FunctionSymbol].owner, fd.name),
       lh.params,
       result,
       lh.locals,
       code,
       mh.function(fd.name)
+    )
+
+  def forDefinition(cd: CaseClassDef)(codeGen: LocalsHandler ?=> Code)(using ModuleHandler): Function =
+    given LocalsHandler = new LocalsHandler(cd.name.asInstanceOf, mh, textmode = true)
+    // Make code first, as it may increment the locals in lh
+    val code = codeGen
+    new Function(
+      fullName(cd.name.asInstanceOf[ConstructorSymbol].owner, cd.name),
+      lh.params,
+      Some(result(i32)), // The result of a constructor is the address in memory -i32-
+      lh.locals,
+      code,
+      -1
     )
 
 }
