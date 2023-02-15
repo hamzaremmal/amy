@@ -30,8 +30,8 @@ final class LocalsHandler(val sym: ApplicationSymbol, val mh: ModuleHandler, tex
   // =========================================== API ==============================================
   // ==============================================================================================
 
-  def fetch(id: Symbol): localidx =
-    params_.toMap.getOrElse(id, locals_.toMap.getOrElse(id, -1))
+  def fetch(id: Symbol)(using Context): localidx =
+    params_.toMap.getOrElse(id, locals_.toMap.getOrElse(id, reporter.fatal("symbol was not found by LocalsHandler")))
 
   def getFreshLocal(i: Symbol): localidx =
     params_.toMap.getOrElse(
