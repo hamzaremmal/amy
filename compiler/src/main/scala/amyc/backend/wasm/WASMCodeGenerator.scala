@@ -128,22 +128,23 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
       case Neg(e) =>
         mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
       case AmyCall(sym: ConstructorSymbol, args) =>
-        genConstructorCall(sym, args)
-      case AmyCall(qname, args) =>
+        args.map(cgExpr) <:>
+        call(fullName(sym.owner, sym))
+      case AmyCall(sym: (LocalSymbol | ParameterSymbol), args) =>
+        args.map(cgExpr) <:>
+        local.get(lh.fetch(sym)) <:>
+        call_indirect(typeuse(mkFunTypeName(args.size)))
+      case AmyCall(qname : FunctionSymbol, args) =>
         genFunctionCall(args, qname)
       case Sequence(e1, e2) =>
-        withComment(e1.toString) {
-          cgExpr(e1)
-        } <:> drop <:>
-          withComment(e2.toString) {
-            cgExpr(e2)
-          }
+        cgExpr(e1) <:>
+        drop <:>
+        cgExpr(e2)
       case Let(pdf, value, body) =>
         val idx = lh.getFreshLocal(pdf.name)
-        withComment(expr.toString) {
-          setLocal(cgExpr(value), idx) <:>
-            cgExpr(body)
-        }
+        cgExpr(value) <:>
+        local.set(idx) <:>
+        cgExpr(body)
       case Ite(cond, thenn, elze) =>
         ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
       case Match(scrut, cases) =>
@@ -183,7 +184,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     * @param LocalsHandler
     * @return
     */
-  def genFunctionCall(args: List[Expr], qname: Symbol)(using Context)(using LocalsHandler) =
+  def genFunctionCall(args: List[Expr], qname: FunctionSymbol)(using Context)(using LocalsHandler) =
     if qname == stdDef.binop_+ then
       mkBinOp(cgExpr(args.head), cgExpr(args(1)))(i32.add)
     else if qname == stdDef.binop_- then
@@ -207,14 +208,9 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     else if qname == stdDef.binop_++ then
       mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(call(String.concat(using ctx, lh.mh).name))
     else
-      args.map(cgExpr) <:> {
-        lh.fetch(qname) match
-          case -1 =>
-            call(fullName(qname.asInstanceOf[FunctionSymbol].owner, qname))
-          case idx =>
-            local.get(idx) <:>
-              call_indirect(typeuse(mkFunTypeName(args.size)))
-      }
+      // Any other function without any special treatment
+      args.map(cgExpr) <:>
+      call(fullName(qname.owner, qname))
 
   /**
     *
@@ -227,7 +223,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
   def genConstructorCall(sym: ConstructorSymbol, args: List[Expr])(using Context)(using LocalsHandler) =
     // Generating all the arguments
     args.map(cgExpr) <:>
-      call(fullName(sym.owner, sym))
+    call(fullName(sym.owner, sym))
 
   // ==============================================================================================
   // =============================== GENERATE PATTERN MATCHING ====================================
