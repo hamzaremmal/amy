@@ -11,10 +11,9 @@ import amyc.ctx
 import scala.annotation.targetName
 
 object unnamed extends BuiltInModule:
-  
+
   override lazy val owner: Context ?=> ModuleSymbol = stdDef.UnnamedModule
-  
-  
+
   @targetName("add")
   lazy val + : BuiltIn =
     builtInForSymbol("+"){
@@ -22,7 +21,7 @@ object unnamed extends BuiltInModule:
       local.get(1) <:>
       i32.add
     }
-    
+
   @targetName("sub")
   lazy val - : BuiltIn =
     builtInForSymbol("-"){

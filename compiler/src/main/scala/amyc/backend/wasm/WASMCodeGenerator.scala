@@ -157,7 +157,9 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
       case Match(scrut, cases) =>
         val l = lh.getFreshLocal
-        setLocal(cgExpr(scrut), l) <:> {
+
+        cgExpr(scrut) <:>
+        local.set(l) <:> {
           for
             c <- cases
             cond = matchAndBind(c.pat)
@@ -213,7 +215,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         local.set(idx) <:>
           ift({
             // HR : First check if the primary constructor is the same
-            equ(loadLocal(idx), constructor(constr.asInstanceOf)(using lh.mh))
+            equ({
+              local.get(idx) <:>
+              i32.load
+            }, i32.const(lh.constructor(constr)))
           }, {
             // HR : Check if all the pattern applies
             // HR : if the constructor has no parameters the foldLeft returns true

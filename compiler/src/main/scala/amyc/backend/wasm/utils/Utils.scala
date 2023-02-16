@@ -81,21 +81,6 @@ import amyc.reporter
   inline def or(lhs: Code, rhs: Code) : Code =
     ift(lhs, mkBoolean(true), rhs)
 
-  inline def loadGlobal(inline idx: Int) : Code =
-    global.get(idx) <:> i32.load
-
-  inline def setGlobal(inline code: Code, inline idx: globalidx): Code =
-    code <:> global.set(idx)
-
-  inline def loadLocal(inline idx: localidx) : Code =
-    local.get(idx) <:> i32.load
-
-  inline def setLocal(inline code: Code, inline idx: localidx): Code =
-    code <:> local.set(idx)
-
-  def constructor(const: ConstructorSymbol)(using ModuleHandler) : Code =
-    i32.const(mh.constructor(const))
-
   inline def error(inline msg: Code) : Code =
     msg <:> call("Std_printString") <:> unreachable
 
