@@ -19,14 +19,36 @@ object BuiltIn :
     "Std_readInt",
     "Std_readString",
     "String_concat",
-    "String_length"
+    "String_length",
+    "unnamed_+",
+    "unnamed_-",
+    "unnamed_*",
+    "unnamed_/",
+    "unnamed_%",
+    "unnamed_<",
+    "unnamed_<=",
+    //"unnamed_&&",
+    //"unnamed_||",
+    "unnamed_==",
+    "unnamed_++"
   )
 
   lazy val wasmFunctions: (Context, ModuleHandler) ?=> List[Function] =
-    String.length ::
-    String.concat ::
+    String.length     ::
+    String.concat     ::
     Std.digitToString ::
-    Std.readString ::
+    Std.readString    ::
+    unnamed.+         ::
+    unnamed.-         ::
+    unnamed.*         ::
+    unnamed./         ::
+    unnamed.%         ::
+    unnamed.<         ::
+    unnamed.<=        ::
+    //unnamed.&&        ::
+    //unnamed.||        ::
+    unnamed.==        ::
+    unnamed.++        ::
     Nil
 
   // The default imports we will pass to a wasm Module

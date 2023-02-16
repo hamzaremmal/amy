@@ -13,7 +13,7 @@ import amyc.backend.wasm.utils.{getFreshLabel, ift, incr, lh}
 
 object String extends BuiltInModule :
 
-  override lazy val owner: Context ?=> Symbol = stdDef.StringModule
+  override lazy val owner: Context ?=> ModuleSymbol = stdDef.StringModule
 
   /*
      fn concat(str1, str2) =

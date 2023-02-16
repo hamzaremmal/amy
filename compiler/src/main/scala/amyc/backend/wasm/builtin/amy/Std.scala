@@ -11,7 +11,7 @@ import amyc.backend.wasm.utils.*
 
 object Std extends BuiltInModule {
 
-  override lazy val owner: Context ?=> Symbol = stdDef.StdModule
+  override lazy val owner: Context ?=> ModuleSymbol = stdDef.StdModule
 
   lazy val readString: BuiltIn =
     builtInForSymbol("readString") {
