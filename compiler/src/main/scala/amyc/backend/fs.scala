@@ -1,6 +1,6 @@
 package amyc.backend
 
-import amyc.backend.wasm.Module
+import amyc.backend.wasm.Modules.*
 import amyc.core.Context
 
 import java.io.File

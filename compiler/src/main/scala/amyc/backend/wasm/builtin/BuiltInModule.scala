@@ -3,9 +3,10 @@ package amyc.backend.wasm.builtin
 import amyc.{reporter, symbols}
 import amyc.core.Context
 import amyc.core.Symbols.*
-import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.{Code, i32}
-import amyc.backend.wasm.types.result
+import amyc.backend.wasm.Modules.*
+import amyc.backend.wasm.Types.result
+import amyc.backend.wasm.handlers.{LocalsHandler, ModuleHandler}
 import amyc.backend.wasm.utils.*
 
 abstract class BuiltInModule {

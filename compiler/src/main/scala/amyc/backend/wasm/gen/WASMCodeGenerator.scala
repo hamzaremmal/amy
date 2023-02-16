@@ -1,22 +1,23 @@
-package amyc.backend.wasm
+package amyc.backend.wasm.gen
 
 import amyc.*
 import amyc.ast.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.core.*
-import amyc.core.Symbols.*
-import amyc.core.StdTypes.*
 import amyc.core.StdDefinitions.*
-import amyc.utils.Pipeline
+import amyc.core.StdTypes.*
+import amyc.core.Symbols.*
 import amyc.backend.wasm.*
-import amyc.backend.wasm.utils.*
+import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.Modules.*
+import amyc.backend.wasm.Types.{result, typeuse}
 import amyc.backend.wasm.builtin.BuiltIn.*
-import amyc.backend.wasm.Instructions.{i32, *}
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.builtin.amy.Unit.mkUnit
-import amyc.backend.wasm.types.{result, typeuse}
-import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
+import amyc.backend.wasm.handlers.{LocalsHandler, ModuleHandler}
+import amyc.backend.wasm.utils.*
+import amyc.utils.Pipeline
 
 object WASMCodeGenerator extends Pipeline[Program, Module] :
 
@@ -69,7 +70,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     } ++
     // Generate code for all functions
     defs.collect {
-      case fd: FunDef if !builtInFunctions(fullName(name, fd.name)) =>
+      case fd: FunDef if !builtInFunctions(fullName(fd.name)) =>
         cgFunction(fd, Some(result(i32)))
     } ++
       // Generate code for the "main" function, which contains the module expression
@@ -133,7 +134,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         i32.sub
       case AmyCall(sym: ConstructorSymbol, args) =>
         args.map(cgExpr) <:>
-        call(fullName(sym.owner, sym))
+        call(fullName(sym))
       case AmyCall(qname: FunctionSymbol, args) =>
         val defn = stdDef(using ctx)
         qname match
@@ -143,7 +144,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
             or(cgExpr(args.head), cgExpr(args(1)))
           case _ =>
             args.map(cgExpr) <:>
-            call(fullName(qname.owner, qname))
+            call(fullName(qname))
       case AmyCall(sym: (LocalSymbol | ParameterSymbol), args) =>
         args.map(cgExpr) <:>
         local.get(lh.fetch(sym)) <:>

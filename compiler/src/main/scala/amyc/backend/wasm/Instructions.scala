@@ -1,13 +1,13 @@
 package amyc.backend.wasm
 
-import amyc.backend.wasm.indices.*
-import amyc.backend.wasm.types.{numtype, result, typeuse, valtype}
+import amyc.backend.wasm.Indices.*
+import amyc.backend.wasm.Values.*
+import amyc.backend.wasm.Types.*
 
 import scala.annotation.targetName
-import scala.language.implicitConversions
 
 // A subset of instructions defined by the WASM standard
-object Instructions {
+object Instructions :
 
   sealed abstract class Instruction:
     @targetName("concat")
@@ -32,11 +32,6 @@ object Instructions {
   implicit def i2c(i: Instruction): Code = i match
     case c:Code => c
     case _ => Code(List(i))
-
-  // id
-  opaque type id = String
-  // TODO HR : Should check for allowed characters (https://webassembly.github.io/spec/core/text/values.html#text-id)
-  implicit def id(str: String) : id = s"$$$str"
 
   // ==============================================================================================
   // ============================= ??? ============================================================
@@ -207,4 +202,6 @@ object Instructions {
     // TODO HR : Add missing instructions
     ???
 
-}
+  case object v128 extends vectype:
+    // TODO HR : Add missing instructions
+    ???

@@ -1,27 +1,22 @@
 package amyc.backend.wasm.utils
 
-import amyc.backend.wasm.Function
-import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
-import amyc.backend.wasm.indices.{globalidx, localidx}
-import amyc.backend.wasm.types.{local as l, *}
+import amyc.reporter
 import amyc.core.{Context, Identifier}
 import amyc.core.Symbols.*
-import amyc.reporter
+import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
+import amyc.backend.wasm.Indices.{globalidx, localidx}
+import amyc.backend.wasm.Types.{local as l, *}
+import amyc.backend.wasm.handlers.{LocalsHandler, ModuleHandler}
 
-// Utilities for CodeGen
-
-  inline def lh(using LocalsHandler): LocalsHandler = summon
-
-  inline def mh(using ModuleHandler): ModuleHandler = summon
-
-  // Max number of parameters supporter for wwasm
+  @deprecated
   val maxParamsInFun = 5
 
   // ==============================================================================================
   // ================================== WASM FUNCTION TYPES =======================================
   // ==============================================================================================
 
+  @deprecated
   lazy val defaultFunTypes : Context ?=> List[String] =
     s"(type $$${mkFunTypeName(0)} (func (result i32)))"::
     s"(type $$${mkFunTypeName(1)} (func (param i32) (result i32)))" ::
@@ -31,20 +26,12 @@ import amyc.reporter
     s"(type $$${mkFunTypeName(5)} (func (param i32 i32 i32 i32 i32) (result i32)))" ::
     Nil
 
+  @deprecated
   def mkFunTypeName(params: Int)(using Context) : String =
     if(params <= maxParamsInFun)
       s"fun_$params"
     else
       reporter.fatal(s"WASM don't define function types for $params parameters")
-
-  /** Utilities */
-  // A globally unique name for definitions
-  def fullName(owner: Symbol, df: Symbol): String = owner.name + "_" + df.name
-
-  // A fresh label name
-  def getFreshLabel(name: String = "label") = {
-    Identifier.fresh(name).fullName
-  }
 
   // ==============================================================================================
   // =============================== CODE GENERATOR FUNCTIONS =====================================
