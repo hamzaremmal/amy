@@ -70,7 +70,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     } ++
     // Generate code for all functions
     defs.collect {
-      case fd: FunDef if !builtInFunctions(fullName(name, fd.name)) =>
+      case fd: FunDef if !builtInFunctions(fullName(fd.name)) =>
         cgFunction(fd, Some(result(i32)))
     } ++
       // Generate code for the "main" function, which contains the module expression
@@ -134,7 +134,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         i32.sub
       case AmyCall(sym: ConstructorSymbol, args) =>
         args.map(cgExpr) <:>
-        call(fullName(sym.owner, sym))
+        call(fullName(sym))
       case AmyCall(qname: FunctionSymbol, args) =>
         val defn = stdDef(using ctx)
         qname match
@@ -144,7 +144,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
             or(cgExpr(args.head), cgExpr(args(1)))
           case _ =>
             args.map(cgExpr) <:>
-            call(fullName(qname.owner, qname))
+            call(fullName(qname))
       case AmyCall(sym: (LocalSymbol | ParameterSymbol), args) =>
         args.map(cgExpr) <:>
         local.get(lh.fetch(sym)) <:>

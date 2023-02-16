@@ -1,16 +1,17 @@
 package amyc.backend.wasm.builtin.amy
 
-import amyc.symbols
+import amyc.*
 import amyc.ast.SymbolicTreeModule.ClassTypeTree
 import amyc.core.Symbols.*
 import amyc.core.StdDefinitions.*
 import amyc.core.Context
+import amyc.backend.wasm.*
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.Indices.localidx
 import amyc.backend.wasm.Types.result
-import amyc.backend.wasm.utils.{getFreshLabel, ift, incr, lh}
+import amyc.backend.wasm.utils.{ift, incr}
 
 object String extends BuiltInModule :
 

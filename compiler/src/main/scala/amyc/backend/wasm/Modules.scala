@@ -39,7 +39,7 @@ object Modules :
 
       val instructions = code
       new Function(
-        fullName(sym.owner, sym),
+        fullName(sym),
         lh.params,
         result,
         lh.locals,
@@ -53,7 +53,7 @@ object Modules :
       // Make code first, as it may increment the locals in lh
       val code = codeGen
       new Function(
-        fullName(fd.name.asInstanceOf[FunctionSymbol].owner, fd.name),
+        fullName(fd.name),
         lh.params,
         result,
         lh.locals,
@@ -67,7 +67,7 @@ object Modules :
       // Make code first, as it may increment the locals in lh
       val code = codeGen
       new Function(
-        fullName(cd.name.asInstanceOf[ConstructorSymbol].owner, cd.name),
+        fullName(cd.name),
         lh.params,
         Some(result(i32)), // The result of a constructor is the address in memory -i32-
         lh.locals,

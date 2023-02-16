@@ -7,7 +7,7 @@ import amyc.core.Types.Type
 
 object Symbols:
 
-  trait Symbol(val id: Identifier, owner: Symbol):
+  trait Symbol(val id: Identifier, val owner: Symbol):
     final def name: String = id.name
     final def fullName: String = id.fullName
 
@@ -16,7 +16,7 @@ object Symbols:
       extends Symbol(id, NoSymbol)
 
   /* Used for types */
-  case class TypeSymbol(override val id: Identifier, owner: ModuleSymbol)
+  case class TypeSymbol(override val id: Identifier, override val owner: ModuleSymbol)
       extends Symbol(id, owner)
 
   // ==============================================================================================
@@ -30,7 +30,7 @@ object Symbols:
   /* Used for functions */
   final case class FunctionSymbol(
       override val id: Identifier,
-      owner: ModuleSymbol,
+      override val owner: ModuleSymbol,
       private val mods: List[String]
   ) extends ApplicationSymbol(id, owner):
 
@@ -51,7 +51,7 @@ object Symbols:
       mods contains mod
 
   /* Used for constructors */
-  final case class ConstructorSymbol(override val id: Identifier, owner: ModuleSymbol, parent: Symbol)
+  final case class ConstructorSymbol(override val id: Identifier, override val owner: ModuleSymbol, parent: Symbol)
       extends ApplicationSymbol(id, owner):
 
     private var _param: List[ParameterSymbol] = compiletime.uninitialized
@@ -77,7 +77,7 @@ object Symbols:
     */
   case class ParameterSymbol(
       override val id: Identifier,
-      owner: ApplicationSymbol,
+      override val owner: ApplicationSymbol,
       tpe: TypeTree
   ) extends Symbol(id, owner)
 

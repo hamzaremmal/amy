@@ -2,7 +2,7 @@ package amyc.backend.wasm.builtin.amy
 
 import amyc.backend.wasm.Instructions.{call, i32, local}
 import amyc.backend.wasm.builtin.BuiltInModule
-import amyc.backend.wasm.utils.{and, lh, or}
+import amyc.backend.wasm.utils.{and, or}
 import amyc.core.StdDefinitions.stdDef
 import amyc.core.Symbols.*
 import amyc.core.Context
@@ -97,5 +97,5 @@ object unnamed extends BuiltInModule:
     builtInForSymbol("++"){
       local.get(0) <:>
       local.get(1) <:>
-      call(String.concat(using ctx, lh.mh).name)
+      call(String.concat.name)
     }

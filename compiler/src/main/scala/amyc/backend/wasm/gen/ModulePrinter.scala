@@ -1,6 +1,7 @@
 package amyc.backend.wasm.gen
 
 import amyc.*
+import amyc.backend.wasm.*
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.Modules.*
 import amyc.backend.wasm.Types.{local as tlocal, *}
@@ -27,7 +28,7 @@ object ModulePrinter {
   )
 
   def mkTable(table: Table): Document =
-    val elem: List[Document] = (for f <- table.elems yield Indented(s"${str2id(fullName(f.owner, f))} ")) ::: Raw(")") :: Nil
+    val elem: List[Document] = (for f <- table.elems yield Indented(s"${str2id(fullName(f))} ")) ::: Raw(")") :: Nil
     val header = Stacked(
       s"(table ${table.elems.size} funcref)",
       "(elem (i32.const 0)")

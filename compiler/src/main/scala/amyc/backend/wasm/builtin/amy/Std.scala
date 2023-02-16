@@ -3,7 +3,7 @@ package amyc.backend.wasm.builtin.amy
 import amyc.core.Context
 import amyc.core.Symbols.*
 import amyc.core.StdDefinitions.*
-import amyc.backend.wasm
+import amyc.backend.wasm.*
 import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
