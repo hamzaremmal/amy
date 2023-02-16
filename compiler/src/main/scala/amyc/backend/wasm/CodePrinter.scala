@@ -1,7 +1,7 @@
 package amyc.backend.wasm
 
 import amyc.*
-import amyc.backend.wasm.utils.fs.*
+import amyc.backend.fs.*
 import amyc.backend.wasm.wrapper.{HTMLWrapper, NodeJSWrapper, WASMFileGenerator, WATFile}
 import amyc.backend.wasm.{Module, wrapper}
 import amyc.core.Context
