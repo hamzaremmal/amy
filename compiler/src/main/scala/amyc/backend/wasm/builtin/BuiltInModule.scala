@@ -10,7 +10,7 @@ import amyc.backend.wasm.utils.*
 
 abstract class BuiltInModule {
 
-  lazy val owner: Context ?=> Symbol
+  lazy val owner: Context ?=> ModuleSymbol
 
   final type BuiltIn = (Context, ModuleHandler) ?=> Function
 

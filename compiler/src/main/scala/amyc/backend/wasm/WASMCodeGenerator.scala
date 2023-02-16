@@ -13,6 +13,8 @@ import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.Instructions.{i32, *}
 import amyc.backend.wasm.builtin.amy.*
+import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
+import amyc.backend.wasm.builtin.amy.Unit.mkUnit
 import amyc.backend.wasm.types.{result, typeuse}
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 
@@ -119,23 +121,33 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
       case IntLiteral(i) => i32.const(i)
       case BooleanLiteral(b) => mkBoolean(b)
       case StringLiteral(s) =>
-        i32.const(lh.mh.string(s)) //<:> i32.load8_u
+        i32.const(lh.mh.string(s))
       case UnitLiteral() => mkUnit
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot generate wasm code for operator, should not appear here $op")
       case Not(e) =>
         cgExpr(e) <:> i32.eqz
       case Neg(e) =>
-        mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
+        i32.const(0) <:>
+        cgExpr(e) <:>
+        i32.sub
       case AmyCall(sym: ConstructorSymbol, args) =>
         args.map(cgExpr) <:>
         call(fullName(sym.owner, sym))
+      case AmyCall(qname: FunctionSymbol, args) =>
+        val defn = stdDef(using ctx)
+        qname match
+          case defn.binop_&& =>
+            and(cgExpr(args.head), cgExpr(args(1)))
+          case defn.binop_|| =>
+            or(cgExpr(args.head), cgExpr(args(1)))
+          case _ =>
+            args.map(cgExpr) <:>
+            call(fullName(qname.owner, qname))
       case AmyCall(sym: (LocalSymbol | ParameterSymbol), args) =>
         args.map(cgExpr) <:>
         local.get(lh.fetch(sym)) <:>
         call_indirect(typeuse(mkFunTypeName(args.size)))
-      case AmyCall(qname : FunctionSymbol, args) =>
-        genFunctionCall(args, qname)
       case Sequence(e1, e2) =>
         cgExpr(e1) <:>
         drop <:>
@@ -149,7 +161,9 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         ift(cgExpr(cond), cgExpr(thenn), cgExpr(elze))
       case Match(scrut, cases) =>
         val l = lh.getFreshLocal
-        setLocal(cgExpr(scrut), l) <:> {
+
+        cgExpr(scrut) <:>
+        local.set(l) <:> {
           for
             c <- cases
             cond = matchAndBind(c.pat)
@@ -171,59 +185,6 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         reporter.fatal(s"Cannot generate wasm code for $expr", expr.position)
     }
   }
-
-    // ==============================================================================================
-    // ==================================== GENERATE APPLICATIONS ===================================
-    // ==============================================================================================
-
-  /**
-    *
-    * @param args
-    * @param qname
-    * @param Context
-    * @param LocalsHandler
-    * @return
-    */
-  def genFunctionCall(args: List[Expr], qname: FunctionSymbol)(using Context)(using LocalsHandler) =
-    if qname == stdDef.binop_+ then
-      mkBinOp(cgExpr(args.head), cgExpr(args(1)))(i32.add)
-    else if qname == stdDef.binop_- then
-      mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.sub)
-    else if qname == stdDef.binop_* then
-      mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.mul)
-    else if qname == stdDef.binop_/ then
-      mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.div_s)
-    else if qname == stdDef.binop_% then
-      mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.rem_s)
-    else if qname == stdDef.binop_< then
-      mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.lt_s)
-    else if qname == stdDef.binop_<= then
-      mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(i32.le_s)
-    else if qname == stdDef.binop_&& then
-      and(cgExpr(args(0)), cgExpr(args(1)))
-    else if qname == stdDef.binop_|| then
-      or(cgExpr(args(0)), cgExpr(args(1)))
-    else if qname == stdDef.binop_== then
-      equ(cgExpr(args(0)), cgExpr(args(1)))
-    else if qname == stdDef.binop_++ then
-      mkBinOp(cgExpr(args(0)), cgExpr(args(1)))(call(String.concat(using ctx, lh.mh).name))
-    else
-      // Any other function without any special treatment
-      args.map(cgExpr) <:>
-      call(fullName(qname.owner, qname))
-
-  /**
-    *
-    * @param sym
-    * @param args
-    * @param Context
-    * @param LocalsHandler
-    * @return
-    */
-  def genConstructorCall(sym: ConstructorSymbol, args: List[Expr])(using Context)(using LocalsHandler) =
-    // Generating all the arguments
-    args.map(cgExpr) <:>
-    call(fullName(sym.owner, sym))
 
   // ==============================================================================================
   // =============================== GENERATE PATTERN MATCHING ====================================
@@ -258,7 +219,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         local.set(idx) <:>
           ift({
             // HR : First check if the primary constructor is the same
-            equ(loadLocal(idx), constructor(constr.asInstanceOf)(using lh.mh))
+            local.get(idx) <:>
+            i32.load <:>
+            i32.const(lh.constructor(constr)) <:>
+            i32.eq
           }, {
             // HR : Check if all the pattern applies
             // HR : if the constructor has no parameters the foldLeft returns true

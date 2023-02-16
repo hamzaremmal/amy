@@ -2,6 +2,7 @@ package amyc.backend.wasm.utils
 
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.indices.{globalidx, localidx}
 import amyc.backend.wasm.types.{local as l, *}
 import amyc.core.{Context, Identifier}
@@ -36,30 +37,6 @@ import amyc.reporter
     else
       reporter.fatal(s"WASM don't define function types for $params parameters")
 
-  // ==============================================================================================
-  // ================================= DEFAULT IMPORTS ============================================
-  // ==============================================================================================
-
-  // The default imports we will pass to a wasm Module
-  val defaultImports: List[String] = List(
-    "\"system\" \"printInt\" (func $Std_printInt (param i32) (result i32))",
-    "\"system\" \"printString\" (func $Std_printString (param i32) (result i32))",
-    "\"system\" \"readString0\" (func $js_readString0 (param i32) (result i32))",
-    "\"system\" \"readInt\" (func $Std_readInt (result i32))",
-    "\"system\" \"mem\" (memory 100)"
-  )
-
-  // We don't generate code for these functions in CodeGen (they are hard-coded here or in js wrapper)
-  val builtInFunctions: Set[String] = Set(
-    "Std_printInt",
-    "Std_printString",
-    "Std_digitToString",
-    "Std_readInt",
-    "Std_readString",
-    "String_concat",
-    "String_length"
-  )
-
   /** Utilities */
   // A globally unique name for definitions
   def fullName(owner: Symbol, df: Symbol): String = owner.name + "_" + df.name
@@ -88,37 +65,11 @@ import amyc.reporter
   inline def withComment(inline comment : String)(inline code: Code) : Code =
     Comment(comment) <:> code
 
-  inline def mkBoolean(inline b : Boolean): Code =
-    i32.const(if b then 1 else 0)
-
-  inline def mkUnit : Code = i32.const(0)
-
-  inline def mkBinOp(inline lhs : Code, inline rhs : Code)(op : Instruction) : Code =
-    lhs <:> rhs <:> op
-
-  inline def equ(inline lhs: Code, inline rhs: Code) : Code =
-    mkBinOp(lhs, rhs)(i32.eq)
-
   inline def and(inline lhs: Code, inline rhs: Code) : Code =
     ift(lhs, rhs, mkBoolean(false))
 
   inline def or(lhs: Code, rhs: Code) : Code =
     ift(lhs, mkBoolean(true), rhs)
-
-  inline def loadGlobal(inline idx: Int) : Code =
-    global.get(idx) <:> i32.load
-
-  inline def setGlobal(inline code: Code, inline idx: globalidx): Code =
-    code <:> global.set(idx)
-
-  inline def loadLocal(inline idx: localidx) : Code =
-    local.get(idx) <:> i32.load
-
-  inline def setLocal(inline code: Code, inline idx: localidx): Code =
-    code <:> local.set(idx)
-
-  def constructor(const: ConstructorSymbol)(using ModuleHandler) : Code =
-    i32.const(mh.constructor(const))
 
   inline def error(inline msg: Code) : Code =
     msg <:> call("Std_printString") <:> unreachable

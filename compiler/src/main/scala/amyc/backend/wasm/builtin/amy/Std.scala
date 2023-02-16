@@ -9,9 +9,9 @@ import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.utils.*
 
-object Std extends BuiltInModule {
+object Std extends BuiltInModule :
 
-  override lazy val owner: Context ?=> Symbol = stdDef.StdModule
+  override lazy val owner: Context ?=> ModuleSymbol = stdDef.StdModule
 
   lazy val readString: BuiltIn =
     builtInForSymbol("readString") {
@@ -40,5 +40,3 @@ object Std extends BuiltInModule {
       // Store the ASCII code in memory
       i32.store
     }
-
-}
