@@ -3,23 +3,17 @@
   * (implemented in WASM or JavaScript)
   */
 module Std
-  native fn printInt(i: Int): Unit = {
-    error("") // Stub implementation
-  }
-  native fn printString(s: String): Unit = {
-    error("") // Stub implementation
-  }
+  native fn printInt(i: Int): Unit
+
+  native fn printString(s: String): Unit
+
   fn printBoolean(b: Boolean): Unit = {
     printString(booleanToString(b))
   }
 
-  native fn readString(): String = {
-    error("") // Stub implementation
-  }
+  native fn readString(): String
 
-  native fn readInt(): Int = {
-    error("") // Stub implementation
-  }
+  native fn readInt(): Int
 
   fn intToString(i: Int): String = {
     if (i < 0) {
@@ -31,9 +25,8 @@ module Std
       else { intToString(div) ++ digitToString(rem) }
     }
   }
-  native fn digitToString(i: Int): String = {
-    error("") // Stub implementation
-  }
+  native fn digitToString(i: Int): String
+
   fn booleanToString(b: Boolean): String = {
     if (b) { "true" } else { "false" }
   }

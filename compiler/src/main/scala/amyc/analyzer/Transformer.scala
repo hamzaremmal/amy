@@ -245,6 +245,8 @@ object Transformer {
         S.Match(transformExpr(scrut), cases map transformCase)
       case N.Error(msg) =>
         S.Error(transformExpr(msg))
+      case N.EmptyExpr() =>
+        S.EmptyExpr()
     }
     res.setPos(expr)
   }

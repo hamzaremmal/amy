@@ -147,9 +147,15 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   /**
     */
   lazy val funDef: Syntax[FunDef] =
-    (many(modifier) ~<~ `fn` ~ (identifier | plus | minus | not) ~ inParenthesis(parameters) ~<~ ":" ~ typeTree ~<~ "=" ~ inBrace(expr)) map {
-      case mods ~ funcName ~ params ~ tpe ~ expr =>
+    (many(modifier) ~<~ `fn` ~ (identifier | plus | minus | not) ~ inParenthesis(parameters) ~<~ ":" ~ typeTree ~ opt("=" ~>~ inBrace(expr))) map {
+      case mods ~ funcName ~ params ~ tpe ~ Some(expr) =>
+        if mods.toList.contains("native") then
+          throw AmycFatalError(s"native function cannot have a body")
         FunDef(funcName, params, tpe, expr).mods(mods.toList)
+      case mods ~ funcName ~ params ~ tpe ~ None =>
+        if ! mods.toList.contains("native") then
+          throw AmycFatalError(s"non-native function $funcName must have a body")
+        FunDef(funcName, params, tpe, EmptyExpr()).mods(mods.toList)
     }
 
   // ==============================================================================================
