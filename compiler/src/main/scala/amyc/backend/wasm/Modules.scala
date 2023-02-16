@@ -30,12 +30,14 @@ object Modules :
     *
     * https://webassembly.github.io/spec/core/text/modules.html#functions
     */
-  case class Function private(name: id, params: List[param], result: Option[result], locals: List[local], code: Code, idx: Int)
+  case class Function private(name: id, params: List[param], result: Option[result], locals: List[local], code: Code)
 
   object Function {
 
     def forSymbol(sym: FunctionSymbol, result: Option[result])(code: LocalsHandler ?=> Code)(using ModuleHandler): Function =
       given LocalsHandler = new LocalsHandler(sym, mh, textmode = true)
+      // register function in the handler
+      mh.function(sym)
 
       val instructions = code
       new Function(
@@ -43,12 +45,13 @@ object Modules :
         lh.params,
         result,
         lh.locals,
-        instructions,
-        mh.function(sym)
+        instructions
       )
 
     def forDefinition(fd: FunDef, result: Option[result])(codeGen: LocalsHandler ?=> Code)(using ModuleHandler): Function =
       given LocalsHandler = new LocalsHandler(fd.name.asInstanceOf, mh, textmode = true)
+      // register function in the handler
+      mh.function(fd.name)
 
       // Make code first, as it may increment the locals in lh
       val code = codeGen
@@ -57,8 +60,7 @@ object Modules :
         lh.params,
         result,
         lh.locals,
-        code,
-        mh.function(fd.name)
+        code
       )
 
     def forDefinition(cd: CaseClassDef)(codeGen: LocalsHandler ?=> Code)(using ModuleHandler): Function =
@@ -71,8 +73,7 @@ object Modules :
         lh.params,
         Some(result(i32)), // The result of a constructor is the address in memory -i32-
         lh.locals,
-        code,
-        -1
+        code
       )
 
   }
