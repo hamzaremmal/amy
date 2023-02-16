@@ -1,7 +1,8 @@
 package amyc.backend.wasm
 
 import amyc.utils.Preconditions.*
-import Instructions.{Code, i32, id}
+import Instructions.{Code, i32}
+import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.utils.*
 import amyc.core.*
 import amyc.ast.SymbolicTreeModule.{FunDef, CaseClassDef}

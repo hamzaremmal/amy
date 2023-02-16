@@ -1,6 +1,7 @@
 package amyc.backend.wasm.utils
 
-import amyc.backend.wasm.Instructions.{i32, id}
+import amyc.backend.wasm.Values.*
+import amyc.backend.wasm.Instructions.i32
 import amyc.backend.wasm.indices.localidx
 import amyc.backend.wasm.types.{local, param}
 import amyc.core.Symbols.*
@@ -23,7 +24,7 @@ final class LocalsHandler(val sym: ApplicationSymbol, val mh: ModuleHandler, tex
   for p <- sym.param do
     params_ += (p -> {
       val v = locals_counter.getAndIncrement // increment the global counter
-      if textmode then id(p.fullName) else v
+      if textmode then str2id(p.fullName) else v
     })
 
   // ==============================================================================================
@@ -41,7 +42,7 @@ final class LocalsHandler(val sym: ApplicationSymbol, val mh: ModuleHandler, tex
           val entry: (Symbol, localidx) = i -> {
             val v =
               locals_counter.getAndIncrement // increment the global counter
-            if textmode then id(i.fullName) else v
+            if textmode then str2id(i.fullName) else v
           }
           locals_ += entry
           entry._2

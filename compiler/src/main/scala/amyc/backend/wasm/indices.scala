@@ -1,6 +1,6 @@
 package amyc.backend.wasm
 
-import Instructions.id
+import amyc.backend.wasm.Values.id
 
 /**
   * https://webassembly.github.io/spec/core/text/modules.html#indices

@@ -1,9 +1,10 @@
 package amyc.backend.wasm.utils
 
-import amyc.backend.wasm.*
-import amyc.backend.wasm.Instructions.{Code, Comment, global, i32, id, local}
 import amyc.core.Context
 import amyc.core.Symbols.*
+import amyc.backend.wasm.*
+import amyc.backend.wasm.Values.*
+import amyc.backend.wasm.Instructions.*
 import amyc.utils.UniqueCounter
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -21,7 +22,7 @@ case class ModuleHandler(name: String) :
 
   /* Memory management related */
   private val _freemem = new AtomicInteger
-  private lazy val _freemem_id = id("free_mem")
+  private lazy val _freemem_id = str2id("free_mem")
 
   /* Pool of String literals to optimize strings in memory */
   private val _strpool: mutable.HashMap[String, Int] = mutable.HashMap.empty

@@ -1,6 +1,6 @@
 package amyc.backend.wasm
 
-import amyc.backend.wasm.Instructions.id
+import amyc.backend.wasm.Values.id
 import amyc.backend.wasm.indices.typeidx
 
 /**

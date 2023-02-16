@@ -3,7 +3,8 @@ package amyc.backend.wasm
 import amyc.*
 import amyc.core.Context
 import amyc.utils.*
-import Instructions.*
+import amyc.backend.wasm.Values.*
+import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.types.{local as tlocal, *}
 import amyc.backend.wasm.utils.*
 
@@ -14,7 +15,7 @@ object ModulePrinter {
   private implicit def s2d(s: String): Raw = Raw(s)
 
   private def mkMod(mod: Module)(using Context): Document = Stacked(
-    s"(module ${id(mod.name)}",
+    s"(module ${str2id(mod.name)}",
     Indented(Stacked(mod.imports map mkImport)),
     Indented(Stacked(mod.data map mkData)),
     Indented(Stacked(mod.globals.map(mkGlobal))),
@@ -25,7 +26,7 @@ object ModulePrinter {
   )
 
   def mkTable(table: Table): Document =
-    val elem: List[Document] = (for f <- table.elems yield Indented(s"${id(fullName(f.owner, f))} ")) ::: Raw(")") :: Nil
+    val elem: List[Document] = (for f <- table.elems yield Indented(s"${str2id(fullName(f.owner, f))} ")) ::: Raw(")") :: Nil
     val header = Stacked(
       s"(table ${table.elems.size} funcref)",
       "(elem (i32.const 0)")
@@ -34,7 +35,7 @@ object ModulePrinter {
     }
 
   def mkGlobal(global: Global): Document =
-    s"(global ${id("free_mem")} (mut i32) i32.const ${global.value})"
+    s"(global ${str2id("free_mem")} (mut i32) i32.const ${global.value})"
 
   def mkParam(p: param): Document =
     p.id.map(id => s"(param $id ${p.tpe})").getOrElse(s"(param ${p.tpe})")
