@@ -2,7 +2,7 @@ package amyc.backend.wasm.gen
 
 import amyc.backend.wasm.Modules.*
 
-object NodeJSWrapper {
+object NodeJSWrapper :
 
   def apply(moduleFile: String, module :Module): String =
     s"""function safe_require(module_name) {
@@ -123,5 +123,3 @@ object NodeJSWrapper {
        |  }
        |};
        |""".stripMargin
-
-}

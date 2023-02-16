@@ -3,6 +3,10 @@ package amyc.backend.wasm.gen
 import amyc.*
 import amyc.ast.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
+import amyc.core.*
+import amyc.core.StdDefinitions.*
+import amyc.core.StdTypes.*
+import amyc.core.Symbols.*
 import amyc.backend.wasm.*
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.Modules.*
@@ -13,10 +17,6 @@ import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.builtin.amy.Unit.mkUnit
 import amyc.backend.wasm.handlers.{LocalsHandler, ModuleHandler}
 import amyc.backend.wasm.utils.*
-import amyc.core.*
-import amyc.core.StdDefinitions.*
-import amyc.core.StdTypes.*
-import amyc.core.Symbols.*
 import amyc.utils.Pipeline
 
 object WASMCodeGenerator extends Pipeline[Program, Module] :

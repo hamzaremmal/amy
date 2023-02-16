@@ -10,7 +10,7 @@ import amyc.utils.{Env, FileWriter, Pipeline}
 import java.io.File
 
 // Prints all 4 different files from a wasm Module
-object CodePrinter extends Pipeline[Module, Unit]{
+object CodePrinter extends Pipeline[Module, Unit] :
 
   override val name = "CodePrinter"
 
@@ -30,4 +30,3 @@ object CodePrinter extends Pipeline[Module, Unit]{
     FileWriter(pathWithExt(m, js_ext)){
       NodeJSWrapper(pathWithExt(m, wasm_ext), m)
     }
-}

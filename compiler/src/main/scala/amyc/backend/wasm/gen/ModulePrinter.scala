@@ -13,7 +13,7 @@ import amyc.utils.*
 // TODO HR : Remove this object and mix it with the WATFileGenerator
 
 // Printer for Wasm modules
-object ModulePrinter {
+object ModulePrinter :
   private implicit def s2d(s: String): Raw = Raw(s)
 
   private def mkMod(mod: Module)(using Context): Document = Stacked(
@@ -146,5 +146,3 @@ object ModulePrinter {
   def apply(mod: Module)(using Context) = mkMod(mod).print
   def apply(fh: Function)(using Context) = mkFun(fh).print
   def apply(instr: Instruction)(using Context) = mkInstr(instr).print
-
-}
