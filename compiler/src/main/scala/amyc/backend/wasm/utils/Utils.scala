@@ -3,8 +3,8 @@ package amyc.backend.wasm.utils
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
-import amyc.backend.wasm.indices.{globalidx, localidx}
-import amyc.backend.wasm.types.{local as l, *}
+import amyc.backend.wasm.Indices.{globalidx, localidx}
+import amyc.backend.wasm.Types.{local as l, *}
 import amyc.core.{Context, Identifier}
 import amyc.core.Symbols.*
 import amyc.reporter

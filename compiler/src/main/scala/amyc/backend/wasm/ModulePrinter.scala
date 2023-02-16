@@ -5,7 +5,7 @@ import amyc.core.Context
 import amyc.utils.*
 import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.types.{local as tlocal, *}
+import amyc.backend.wasm.Types.{local as tlocal, *}
 import amyc.backend.wasm.utils.*
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator

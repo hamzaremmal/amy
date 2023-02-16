@@ -8,8 +8,8 @@ import amyc.core.Context
 import amyc.backend.wasm.builtin.BuiltInModule
 import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.indices.localidx
-import amyc.backend.wasm.types.result
+import amyc.backend.wasm.Indices.localidx
+import amyc.backend.wasm.Types.result
 import amyc.backend.wasm.utils.{getFreshLabel, ift, incr, lh}
 
 object String extends BuiltInModule :

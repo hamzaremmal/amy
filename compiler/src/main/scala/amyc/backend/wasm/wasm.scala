@@ -6,7 +6,7 @@ import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.utils.*
 import amyc.core.*
 import amyc.ast.SymbolicTreeModule.{FunDef, CaseClassDef}
-import amyc.backend.wasm.types.*
+import amyc.backend.wasm.Types.*
 import amyc.core.Symbols.*
 import amyc.symbols
 

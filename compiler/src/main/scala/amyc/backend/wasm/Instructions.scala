@@ -1,8 +1,8 @@
 package amyc.backend.wasm
 
 import amyc.backend.wasm.Values.*
-import amyc.backend.wasm.indices.*
-import amyc.backend.wasm.types.*
+import amyc.backend.wasm.Indices.*
+import amyc.backend.wasm.Types.*
 
 import scala.annotation.targetName
 import scala.language.implicitConversions
@@ -200,6 +200,10 @@ object Instructions {
     ???
 
   case object f64 extends numtype:
+    // TODO HR : Add missing instructions
+    ???
+
+  case object v128 extends vectype:
     // TODO HR : Add missing instructions
     ???
 

@@ -2,8 +2,8 @@ package amyc.backend.wasm.utils
 
 import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.Instructions.i32
-import amyc.backend.wasm.indices.localidx
-import amyc.backend.wasm.types.{local, param}
+import amyc.backend.wasm.Indices.localidx
+import amyc.backend.wasm.Types.{local, param}
 import amyc.core.Symbols.*
 import amyc.core.{Context, Identifier}
 import amyc.{reporter, symbols}

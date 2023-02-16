@@ -11,11 +11,11 @@ import amyc.utils.Pipeline
 import amyc.backend.wasm.*
 import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.builtin.BuiltIn.*
-import amyc.backend.wasm.Instructions.{i32, *}
+import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.builtin.amy.Unit.mkUnit
-import amyc.backend.wasm.types.{result, typeuse}
+import amyc.backend.wasm.Types.{result, typeuse}
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 
 object WASMCodeGenerator extends Pipeline[Program, Module] :
