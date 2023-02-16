@@ -13,28 +13,6 @@ import amyc.core.{Context, Identifier}
 
 object BuiltIn :
 
-  // We don't generate code for these functions in CodeGen (they are hard-coded here or in js wrapper)
-  val builtInFunctions: Set[String] = Set(
-    "Std_printInt",
-    "Std_printString",
-    "Std_digitToString",
-    "Std_readInt",
-    "Std_readString",
-    "String_concat",
-    "String_length",
-    "unnamed_+",
-    "unnamed_-",
-    "unnamed_*",
-    "unnamed_/",
-    "unnamed_%",
-    "unnamed_<",
-    "unnamed_<=",
-    //"unnamed_&&",
-    //"unnamed_||",
-    "unnamed_==",
-    "unnamed_++"
-  )
-
   lazy val wasmFunctions: (Context, ModuleHandler) ?=> List[Function] =
     String.length     ::
     String.concat     ::
