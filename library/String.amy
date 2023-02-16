@@ -2,11 +2,11 @@ module String
 
     abstract class String
 
-    fn concat(lhs: String, rhs: String): String = {
+    native fn concat(lhs: String, rhs: String): String = {
         error("Stub implementation")
     }
 
-    fn length(str: String): Int = {
+    native fn length(str: String): Int = {
         error("Stub implementation")
     }
 

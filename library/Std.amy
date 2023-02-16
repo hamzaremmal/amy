@@ -3,21 +3,21 @@
   * (implemented in WASM or JavaScript)
   */
 module Std
-  fn printInt(i: Int): Unit = {
+  native fn printInt(i: Int): Unit = {
     error("") // Stub implementation
   }
-  fn printString(s: String): Unit = {
+  native fn printString(s: String): Unit = {
     error("") // Stub implementation
   }
   fn printBoolean(b: Boolean): Unit = {
     printString(booleanToString(b))
   }
 
-  fn readString(): String = {
+  native fn readString(): String = {
     error("") // Stub implementation
   }
 
-  fn readInt(): Int = {
+  native fn readInt(): Int = {
     error("") // Stub implementation
   }
 
@@ -31,7 +31,7 @@ module Std
       else { intToString(div) ++ digitToString(rem) }
     }
   }
-  fn digitToString(i: Int): String = {
+  native fn digitToString(i: Int): String = {
     error("") // Stub implementation
   }
   fn booleanToString(b: Boolean): String = {

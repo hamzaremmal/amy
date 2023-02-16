@@ -4,16 +4,16 @@
 module unnamed
 
     // All builtin operators
-    infix fn + (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
-    infix fn - (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
-    infix fn * (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
-    infix fn / (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
-    infix fn % (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
-    infix fn < (lhs : Int, rhs : Int) : Boolean = { error("Stub Implementation") }
-    infix fn <= (lhs : Int, rhs : Int) : Boolean = { error("Stub Implementation") }
-    infix fn && (lhs : Boolean, rhs : Boolean) : Boolean = { error("Stub Implementation") }
-    infix fn || (lhs : Boolean, rhs : Boolean) : Boolean = { error("Stub Implementation") }
-    //infix fn == (lhs : Any, rhs : Any) : Boolean = { error("Stub Implementation") }
-    infix fn ++ (lhs : String, rhs : String) : String = { error("Stub Implementation") }
+    native infix fn + (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    native infix fn - (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    native infix fn * (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    native infix fn / (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    native infix fn % (lhs : Int, rhs : Int) : Int = { error("Stub Implementation") }
+    native infix fn < (lhs : Int, rhs : Int) : Boolean = { error("Stub Implementation") }
+    native infix fn <= (lhs : Int, rhs : Int) : Boolean = { error("Stub Implementation") }
+    native infix fn && (lhs : Boolean, rhs : Boolean) : Boolean = { error("Stub Implementation") }
+    native infix fn || (lhs : Boolean, rhs : Boolean) : Boolean = { error("Stub Implementation") }
+    //native infix fn == (lhs : Any, rhs : Any) : Boolean = { error("Stub Implementation") }
+    native infix fn ++ (lhs : String, rhs : String) : String = { error("Stub Implementation") }
 
 end unnamed
