@@ -1,11 +1,10 @@
 package amyc.backend.wasm
 
-import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.Indices.*
+import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.Types.*
 
 import scala.annotation.targetName
-import scala.language.implicitConversions
 
 // A subset of instructions defined by the WASM standard
 object Instructions :

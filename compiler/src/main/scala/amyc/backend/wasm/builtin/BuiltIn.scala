@@ -6,6 +6,7 @@ import amyc.backend.wasm.*
 import amyc.backend.wasm.gen.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.builtin.amy.*
 import Instructions.*
+import amyc.backend.wasm.handlers.ModuleHandler
 import amyc.backend.wasm.utils.*
 import amyc.core.{Context, Identifier}
 

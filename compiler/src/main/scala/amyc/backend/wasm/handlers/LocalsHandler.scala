@@ -1,15 +1,15 @@
-package amyc.backend.wasm.utils
+package amyc.backend.wasm.handlers
 
-import amyc.backend.wasm.Values.*
-import amyc.backend.wasm.Instructions.i32
-import amyc.backend.wasm.Indices.localidx
-import amyc.backend.wasm.Types.{local, param}
+import amyc.*
+import amyc.core.*
 import amyc.core.Symbols.*
-import amyc.core.{Context, Identifier}
-import amyc.{reporter, symbols}
+import amyc.backend.wasm.Indices.localidx
+import amyc.backend.wasm.Instructions.i32
+import amyc.backend.wasm.Types.{local, param}
+import amyc.backend.wasm.Values.*
 
-import scala.collection.mutable
 import java.util.concurrent.atomic.AtomicInteger
+import scala.collection.mutable
 
 final class LocalsHandler(val sym: ApplicationSymbol, val mh: ModuleHandler, textmode: Boolean = true):
 

@@ -5,8 +5,9 @@ import Instructions.{Code, i32}
 import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.utils.*
 import amyc.core.*
-import amyc.ast.SymbolicTreeModule.{FunDef, CaseClassDef}
+import amyc.ast.SymbolicTreeModule.{CaseClassDef, FunDef}
 import amyc.backend.wasm.Types.*
+import amyc.backend.wasm.handlers.{LocalsHandler, ModuleHandler}
 import amyc.core.Symbols.*
 import amyc.symbols
 

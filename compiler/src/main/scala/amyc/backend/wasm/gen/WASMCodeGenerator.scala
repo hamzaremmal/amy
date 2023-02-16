@@ -10,6 +10,7 @@ import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.builtin.amy.Unit.mkUnit
+import amyc.backend.wasm.handlers.{LocalsHandler, ModuleHandler}
 import amyc.backend.wasm.utils.*
 import amyc.core.*
 import amyc.core.StdDefinitions.*
