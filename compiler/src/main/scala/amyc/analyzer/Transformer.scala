@@ -164,20 +164,13 @@ object Transformer {
         entry match {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
-          case Some(sym: FunctionSymbol) =>
-            if (sym.param.size != args.size) {
-              reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
-            }
-            S.Call(sym, args.map(transformExpr(_)))
-          case Some(sym: ConstructorSymbol) =>
+          case Some(sym: ApplicationSymbol) =>
             if (sym.param.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
             S.Call(sym, args.map(transformExpr(_)))
           case Some(sym: Symbol) =>
             S.Call(sym, args.map(transformExpr(_)))
-          case _ =>
-            reporter.fatal(s"NameAnalyzer resolved to $entry")
         }
       case N.Sequence(e1, e2) =>
         S.Sequence(transformExpr(e1), transformExpr(e2))

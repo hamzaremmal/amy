@@ -32,8 +32,8 @@ class SymbolTable :
     sym
 
   /* register a new type */
-  def addType(owner: String, name: String): Symbol =
-    val sym_owner = modules.getOrElse(owner, sys.error(s"Module $name not found!"))
+  def addType(owner: String, name: String)(using Context): Symbol =
+    val sym_owner = module(owner)
     val sym = TypeSymbol(Identifier.fresh(name), sym_owner)
     defsByName += (owner, name) -> sym
     sym
@@ -41,7 +41,7 @@ class SymbolTable :
   /* register a new constructor */
   def addConstructor(owner: String, name: String, params: List[ParamDef], parent: Symbol)
                     (using Context): Symbol =
-    val sym_owner = getModule(owner).getOrElse(sys.error(s"Module $owner not found!"))
+    val sym_owner = module(owner)
     val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner, parent)
     defsByName += (owner, name) -> sym
     sym.info{
