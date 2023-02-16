@@ -8,9 +8,8 @@ import amyc.backend.wasm.Indices.typeidx
   */
 
 object Types:
-  abstract class WasmType
 
-  sealed abstract class valtype extends WasmType
+  sealed abstract class valtype
 
   /**
     * https://webassembly.github.io/spec/core/text/types.html#number-types

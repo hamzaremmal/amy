@@ -8,7 +8,7 @@ import scala.annotation.targetName
 import scala.language.implicitConversions
 
 // A subset of instructions defined by the WASM standard
-object Instructions {
+object Instructions :
 
   sealed abstract class Instruction:
     @targetName("concat")
@@ -206,5 +206,3 @@ object Instructions {
   case object v128 extends vectype:
     // TODO HR : Add missing instructions
     ???
-
-}

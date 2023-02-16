@@ -3,7 +3,7 @@ package amyc.backend.wasm.gen
 import amyc.*
 import amyc.backend.fs.*
 import amyc.backend.wasm.gen.{HTMLWrapper, NodeJSWrapper, WASMFileGenerator, WATFile}
-import amyc.backend.wasm.{Module, wrapper}
+import amyc.backend.wasm.Module
 import amyc.core.Context
 import amyc.utils.{Env, FileWriter, Pipeline}
 
