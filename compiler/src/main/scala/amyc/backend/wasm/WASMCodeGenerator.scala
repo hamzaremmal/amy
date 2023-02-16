@@ -13,6 +13,8 @@ import amyc.backend.wasm.utils.*
 import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.Instructions.{i32, *}
 import amyc.backend.wasm.builtin.amy.*
+import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
+import amyc.backend.wasm.builtin.amy.Unit.mkUnit
 import amyc.backend.wasm.types.{result, typeuse}
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 
@@ -126,7 +128,9 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
       case Not(e) =>
         cgExpr(e) <:> i32.eqz
       case Neg(e) =>
-        mkBinOp(i32.const(0), cgExpr(e))(i32.sub)
+        i32.const(0) <:>
+        cgExpr(e) <:>
+        i32.sub
       case AmyCall(sym: ConstructorSymbol, args) =>
         args.map(cgExpr) <:>
         call(fullName(sym.owner, sym))
@@ -215,10 +219,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         local.set(idx) <:>
           ift({
             // HR : First check if the primary constructor is the same
-            equ({
-              local.get(idx) <:>
-              i32.load
-            }, i32.const(lh.constructor(constr)))
+            local.get(idx) <:>
+            i32.load <:>
+            i32.const(lh.constructor(constr)) <:>
+            i32.eq
           }, {
             // HR : Check if all the pattern applies
             // HR : if the constructor has no parameters the foldLeft returns true

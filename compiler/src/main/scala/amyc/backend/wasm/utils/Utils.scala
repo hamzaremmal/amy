@@ -2,6 +2,7 @@ package amyc.backend.wasm.utils
 
 import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.indices.{globalidx, localidx}
 import amyc.backend.wasm.types.{local as l, *}
 import amyc.core.{Context, Identifier}
@@ -63,17 +64,6 @@ import amyc.reporter
 
   inline def withComment(inline comment : String)(inline code: Code) : Code =
     Comment(comment) <:> code
-
-  inline def mkBoolean(inline b : Boolean): Code =
-    i32.const(if b then 1 else 0)
-
-  inline def mkUnit : Code = i32.const(0)
-
-  inline def mkBinOp(inline lhs : Code, inline rhs : Code)(op : Instruction) : Code =
-    lhs <:> rhs <:> op
-
-  inline def equ(inline lhs: Code, inline rhs: Code) : Code =
-    mkBinOp(lhs, rhs)(i32.eq)
 
   inline def and(inline lhs: Code, inline rhs: Code) : Code =
     ift(lhs, rhs, mkBoolean(false))

@@ -2,7 +2,7 @@ package amyc.backend.wasm.builtin.amy
 
 import amyc.backend.wasm.Instructions.{call, i32, local}
 import amyc.backend.wasm.builtin.BuiltInModule
-import amyc.backend.wasm.utils.{and, equ, lh, or}
+import amyc.backend.wasm.utils.{and, lh, or}
 import amyc.core.StdDefinitions.stdDef
 import amyc.core.Symbols.*
 import amyc.core.Context
