@@ -1,4 +1,4 @@
-package amyc.backend.wasm.utils
+package amyc.backend
 
 import amyc.backend.wasm.Module
 import amyc.core.Context
