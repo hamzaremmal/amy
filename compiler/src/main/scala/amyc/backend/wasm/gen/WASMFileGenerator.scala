@@ -1,20 +1,20 @@
-package amyc.backend.wasm.wrapper
+package amyc.backend.wasm.gen
 
 import amyc.*
-import amyc.core.Context
-import amyc.backend.wasm.Module
-import amyc.utils.Env
-import amyc.backend.wasm.CodePrinter.*
 import amyc.backend.fs.*
+import CodePrinter.*
+import amyc.backend.wasm.Module
+import amyc.core.Context
+import amyc.utils.Env
 
-import scala.sys.process.*
 import java.io.*
+import scala.sys.process.*
 
 object WASMFileGenerator {
 
   def apply(m: Module)(using Context) = {
     val (local, inPath) = {
-      import Env._
+      import Env.*
       os match {
         case Linux => ("./bin/wat2wasm", "wat2wasm")
         case Windows => ("./bin/wat2wasm.exe", "wat2wasm.exe")

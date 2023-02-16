@@ -1,22 +1,21 @@
-package amyc.backend.wasm
+package amyc.backend.wasm.gen
 
 import amyc.*
 import amyc.ast.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
-import amyc.core.*
-import amyc.core.Symbols.*
-import amyc.core.StdTypes.*
-import amyc.core.StdDefinitions.*
-import amyc.utils.Pipeline
 import amyc.backend.wasm.*
-import amyc.backend.wasm.utils.*
-import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.Types.{result, typeuse}
+import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.builtin.amy.*
 import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.builtin.amy.Unit.mkUnit
-import amyc.backend.wasm.Types.{result, typeuse}
-import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
+import amyc.backend.wasm.utils.*
+import amyc.core.*
+import amyc.core.StdDefinitions.*
+import amyc.core.StdTypes.*
+import amyc.core.Symbols.*
+import amyc.utils.Pipeline
 
 object WASMCodeGenerator extends Pipeline[Program, Module] :
 

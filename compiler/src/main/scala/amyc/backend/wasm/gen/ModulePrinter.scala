@@ -1,12 +1,13 @@
-package amyc.backend.wasm
+package amyc.backend.wasm.gen
 
 import amyc.*
-import amyc.core.Context
-import amyc.utils.*
-import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.Types.{local as tlocal, *}
+import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.utils.*
+import amyc.backend.wasm.{Data, Function, Global, Module, Table}
+import amyc.core.Context
+import amyc.utils.*
 
 // TODO HR : Remove this object and mix it with the WATFileGenerator
 

@@ -1,6 +1,6 @@
 package amyc
 
-import amyc.backend.wasm.{CodePrinter, WASMCodeGenerator}
+import amyc.backend.wasm.gen.{CodePrinter, WASMCodeGenerator}
 import amyc.utils.{AmycFatalError, FetchFiles, Frontend, Pipeline}
 import amyc.core.Context.inFreshContext
 import amyc.utils.error.checkAmycErrors

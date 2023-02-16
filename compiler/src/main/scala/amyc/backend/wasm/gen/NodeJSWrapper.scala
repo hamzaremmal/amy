@@ -1,4 +1,4 @@
-package amyc.backend.wasm.wrapper
+package amyc.backend.wasm.gen
 
 import amyc.backend.wasm.Module
 

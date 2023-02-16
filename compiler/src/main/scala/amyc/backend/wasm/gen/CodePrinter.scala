@@ -1,8 +1,8 @@
-package amyc.backend.wasm
+package amyc.backend.wasm.gen
 
 import amyc.*
 import amyc.backend.fs.*
-import amyc.backend.wasm.wrapper.{HTMLWrapper, NodeJSWrapper, WASMFileGenerator, WATFile}
+import amyc.backend.wasm.gen.{HTMLWrapper, NodeJSWrapper, WASMFileGenerator, WATFile}
 import amyc.backend.wasm.{Module, wrapper}
 import amyc.core.Context
 import amyc.utils.{Env, FileWriter, Pipeline}
@@ -28,6 +28,6 @@ object CodePrinter extends Pipeline[Module, Unit]{
     }
     // Node version needs path relative to project root
     FileWriter(pathWithExt(m, js_ext)){
-      wrapper.NodeJSWrapper(pathWithExt(m, wasm_ext), m)
+      NodeJSWrapper(pathWithExt(m, wasm_ext), m)
     }
 }

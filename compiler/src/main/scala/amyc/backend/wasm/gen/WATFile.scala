@@ -1,8 +1,7 @@
-package amyc.backend.wasm.wrapper
+package amyc.backend.wasm.gen
 
-import amyc.core.Context
 import amyc.backend.wasm.Module
-import amyc.backend.wasm.ModulePrinter
+import amyc.core.Context
 
 object WATFile {
 
