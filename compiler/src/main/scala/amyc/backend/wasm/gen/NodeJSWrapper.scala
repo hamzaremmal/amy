@@ -1,6 +1,6 @@
 package amyc.backend.wasm.gen
 
-import amyc.backend.wasm.Module
+import amyc.backend.wasm.Modules.*
 
 object NodeJSWrapper {
 

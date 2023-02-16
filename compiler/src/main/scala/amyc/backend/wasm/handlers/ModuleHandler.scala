@@ -5,6 +5,7 @@ import amyc.core.*
 import amyc.core.Symbols.*
 import amyc.backend.wasm.*
 import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.Modules.*
 import amyc.backend.wasm.Values.*
 import amyc.backend.wasm.utils.lh
 import amyc.utils.UniqueCounter

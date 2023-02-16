@@ -3,7 +3,6 @@ package amyc.backend.wasm.utils
 import amyc.reporter
 import amyc.core.{Context, Identifier}
 import amyc.core.Symbols.*
-import amyc.backend.wasm.Function
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.Indices.{globalidx, localidx}

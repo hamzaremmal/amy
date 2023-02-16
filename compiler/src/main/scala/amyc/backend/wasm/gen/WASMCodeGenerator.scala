@@ -5,6 +5,7 @@ import amyc.ast.*
 import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
 import amyc.backend.wasm.*
 import amyc.backend.wasm.Instructions.*
+import amyc.backend.wasm.Modules.*
 import amyc.backend.wasm.Types.{result, typeuse}
 import amyc.backend.wasm.builtin.BuiltIn.*
 import amyc.backend.wasm.builtin.amy.*

@@ -3,7 +3,7 @@ package amyc.backend.wasm.gen
 import amyc.*
 import amyc.backend.fs.*
 import CodePrinter.*
-import amyc.backend.wasm.Module
+import amyc.backend.wasm.Modules.*
 import amyc.core.Context
 import amyc.utils.Env
 

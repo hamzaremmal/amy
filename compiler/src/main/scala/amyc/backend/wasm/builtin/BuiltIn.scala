@@ -3,6 +3,7 @@ package amyc.backend.wasm.builtin
 import amyc.*
 import amyc.ast.SymbolicTreeModule.StringLiteral
 import amyc.backend.wasm.*
+import amyc.backend.wasm.Modules.*
 import amyc.backend.wasm.gen.WASMCodeGenerator.cgExpr
 import amyc.backend.wasm.builtin.amy.*
 import Instructions.*
