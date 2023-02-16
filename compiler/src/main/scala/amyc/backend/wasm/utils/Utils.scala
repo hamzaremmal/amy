@@ -36,30 +36,6 @@ import amyc.reporter
     else
       reporter.fatal(s"WASM don't define function types for $params parameters")
 
-  // ==============================================================================================
-  // ================================= DEFAULT IMPORTS ============================================
-  // ==============================================================================================
-
-  // The default imports we will pass to a wasm Module
-  val defaultImports: List[String] = List(
-    "\"system\" \"printInt\" (func $Std_printInt (param i32) (result i32))",
-    "\"system\" \"printString\" (func $Std_printString (param i32) (result i32))",
-    "\"system\" \"readString0\" (func $js_readString0 (param i32) (result i32))",
-    "\"system\" \"readInt\" (func $Std_readInt (result i32))",
-    "\"system\" \"mem\" (memory 100)"
-  )
-
-  // We don't generate code for these functions in CodeGen (they are hard-coded here or in js wrapper)
-  val builtInFunctions: Set[String] = Set(
-    "Std_printInt",
-    "Std_printString",
-    "Std_digitToString",
-    "Std_readInt",
-    "Std_readString",
-    "String_concat",
-    "String_length"
-  )
-
   /** Utilities */
   // A globally unique name for definitions
   def fullName(owner: Symbol, df: Symbol): String = owner.name + "_" + df.name
