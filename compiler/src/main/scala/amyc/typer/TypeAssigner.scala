@@ -4,6 +4,7 @@ import amyc.analyzer.SymbolTable
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Types.*
 import amyc.core.Context
+import amyc.core.Symbols.FunctionSymbol
 import amyc.{ctx, reporter}
 import amyc.utils.Pipeline
 
@@ -190,8 +191,9 @@ object TypeAssigner extends Pipeline[Program, Program]{
     val FunDef(_, params, retType, body) = fn
     for param <- params do assign(param)
     assign(retType)
-    assign(body)
-    if !isBounded(body.tpe) then body.withType(bound(body.tpe, retType.tpe))
+    if ! (fn.name.asInstanceOf[FunctionSymbol] is "native") then
+      assign(body)
+      if !isBounded(body.tpe) then body.withType(bound(body.tpe, retType.tpe))
     fn
 
   def assignAbstractClassDef(cls: AbstractClassDef)(using Context) =

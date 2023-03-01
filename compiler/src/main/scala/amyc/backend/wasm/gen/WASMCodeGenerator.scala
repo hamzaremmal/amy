@@ -70,7 +70,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     } ++
     // Generate code for all functions
     defs.collect {
-      case fd: FunDef if !builtInFunctions(fullName(fd.name)) =>
+      case fd: FunDef if !(fd.name.asInstanceOf[FunctionSymbol] is "native") =>
         cgFunction(fd, Some(result(i32)))
     } ++
       // Generate code for the "main" function, which contains the module expression

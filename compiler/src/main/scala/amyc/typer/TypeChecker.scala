@@ -223,10 +223,13 @@ object TypeChecker extends Pipeline[Program, Program]{
     module
 
   def checkFunctionDefinition(fn: FunDef)(using Context) =
-    val FunDef(_, _, retType, body) = fn
-    check(body)
-    <:<(body, retType.tpe)
-    fn
+    if fn.name.asInstanceOf[FunctionSymbol] is "native" then
+      fn
+    else
+      val FunDef(_, _, retType, body) = fn
+      check(body)
+      <:<(body, retType.tpe)
+      fn
 
   def checkAbstractClassDef(cls: AbstractClassDef)(using Context) =
     cls

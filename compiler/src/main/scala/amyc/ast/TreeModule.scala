@@ -60,6 +60,11 @@ trait TreeModule :
   /** Base type for all the expressions in Amy */
   sealed trait Expr extends Tree
 
+  /**
+    * Empty expression
+    */
+  case class EmptyExpr() extends Expr
+
   /** Represents an access to a variable */
   case class Variable(name: Name) extends Expr
 

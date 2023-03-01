@@ -2,13 +2,9 @@ module String
 
     abstract class String
 
-    fn concat(lhs: String, rhs: String): String = {
-        error("Stub implementation")
-    }
+    native fn concat(lhs: String, rhs: String): String
 
-    fn length(str: String): Int = {
-        error("Stub implementation")
-    }
+    native fn length(str: String): Int
 
     // ALIAS FOR CONCAT
     //fn ++ (lhs : String, rhs : String) : String

@@ -174,19 +174,19 @@ module L_0
 end L_0
 module Std_0
   fn printInt_0(i_1: Int_0): Unit_0 = {
-    error("")
+    <empty>
   }
   fn printString_0(s_0: String_0): Unit_0 = {
-    error("")
+    <empty>
   }
   fn printBoolean_0(b_0: Boolean_0): Unit_0 = {
     printString_0(booleanToString_0(b_0))
   }
   fn readString_0(): String_0 = {
-    error("")
+    <empty>
   }
   fn readInt_0(): Int_0 = {
-    error("")
+    <empty>
   }
   fn intToString_0(i_2: Int_0): String_0 = {
     (if((i_2 < 0)) {
@@ -206,7 +206,7 @@ module Std_0
     })
   }
   fn digitToString_0(i_3: Int_0): String_0 = {
-    error("")
+    <empty>
   }
   fn booleanToString_0(b_1: Boolean_0): String_0 = {
     (if(b_1) {
@@ -272,42 +272,42 @@ module Boolean_1
 end Boolean_1
 module unnamed_0
   fn +_0(lhs_0: Int_0, rhs_0: Int_0): Int_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn -_0(lhs_1: Int_0, rhs_1: Int_0): Int_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn *_0(lhs_2: Int_0, rhs_2: Int_0): Int_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn /_0(lhs_3: Int_0, rhs_3: Int_0): Int_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn %_0(lhs_4: Int_0, rhs_4: Int_0): Int_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn <_0(lhs_5: Int_0, rhs_5: Int_0): Boolean_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn <=_0(lhs_6: Int_0, rhs_6: Int_0): Boolean_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn &&_0(lhs_7: Boolean_0, rhs_7: Boolean_0): Boolean_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn ||_0(lhs_8: Boolean_0, rhs_8: Boolean_0): Boolean_0 = {
-    error("Stub Implementation")
+    <empty>
   }
   fn ++_0(lhs_9: String_0, rhs_9: String_0): String_0 = {
-    error("Stub Implementation")
+    <empty>
   }
 end unnamed_0
 module String_1
   abstract class String_0
   fn concat_1(lhs_10: String_0, rhs_10: String_0): String_0 = {
-    error("Stub implementation")
+    <empty>
   }
   fn length_1(str_0: String_0): Int_0 = {
-    error("Stub implementation")
+    <empty>
   }
 end String_1

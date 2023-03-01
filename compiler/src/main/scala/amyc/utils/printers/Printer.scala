@@ -136,6 +136,7 @@ trait Printer(highlighter: Highlighter) {
     case FunctionTypeTree(args, rte) =>
       s"(${args.map(apply).mkString(", ")}) => ${apply(rte)}"
     case ClassTypeTree(name) => name
+    case  EmptyExpr() => "<empty>"
   }
 
   def apply(t: Tree)(implicit printUniqueIDs: Boolean = false): String = {
