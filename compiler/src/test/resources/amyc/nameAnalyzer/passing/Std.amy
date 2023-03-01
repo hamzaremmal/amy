@@ -7,7 +7,9 @@ module Std
 
   native fn printString(s: String): Unit
 
-  fn printBoolean(b: Boolean): Unit
+  fn printBoolean(b: Boolean): Unit = {
+    printString(booleanToString(b))
+  }
 
   native fn readString(): String
 
