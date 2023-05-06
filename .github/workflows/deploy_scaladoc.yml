@@ -1,9 +1,8 @@
-name: Deploy scaladoc
+name: scaladoc
 on:
-  workflow_dispatch
-  #push:
-  #  branches:
-  #    - master
+  push:
+    branches:
+      - master
     
 jobs:
   build:
@@ -16,12 +15,12 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: 'sbt'
-      - name: Generate scaladoc for amyc-compiler
-        run: sbt amy-compiler/doc 
+      - name: Generate scaladoc
+        run: sbt unidoc
       - uses:  actions/upload-pages-artifact@v1
         with:
           name: "amy-compiler_scaladoc_${{ github.head_ref }}.${{ github.sha }}"
-          path: "compiler/target/scala-3.1.3/api"
+          path: "compiler/target/scala-3.2.0/unidoc"
           
   # Deploy job
   deploy:
@@ -36,7 +35,7 @@ jobs:
     # Deploy to the github-pages environment
     environment:
       name: github-pages
-      url: "${{ steps.deployment.outputs.page_url }}scaladoc/"
+      url: "${{ steps.deployment.outputs.page_url }}"
 
     # Specify runner + deployment step
     runs-on: ubuntu-latest
