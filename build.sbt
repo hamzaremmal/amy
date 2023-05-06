@@ -66,6 +66,7 @@ lazy val amy_setting =
 lazy val `amy-language` = (project in file("."))
   .aggregate(`amy-compiler`, `amy-interpreter`, `amy-stdlib`)
   .enablePlugins(JavaAppPackaging)
+  .enablePlugins(ScalaUnidocPlugin)
   .settings(
     //dockerBaseImage := "openjdk:jre-alpine",
     dockerExposedPorts ++= Seq(),
