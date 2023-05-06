@@ -20,7 +20,7 @@ jobs:
       - uses:  actions/upload-pages-artifact@v1
         with:
           name: "amy-compiler_scaladoc_${{ github.head_ref }}.${{ github.sha }}"
-          path: "compiler/target/scala-3.2.0/unidoc"
+          path: "${{ github.workspace }}/target/scala-3.2.0/unidoc"
           
   # Deploy job
   deploy:
