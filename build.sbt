@@ -1,5 +1,8 @@
 import sbt.Def.spaceDelimited
 
+import com.github.sbt.jacoco.JacocoKeys.jacocoAggregateReportSettings
+import com.github.sbt.jacoco.JacocoKeys.jacocoAggregateReport
+
 ThisBuild / scalaVersion := "3.2.0"
 ThisBuild / version := "1.0"
 ThisBuild / scalacOptions ++= Seq("-feature", "-language:implicitConversions")
@@ -68,7 +71,13 @@ lazy val `amy-language` = (project in file("."))
     dockerExposedPorts ++= Seq(),
     amy_setting,
     amyc_setting,
-    Compile / run := usage.value
+    Compile / run := usage.value,
+    Test / jacocoAggregateReportSettings := JacocoReportSettings(
+      "Jacoco Aggregate Coverage Report",
+      None,
+      JacocoThresholds(0.0,0.0,0.0,0.0,0.0,0.0),
+      Seq(JacocoReportFormats.ScalaHTML, JacocoReportFormats.XML),
+      "utf-8")
   )
 
 // ================================================================================================
@@ -77,7 +86,7 @@ lazy val `amy-language` = (project in file("."))
 
 lazy val `amy-compiler` = (project in file("compiler"))
   .settings(
-    Compile / mainClass := Some(amyc_entrypoint)
+    Compile / mainClass := Some(amyc_entrypoint),
   )
 
 // ================================================================================================
