@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: Amy Compiler Tests
+name: build
 
 on: [push, pull_request]
 
