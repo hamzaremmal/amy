@@ -48,10 +48,18 @@ jobs:
         run: npm install deasync
       - name: Install wat2wasm
         run: sudo apt install wabt
-      - uses: paambaati/codeclimate-action@v4.0.0
+      - name : Prepare Code Climate
+        run : |
+          curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
+          chmod +x ./cc-test-reporter
+          ./cc-test-reporter before-build
+      - name : Generate Coverage Report
+        run: sbt jacocoAggregate
+      - name : Report to Code Climate
+        run : |
+          ./cc-test-reporter format-coverage ${{ github.workspace }}/target/scala-3.2.0/jacoco/report/aggregate/jacoco.xml --input-type jacoco
+          ./cc-test-reporter upload-coverage
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
           JACOCO_SOURCE_PATH: "${{ github.workspace }}/compiler/src/main/java ${{ github.workspace }}/interpreter/src/main/java"
-        with:
-          coverageCommand: sbt jacocoAggregate
-          coverageLocations: ${{ github.workspace }}/target/scala-3.2.0/jacoco/report/aggregate/jacoco.xml:jacoco
+  
