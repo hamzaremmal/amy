@@ -22,7 +22,7 @@ jobs:
         distribution: 'temurin'
         cache: 'sbt'
     - name: Set up Node JS
-      uses: actions/setup-node@v3
+      uses: actions/setup-node@v4
     - name: Install deasync
       run: npm install deasync
     - name: Install wat2wasm
@@ -44,7 +44,7 @@ jobs:
           distribution: 'temurin'
           cache: 'sbt'
       - name: Set up Node JS
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
       - name: Install deasync
         run: npm install deasync
       - name: Install wat2wasm
