@@ -1,10 +1,9 @@
 import sbt.Def.spaceDelimited
 
 import com.github.sbt.jacoco.JacocoKeys.jacocoAggregateReportSettings
-import com.github.sbt.jacoco.JacocoKeys.jacocoAggregateReport
 
-ThisBuild / scalaVersion := "3.2.0"
-ThisBuild / version := "1.0"
+ThisBuild / scalaVersion := "3.3.0"
+ThisBuild / version := "0.0.1"
 ThisBuild / scalacOptions ++= Seq("-feature", "-language:implicitConversions")
 ThisBuild / shellPrompt := (Project.extract(_).currentRef.project + "> ")
 ThisBuild / usage := printUsage
@@ -86,6 +85,7 @@ lazy val `amy-language` = (project in file("."))
 // ================================================================================================
 
 lazy val `amy-compiler` = (project in file("compiler"))
+  .enablePlugins(JavaAppPackaging)
   .settings(
     Compile / mainClass := Some(amyc_entrypoint),
   )
@@ -95,6 +95,7 @@ lazy val `amy-compiler` = (project in file("compiler"))
 // ================================================================================================
 lazy val `amy-interpreter` = (project in file("interpreter"))
   .dependsOn(`amy-compiler` % "compile->compile;test->test")
+  .enablePlugins(JavaAppPackaging)
   .settings(
     Compile / mainClass := Some(amy_entrypoint),
   )
