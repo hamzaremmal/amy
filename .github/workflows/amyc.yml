@@ -58,7 +58,7 @@ jobs:
         run: sbt jacocoAggregate
       - name : Report to Code Climate
         run : |
-          ./cc-test-reporter format-coverage ${{ github.workspace }}/target/scala-3.2.0/jacoco/report/aggregate/jacoco.xml --input-type jacoco
+          ./cc-test-reporter format-coverage ${{ github.workspace }}/target/scala-3.3.0/jacoco/report/aggregate/jacoco.xml --input-type jacoco
           ./cc-test-reporter upload-coverage
         env:
           CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
