@@ -6,7 +6,7 @@ import amyc.core.Context.inFreshContext
 import amyc.utils.error.checkAmycErrors
 import amyc.utils.Pipeline.execute
 
-object compiler {
+object compiler :
 
   lazy val pipeline: Pipeline[List[String], Unit] =
     FetchFiles andThen
@@ -15,12 +15,7 @@ object compiler {
     CodePrinter
 
   def main(args: Array[String]): Unit =
-    inFreshContext {
-      checkAmycErrors {
-        execute(pipeline) {
+    inFreshContext :
+      checkAmycErrors :
+        execute(pipeline) :
           args.toList
-        }
-      }
-    }
-
-}
