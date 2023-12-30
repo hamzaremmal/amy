@@ -2,7 +2,7 @@ package amyc.utils.printers
 
 import amyc.ast.*
 import amyc.utils.{Stacked, *}
-import amyc.utils.printers.highlight.{Highlighter, NoHighlight}
+import amyc.utils.printers.highlight.Highlighter
 
 // A printer for Amy trees
 trait Printer(highlighter: Highlighter) {
@@ -49,7 +49,7 @@ trait Printer(highlighter: Highlighter) {
         "}"
       )
 
-    case ParamDef(name, tpe) =>
+    case ValParamDef(name, tpe) =>
       name <:> ": " <:> toDoc(tpe)
 
     /* Expressions */

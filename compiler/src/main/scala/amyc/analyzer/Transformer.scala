@@ -81,8 +81,8 @@ object Transformer {
     }
 
     val newParams = params zip sym.param map {
-      case (pd@N.ParamDef(_, tt), sym) =>
-        S.ParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
+      case (pd@N.ValParamDef(_, tt), sym) =>
+        S.ValParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
     }
 
     val paramsMap = sym.param.map(s => (s.name, s)).toMap
@@ -109,8 +109,8 @@ object Transformer {
       case N.CaseClassDef(name, params, _) =>
         val sym = symbols.constructor(module, name)
         val newParams = params zip sym.param map {
-          case (pd@N.ParamDef(_, tt), sym) =>
-            S.ParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
+          case (pd@N.ValParamDef(_, tt), sym) =>
+            S.ValParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
         }
         S.CaseClassDef(sym, newParams, sym.parent)
       case fd: N.FunDef =>
@@ -184,7 +184,7 @@ object Transformer {
         val sym = LocalSymbol(Identifier.fresh(vd.name))
         val tpe = transformType(vd.tt, module)
         S.Let(
-          S.ParamDef(sym, tpe).setPos(vd),
+          S.ValParamDef(sym, tpe).setPos(vd),
           transformExpr(value),
           transformExpr(body)(module, scope.withLocal(vd.name, sym), ctx)
         )

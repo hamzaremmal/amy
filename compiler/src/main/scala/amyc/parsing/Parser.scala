@@ -29,10 +29,14 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ================================== HELPER FUNCTIONS ==========================================
   // ==============================================================================================
 
-  inline def inBrace[A](inline syntax: Syntax[A]): Syntax[A] =
+  private inline def inBrace[A](inline syntax: Syntax[A]): Syntax[A] =
     "{" ~>~ syntax ~<~ "}"
-  inline def inParenthesis[A](inline syntax: Syntax[A]): Syntax[A] =
+  private inline def inParenthesis[A](inline syntax: Syntax[A]): Syntax[A] =
     "(" ~>~ syntax ~<~ ")"
+
+  private inline def inSquareBrackets[A](inline syntax: Syntax[A]): Syntax[A] =
+    "[" ~>~ syntax ~<~ "]"
+
   implicit inline def kw(inline k: Keyword): Syntax[Token] = elem(KeywordKind(k.toString))
   implicit inline def delimiter(inline string: String): Syntax[Token] = elem(DelimiterKind(string))
 
@@ -138,7 +142,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
     */
   lazy val caseClassDef: Syntax[CaseClassDef] =
     (`case` ~ `class` ~ identifier ~ inParenthesis(
-      parameters
+      vparams
     ) ~ ":" ~ identifier) map {
       case _ ~ _ ~ className ~ params ~ _ ~ superClassName =>
         CaseClassDef(className, params, superClassName)
@@ -147,15 +151,15 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   /**
     */
   lazy val funDef: Syntax[FunDef] =
-    (many(modifier) ~<~ `fn` ~ (identifier | plus | minus | not) ~ inParenthesis(parameters) ~<~ ":" ~ typeTree ~ opt("=" ~>~ inBrace(expr))) map {
-      case mods ~ funcName ~ params ~ tpe ~ Some(expr) =>
+    (many(modifier) ~<~ `fn` ~ (identifier | plus | minus | not) ~ opt(inSquareBrackets(identifier)) ~ inParenthesis(vparams) ~<~ ":" ~ typeTree ~ opt("=" ~>~ inBrace(expr))) map {
+      case mods ~ funcName ~ tparams ~ vparams ~ tpe ~ Some(expr) =>
         if mods.toList.contains("native") then
           throw AmycFatalError(s"native function cannot have a body")
-        FunDef(funcName, params, tpe, expr).mods(mods.toList)
-      case mods ~ funcName ~ params ~ tpe ~ None =>
+        FunDef(funcName, vparams, tpe, expr).mods(mods.toList)
+      case mods ~ funcName ~ tparams ~ vparams ~ tpe ~ None =>
         if ! mods.toList.contains("native") then
           throw AmycFatalError(s"non-native function $funcName must have a body")
-        FunDef(funcName, params, tpe, EmptyExpr()).mods(mods.toList)
+        FunDef(funcName, vparams, tpe, EmptyExpr()).mods(mods.toList)
     }
 
   // ==============================================================================================
@@ -201,14 +205,13 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ==============================================================================================
 
   // A list of parameter definitions.
-  lazy val parameters: Syntax[List[ParamDef]] =
-    repsep(parameterDef, ",").map(_.toList)
+  lazy val vparams: Syntax[List[ValParamDef]] =
+    repsep(vparam, ",").map(_.toList)
 
   // A parameter definition, i.e., an identifier along with the expected type.
-  lazy val parameterDef: Syntax[ParamDef] =
-    (identifier ~<~ ":" ~ typeTree) map { case name ~ tpe =>
-      ParamDef(name, tpe)
-    }
+  lazy val vparam: Syntax[ValParamDef] =
+    (identifier ~<~ ":" ~ typeTree) map :
+      case name ~ tpe => ValParamDef(name, tpe)
 
   lazy val args: Syntax[Seq[Expr]] =
     repsep(expr, ",")
@@ -274,7 +277,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
 
   // Val definitions
   lazy val valDefinitionExpression: Syntax[Expr] =
-    (`val` ~>~ parameterDef ~<~ "=" ~ simpleExpression ~<~ ";" ~ expr) map {
+    (`val` ~>~ vparam ~<~ "=" ~ simpleExpression ~<~ ";" ~ expr) map {
       case param ~ assign ~ rhs => Let(param, assign, rhs)
     }
 

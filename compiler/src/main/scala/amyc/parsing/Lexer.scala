@@ -127,7 +127,7 @@ object Lexer extends Pipeline[List[File], Iterator[Token]] with Lexers {
       }
 
   lazy val delimiters: P =
-    oneOf(";,{}():.=") | word("=>") | word("::")
+    oneOf(";,{}()[]:.=") | word("=>") | word("::")
       |> { (cs, range) =>
         withPosition(range._1) {
           DelimiterToken(cs.mkString)

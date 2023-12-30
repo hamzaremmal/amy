@@ -47,11 +47,16 @@ trait TreeModule :
       _mods = mods
       this
     def mods: List[String] = _mods
-  case class FunDef(name: Name, params: List[ParamDef], retType: TypeTree, body: Expr) extends ClassOrFunDef :
+  case class FunDef(name: Name, params: List[ValParamDef], retType: TypeTree, body: Expr) extends ClassOrFunDef :
     def paramNames = params.map(_.name)
   case class AbstractClassDef(name: Name) extends ClassOrFunDef
-  case class CaseClassDef(name: Name, fields: List[ParamDef], parent: Name) extends ClassOrFunDef
-  case class ParamDef(name: Name, tt: TypeTree) extends Definition
+  case class CaseClassDef(name: Name, fields: List[ValParamDef], parent: Name) extends ClassOrFunDef
+
+  sealed trait ParamDef extends Definition
+
+  case class ValParamDef(name: Name, tt: TypeTree) extends ParamDef
+
+  case class TypeParameterDef(name: Name) extends ParamDef
 
   // ==============================================================================================
   // ======================================= EXPRESSIONS ==========================================
@@ -97,7 +102,7 @@ trait TreeModule :
   /** The ; operator */
   case class Sequence(e1: Expr, e2: Expr) extends Expr
   /** Local variable definition */
-  case class Let(df: ParamDef, value: Expr, body: Expr) extends Expr
+  case class Let(df: ValParamDef, value: Expr, body: Expr) extends Expr
 
   /** If-then-else */
   case class Ite(cond: Expr, thenn: Expr, elze: Expr) extends Expr

@@ -2,14 +2,13 @@ package amyc.typer
 
 import amyc.core.StdDefinitions.*
 import amyc.core.StdTypes.*
-import amyc.analyzer.SymbolTable
 import amyc.core.Types.*
 import amyc.core.{Context, Identifier}
 import amyc.ast.SymbolicTreeModule
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
-import amyc.{ctx, reporter, symbols}
+import amyc.{ctx, reporter}
 import amyc.utils.Pipeline
 
 object TypeInferer extends Pipeline[Program, Program]{
@@ -20,7 +19,7 @@ object TypeInferer extends Pipeline[Program, Program]{
     val FunDef(_, params, rte_tpe, body) = fd
     rte_tpe.withType(ctx.tpe(rte_tpe))
     val env = params.map {
-      case df@ParamDef(name, tt) =>
+      case df@ValParamDef(name, tt) =>
         tt.withType(ctx.tpe(tt))
         name.id -> df.withType(ctx.tpe(tt)).tpe
     }.toMap
@@ -34,16 +33,18 @@ object TypeInferer extends Pipeline[Program, Program]{
   override def run(program: Program)(using Context): Program = {
     // We will first type check each function defined in a module
     for mod <- program.modules
-        CaseClassDef(_, args, _) <- mod.defs
+        case CaseClassDef(_, args, _) <- mod.defs
+        param <- args
     do
-      args.foreach(t => {
-        t.tt.withType(ctx.tpe(t.tt))
-        t.withType(ctx.tpe(t.tt))
-      })
+      param match
+        case vparam@ValParamDef(_, tt) =>
+          tt.withType(ctx.tpe(tt))
+          vparam.withType(ctx.tpe(tt))
+        case _ =>
 
     val inferred1 = for
       mod <- program.modules
-      fd@FunDef(_, _, _, _) <- mod.defs
+      case fd@FunDef(_, _, _, _) <- mod.defs
     yield constraintsFunDef(fd)
 
     // Type-check expression if present. We allow the result to be of an arbitrary type by

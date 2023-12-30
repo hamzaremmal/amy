@@ -95,7 +95,7 @@ object Types :
           case Nil => acc
 
       val inferred = consistentacc(t, BottomType)
-      for tv@TypeVariable(_) <- t do
+      for case tv@TypeVariable(_) <- t do
         ctx.tv.update(tv, inferred)
       inferred
     }

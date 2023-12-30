@@ -55,7 +55,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     * @param Context
     */
   def registerFunctions(mod: N.ModuleDef)(using Context) =
-    for fd @ N.FunDef(name, _, retType1, _) <- mod.defs do
+    for case fd @ N.FunDef(name, _, retType1, _) <- mod.defs do
       symbols.addFunction(
         symbols.module(mod.name),
         name,
@@ -69,7 +69,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     * @param Context
     */
   def registerConstructors(mod: N.ModuleDef)(using Context) =
-    for N.CaseClassDef(name, fields, parent) <- mod.defs do
+    for case N.CaseClassDef(name, fields, parent) <- mod.defs do
       symbols.addConstructor(
         mod.name,
         name,
@@ -98,7 +98,7 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     * @param Context
     */
   def registerTypes(mod: N.ModuleDef)(using Context) =
-    for N.AbstractClassDef(name) <- mod.defs do symbols.addType(mod.name, name)
+    for case N.AbstractClassDef(name) <- mod.defs do symbols.addType(mod.name, name)
 
   /**
     * @param mod
@@ -121,8 +121,8 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
       "==",
       List("infix"),
       List(
-        N.ParamDef("lhs", N.TTypeTree(NoType)),
-        N.ParamDef("rhs", N.TTypeTree(NoType))
+        N.ValParamDef("lhs", N.TTypeTree(NoType)),
+        N.ValParamDef("rhs", N.TTypeTree(NoType))
       ),
       S.TTypeTree(stdType.BooleanType)
     )

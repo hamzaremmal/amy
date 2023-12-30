@@ -45,7 +45,7 @@ object Interpreter extends Pipeline[Program, Unit] :
             reporter.fatal(s"variable '$name' is not in scope or defined")
       case FunRef(ref : FunctionSymbol) =>
         builtIns.get(ref) map {
-          BuiltInFunctionValue
+          BuiltInFunctionValue.apply
         } orElse {
           findFunction(program, ref) map { fd =>
             FunctionValue(fd.params.map(_.name), fd.body)

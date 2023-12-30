@@ -1,6 +1,5 @@
 package amyc.typer
 
-import amyc.analyzer.SymbolTable
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Types.*
 import amyc.core.Context
@@ -83,7 +82,7 @@ object TypeAssigner extends Pipeline[Program, Program]{
       case fn: FunDef => assignFunctionDefinition(fn)
       case cls: AbstractClassDef => assignAbstractClassDef(cls)
       case cls: CaseClassDef => assignCaseClassDef(cls)
-      case df: ParamDef => assignParamDef(df)
+      case df: ValParamDef => assignParamDef(df)
       case tt: TypeTree => assignType(tt)
       case _ => reporter.fatal(s"TypeAssigner cannot handle tree of type $tree")
 
@@ -205,8 +204,8 @@ object TypeAssigner extends Pipeline[Program, Program]{
     for field <- fields do assign(field)
     cls
 
-  def assignParamDef(df: ParamDef)(using Context) =
-    val ParamDef(_, tt) = df
+  def assignParamDef(df: ValParamDef)(using Context) =
+    val ValParamDef(_, tt) = df
     assign(tt)
     infer(df)
 

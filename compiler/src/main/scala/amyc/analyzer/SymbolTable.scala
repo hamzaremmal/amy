@@ -4,8 +4,8 @@ import amyc.*
 import amyc.core.*
 import amyc.core.Symbols.*
 import amyc.analyzer.Transformer.*
-import amyc.ast.NominalTreeModule.ParamDef
-import amyc.ast.SymbolicTreeModule.{TypeTree, ClassTypeTree}
+import amyc.ast.NominalTreeModule as N
+import amyc.ast.SymbolicTreeModule as S
 import amyc.utils.UniqueCounter
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -39,7 +39,7 @@ class SymbolTable :
     sym
 
   /* register a new constructor */
-  def addConstructor(owner: String, name: String, params: List[ParamDef], parent: Symbol)
+  def addConstructor(owner: String, name: String, params: List[N.ValParamDef], parent: Symbol)
                     (using Context): Symbol =
     val sym_owner = module(owner)
     val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner, parent)
@@ -58,7 +58,7 @@ class SymbolTable :
     - PARAM INFO
     - RET
   */
-  def addFunction(owner: ModuleSymbol, name: String, mods: List[String], params: List[ParamDef], rte: TypeTree)
+  def addFunction(owner: ModuleSymbol, name: String, mods: List[String], params: List[N.ValParamDef], rte: S.TypeTree)
                  (using Context): FunctionSymbol=
     val id = Identifier.fresh(name)
     val sym = FunctionSymbol(id, owner, mods)
@@ -75,23 +75,22 @@ class SymbolTable :
 
   /* fetch the symbol of a type */
   def getType(owner: String, name: String): Option[TypeSymbol] =
-    defsByName get (owner, name) flatMap { _ match
-        case sym: TypeSymbol => Some(sym)
-        case _ => None
+    defsByName get (owner, name) flatMap {
+      case sym: TypeSymbol => Some(sym)
+      case _ => None
     }
 
   /* fetch the symbol of a constructor */
   def getConstructor(owner: String, name: String): Option[ConstructorSymbol] =
     defsByName get(owner, name) flatMap {
-      _ match
-        case sym: ConstructorSymbol => Some(sym)
-        case _ => None
+      case sym: ConstructorSymbol => Some(sym)
+      case _ => None
     }
 
   /* fetch the symbol of a function */
   def getFunction(owner: String, name: String): Option[FunctionSymbol] =
-    defsByName get (owner, name) flatMap { _ match
-      case sym : FunctionSymbol => Some(sym)
+    defsByName get (owner, name) flatMap {
+      case sym: FunctionSymbol => Some(sym)
       case _ => None
     }
 
