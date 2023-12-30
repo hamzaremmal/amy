@@ -13,7 +13,7 @@ module unnamed
     native infix fn <= (lhs : Int, rhs : Int) : Boolean
     native infix fn && (lhs : Boolean, rhs : Boolean) : Boolean
     native infix fn || (lhs : Boolean, rhs : Boolean) : Boolean
-    //native infix fn == (lhs : Any, rhs : Any) : Boolean
+    native infix fn == [A](lhs : A, rhs : A) : Boolean
     native infix fn ++ (lhs : String, rhs : String) : String
 
 end unnamed
