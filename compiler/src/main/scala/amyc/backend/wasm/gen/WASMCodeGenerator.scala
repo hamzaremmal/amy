@@ -3,23 +3,21 @@ package backend
 package wasm
 package gen
 
-import amyc.*
-import amyc.ast.*
-import amyc.ast.SymbolicTreeModule.{Call as AmyCall, *}
-import amyc.core.*
-import amyc.core.StdDefinitions.*
-import amyc.core.StdTypes.*
-import amyc.core.Symbols.*
-import amyc.backend.wasm.*
-import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.Modules.*
-import amyc.backend.wasm.Types.{result, typeuse}
-import amyc.backend.wasm.builtin.BuiltIn.*
-import amyc.backend.wasm.builtin.amy.*
-import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
-import amyc.backend.wasm.builtin.amy.Unit.mkUnit
-import amyc.backend.wasm.handlers.{LocalsHandler, ModuleHandler}
-import amyc.backend.wasm.utils.*
+import ast.{NominalTreeModule as N, SymbolicTreeModule as S}
+import ast.SymbolicTreeModule.{Call as AmyCall, *}
+import core.*
+import core.StdDefinitions.*
+import core.StdTypes.*
+import core.Symbols.*
+import wasm.Instructions.*
+import wasm.Modules.*
+import wasm.Types.{result, typeuse}
+import wasm.builtin.BuiltIn.*
+import wasm.builtin.amy.*
+import wasm.builtin.amy.Boolean.mkBoolean
+import wasm.builtin.amy.Unit.mkUnit
+import wasm.handlers.{LocalsHandler, ModuleHandler}
+import wasm.utils.*
 import amyc.utils.Pipeline
 
 object WASMCodeGenerator extends Pipeline[Program, Module] :
@@ -78,7 +76,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
     } ++
       // Generate code for the "main" function, which contains the module expression
       optExpr.toList.map { expr =>
-        val sym = symbols.addFunction(name.asInstanceOf, "main", Nil, Nil, Nil, TTypeTree(stdType.IntType))
+        val sym = symbols.addFunction(name.asInstanceOf, "main", Nil, Nil, Nil, N.TTypeTree(stdType.IntType))
         val mainFd = FunDef(sym, Nil, Nil, ClassTypeTree(stdDef.IntType), expr)
         cgFunction(mainFd, None)
       }

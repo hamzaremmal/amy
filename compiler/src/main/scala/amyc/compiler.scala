@@ -1,10 +1,10 @@
 package amyc
 
-import amyc.backend.wasm.gen.{CodePrinter, WASMCodeGenerator}
-import amyc.utils.{AmycFatalError, FetchFiles, Frontend, Pipeline}
-import amyc.core.Context.inFreshContext
-import amyc.utils.error.checkAmycErrors
-import amyc.utils.Pipeline.execute
+import backend.wasm.gen.{CodePrinter, WASMCodeGenerator}
+import utils.{AmycFatalError, FetchFiles, Frontend, Pipeline}
+import core.Context.inFreshContext
+import utils.error.checkAmycErrors
+import utils.Pipeline.execute
 
 object compiler :
 

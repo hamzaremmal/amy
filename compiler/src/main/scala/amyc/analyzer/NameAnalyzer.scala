@@ -49,15 +49,9 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     * @param Context
     */
   def registerFunctions(mod: N.ModuleDef)(using Context) =
-    for case fd @ N.FunDef(name, _, _, retType1, _) <- mod.defs do
-      symbols.addFunction(
-        symbols.module(mod.name),
-        name,
-        fd.mods,
-        fd.tparams,
-        fd.vparams,
-        transformType(retType1, mod.name)
-      )
+    val owner = symbols.module(mod.name)
+    for case fd @ N.FunDef(name, tparams, vparams, tpe, _) <- mod.defs do
+      symbols.addFunction(owner, name, fd.mods, tparams, vparams, tpe)
 
   /**
     * @param mod

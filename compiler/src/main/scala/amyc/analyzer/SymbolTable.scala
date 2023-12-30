@@ -3,6 +3,7 @@ package analyzer
 
 import Transformer.*
 import core.*
+import core.Context.*
 import core.Symbols.*
 import core.Types.*
 import ast.{NominalTreeModule as N, SymbolicTreeModule as S}
@@ -44,7 +45,7 @@ class SymbolTable :
     defsByName += (owner, name) -> sym
     sym.info {
       for p <- params yield
-        ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner))
+        ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner, Scope.fresh))
     }
     sym
 
@@ -56,14 +57,15 @@ class SymbolTable :
     - PARAM INFO
     - RET
   */
-  def addFunction(owner: ModuleSymbol, name: String, mods: List[String], tparams: List[N.TypeParamDef], vparams: List[N.ValParamDef], rte: S.TypeTree)
+  def addFunction(owner: ModuleSymbol, name: String, mods: List[String], tparams: List[N.TypeParamDef], vparams: List[N.ValParamDef], rte: N.TypeTree)
                  (using Context): FunctionSymbol=
     val id = Identifier.fresh(name)
     val sym = FunctionSymbol(id, owner, mods)
     defsByName += (owner.name, name) -> sym
-    val symvparams = vparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner.name)))
     val symtparams = tparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, S.TTypeTree(TypeVariable.fresh())))
-    sym.info(symtparams, symvparams, rte)
+    ctx.withScope(sym, Scope.fresh.withTParams(symtparams.map(sym => (sym.name, sym)).toMap))
+    val symvparams = vparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner.name, ctx.scope(sym))))
+    sym.info(symtparams, symvparams, transformType(rte, owner.name, ctx.scope(sym)))
     sym
 
   // ====================================== SAFE METHODS ==========================================

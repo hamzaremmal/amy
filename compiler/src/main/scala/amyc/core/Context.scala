@@ -76,6 +76,8 @@ case class Context private (reporter: Reporter){
 object Context {
 
   def inFreshContext[A](body: Context ?=> A): A =
-    given ctx : Context = new Context(new Reporter)
-    body
+    inContext(new Context(new Reporter))(body)
+
+  def inContext[A](ctx: Context)(body: Context ?=> A): A =
+    body(using ctx)
 }

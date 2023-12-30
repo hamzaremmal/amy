@@ -103,7 +103,7 @@ sealed case class Scope protected (parent: Option[Scope], tparams: Bag, vparams:
     */
   def resolveInScope(name : String) : Option[Symbol] =
     // Local variables shadow parameters!
-    locals.get(name) orElse vparams.get(name)
+    locals.get(name) orElse vparams.get(name) orElse tparams.get(name)
 
 
 /**

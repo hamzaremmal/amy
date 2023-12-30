@@ -42,10 +42,10 @@ object Transformer {
     * @param core.Context
     * @return
     */
-  def transformType(tt: N.TypeTree, inModule: String)(using Context): S.TypeTree = {
+  def transformType(tt: N.TypeTree, inModule: String, scope: Scope)(using Context): S.TypeTree = {
     tt match
       case N.FunctionTypeTree(params, rte) =>
-        S.FunctionTypeTree(params.map(transformType(_, inModule)), transformType(rte, inModule))
+        S.FunctionTypeTree(params.map(transformType(_, inModule, scope)), transformType(rte, inModule, scope))
       case N.ClassTypeTree(N.QualifiedName(None, name)) =>
         name match
           case "Unit" => S.ClassTypeTree(stdDef.UnitType)
@@ -53,7 +53,7 @@ object Transformer {
           case "Int" => S.ClassTypeTree(stdDef.IntType)
           case "String" => S.ClassTypeTree(stdDef.StringType)
           case _ =>
-            symbols.getType(inModule, name) map S.ClassTypeTree.apply getOrElse {
+            scope.resolve(name) orElse symbols.getType(inModule, name) map S.ClassTypeTree.apply getOrElse {
               reporter.fatal(s"Could not find type $name", tt)
             }
       case N.ClassTypeTree(qn@N.QualifiedName(pre, name)) =>
@@ -75,33 +75,31 @@ object Transformer {
     val N.FunDef(name, tparams, vparams, retType, body) = fd
     val sym = symbols.function(module, name)
 
-    vparams.groupBy(_.name).foreach { case (name, ps) =>
-      if (ps.size > 1) {
-        reporter.fatal(s"Two parameters named $name in function ${fd.name}", fd)
-      }
-    }
+    // Check that the value parameter names are unique
+    for case (name, ps) <- vparams.groupBy(_.name)
+        if ps.size > 1
+    do
+      reporter.fatal(s"Function ${fd.name} has ${ps.size} parameters named $name", fd)
 
-    val symvparams = vparams zip sym.vparams map {
+    // Check that the type parameter names are unique
+    for case (name, ps) <- tparams.groupBy(_.name)
+        if ps.size > 1
+    do
+      reporter.fatal(s"Function ${fd.name} has ${ps.size} type parameters named $name", fd)
+
+    val symtparams = tparams zip sym.tparams map :
+      case (tpd: N.TypeParamDef, sym) =>
+        S.TypeParamDef(sym).setPos(tpd)
+
+    val symvparams = vparams zip sym.vparams map :
       case (pd@N.ValParamDef(_, tt), sym) =>
         S.ValParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
-    }
-
-    val symtparams = tparams map:
-      case N.TypeParamDef(name) => S.TypeParamDef(ParameterSymbol(Identifier.fresh(name), sym, S.TTypeTree(TypeVariable.fresh())))
 
     val scope = Scope.fresh
       .withTParams(sym.tparams.map(s => (s.name, s)).toMap)
       .withVParams(sym.vparams.map(s => (s.name, s)).toMap)
 
-    S.TTypeTree(Types.TypeVariable.fresh())
-
-    S.FunDef(
-      sym,
-      symtparams,
-      symvparams,
-      sym.rte.setPos(retType),
-      transformExpr(body)(module, scope, ctx)
-    ).setPos(fd)
+    S.FunDef(sym, symtparams, symvparams, sym.rte.setPos(retType), transformExpr(body)(module, scope, ctx)).setPos(fd)
   }
 
   /**
@@ -162,7 +160,7 @@ object Transformer {
         S.Not(transformExpr(e))
       case N.Neg(e) =>
         S.Neg(transformExpr(e))
-      case N.Call(qname, _, args) =>
+      case N.Call(qname, targs, vargs) =>
         val owner = qname.module.getOrElse(module)
         val name = qname.name
         val entry = scope.resolve(qname.name) orElse {
@@ -174,12 +172,12 @@ object Transformer {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
           case Some(sym: ApplicationSymbol) =>
-            if (sym.vparams.size != args.size) {
+            if (sym.vparams.size != vargs.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
-            S.Call(sym, Nil, args.map(transformExpr(_)))
+            S.Call(sym, targs.map(transformExpr), vargs.map(transformExpr))
           case Some(sym: Symbol) =>
-            S.Call(sym, Nil, args.map(transformExpr(_)))
+            S.Call(sym, targs.map(transformExpr), vargs.map(transformExpr(_)))
         }
       case N.Sequence(e1, e2) =>
         S.Sequence(transformExpr(e1), transformExpr(e2))
@@ -191,7 +189,7 @@ object Transformer {
           reporter.warning(s"Local variable ${vd.name} shadows function parameter", vd)
         }
         val sym = LocalSymbol(Identifier.fresh(vd.name))
-        val tpe = transformType(vd.tt, module)
+        val tpe = transformType(vd.tt, module, scope)
         S.Let(
           S.ValParamDef(sym, tpe).setPos(vd),
           transformExpr(value),
