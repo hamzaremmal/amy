@@ -7,7 +7,7 @@ import amyc.core.StdDefinitions.*
 import amyc.core.StdTypes.*
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 import amyc.core.Types.*
-import amyc.utils.Pipeline
+import amyc.tools.Pipeline
 import amyc.{ctx, reporter}
 
 object TypeChecker extends Pipeline[Program, Program]{

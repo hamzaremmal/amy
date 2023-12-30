@@ -1,9 +1,9 @@
 package amyc
 package typer
 
+import tools.Pipeline
 import ast.SymbolicTreeModule.Program
 import core.Context
-import utils.Pipeline
 
 object Typer extends Pipeline[Program, Program]{
 

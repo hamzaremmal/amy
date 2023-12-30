@@ -10,6 +10,7 @@ import amyc.ast.NominalTreeModule
 import amyc.{core, parsing}
 import amyc.parsing.Parser.literal
 import amyc.parsing.keywords.Keyword
+import amyc.tools.Pipeline
 import scallion.{~, *}
 
 import scala.annotation.targetName

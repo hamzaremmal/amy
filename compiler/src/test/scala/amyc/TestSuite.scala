@@ -1,6 +1,6 @@
 package amyc
 
-import amyc.utils.Pipeline
+import amyc.tools.Pipeline
 import java.io.File
 import java.nio.file.Files
 import java.nio.file.StandardCopyOption

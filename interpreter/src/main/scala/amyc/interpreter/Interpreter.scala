@@ -11,6 +11,7 @@ import amyc.interpreter.*
 import amyc.interpreter.Value.*
 import amyc.interpreter.builtin.{BuiltIns, BuiltinModule}
 import amyc.interpreter.builtin.BuiltIns.builtIns
+import amyc.tools.Pipeline
 
 import scala.collection.mutable
 

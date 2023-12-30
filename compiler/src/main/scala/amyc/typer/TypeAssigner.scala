@@ -5,8 +5,8 @@ import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Types.*
 import amyc.core.Context
 import amyc.core.Symbols.FunctionSymbol
+import amyc.tools.Pipeline
 import amyc.{ctx, reporter}
-import amyc.utils.Pipeline
 
 object TypeAssigner extends Pipeline[Program, Program]{
 

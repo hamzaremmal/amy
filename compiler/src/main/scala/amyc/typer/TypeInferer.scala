@@ -9,8 +9,8 @@ import amyc.ast.SymbolicTreeModule
 import amyc.utils.*
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
+import amyc.tools.Pipeline
 import amyc.{ctx, reporter}
-import amyc.utils.Pipeline
 
 object TypeInferer extends Pipeline[Program, Program]{
 

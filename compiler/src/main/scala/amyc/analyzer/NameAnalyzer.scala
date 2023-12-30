@@ -2,6 +2,7 @@ package amyc
 package analyzer
 
 import Transformer.*
+import amyc.tools.Pipeline
 import ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 import core.*
 import utils.*

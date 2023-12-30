@@ -1,6 +1,7 @@
 package amyc
 package parsing
 
+import amyc.tools.Pipeline
 import amyc.{core, parsing}
 import amyc.utils.*
 import amyc.utils.Position

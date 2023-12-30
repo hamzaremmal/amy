@@ -1,7 +1,8 @@
 package amyc
 
-import amyc.utils.{Frontend, Pipeline}
+import amyc.utils.Frontend
 import amyc.interpreter.Interpreter
+import amyc.tools.Pipeline
 
 import java.io.File
 

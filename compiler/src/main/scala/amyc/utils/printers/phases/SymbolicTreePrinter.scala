@@ -3,10 +3,11 @@ package amyc.utils.printers.phases
 import amyc.ast.SymbolicTreeModule as S
 import amyc.core.Symbols.FunctionSymbol
 import amyc.core.{Context, Identifier}
+import amyc.tools.Pipeline
 import amyc.utils.printers.Printer
 import amyc.utils.printers.SymbolicPrinter.{apply, printName}
 import amyc.utils.printers.highlight.NoHighlight
-import amyc.utils.{Document, Lined, Pipeline, UniqueCounter}
+import amyc.utils.{Document, Lined, UniqueCounter}
 
 class SymbolicTreePrinter extends Pipeline[S.Program, S.Program]{
 

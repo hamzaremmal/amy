@@ -2,7 +2,7 @@ package amyc.utils.printers.phases
 
 import amyc.core.Context
 import amyc.parsing.Token
-import amyc.utils.Pipeline
+import amyc.tools.Pipeline
 
 
 /** Extracts all tokens from input and displays them */

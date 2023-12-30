@@ -1,8 +1,7 @@
-package amyc.utils
+package amyc
+package tools
 
-import amyc.{core, ctx, reporter}
-import amyc.core.Context
-import amyc.utils.Pipeline.execute
+import core.Context
 
 // A sequence of operations to be run by the compiler,
 // with interruption at every stage if there is an error
@@ -16,11 +15,11 @@ abstract class Pipeline[-F, +T] {
     override def name = if(c) self.name else thenn.name
 
     def run(v : F)(using Context) : G =
-      val first = execute(self){
+      val first = Pipeline.execute(self){
         v
       }
       c = false
-      execute(thenn){
+      Pipeline.execute(thenn){
         first
       }
   }

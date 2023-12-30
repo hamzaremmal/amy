@@ -3,7 +3,7 @@ package amyc.backend.js.runners
 import amyc.backend.wasm.Modules.*
 import amyc.backend.wasm.gen.CodePrinter
 import amyc.core.Context
-import amyc.utils.Pipeline
+import amyc.tools.Pipeline
 import amyc.utils.AmycFatalError
 
 import scala.sys.process.*

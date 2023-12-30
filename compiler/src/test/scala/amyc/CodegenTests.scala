@@ -5,7 +5,7 @@ import analyzer.NameAnalyzer
 import typer.Typer
 import amyc.backend.js.runners.CodePrinterExecutor
 import amyc.backend.wasm.gen.WASMCodeGenerator
-import amyc.utils.Pipeline
+import amyc.tools.Pipeline
 
 import java.io.File
 

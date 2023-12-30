@@ -2,6 +2,7 @@ package amyc.utils
 
 import amyc.core.Context
 import amyc.reporter
+import amyc.tools.Pipeline
 
 import java.io.File
 

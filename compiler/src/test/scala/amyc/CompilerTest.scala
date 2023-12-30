@@ -2,7 +2,8 @@ package amyc
 
 import amyc.utils.*
 import amyc.core.Context.inFreshContext
-import amyc.utils.Pipeline.execute
+import amyc.tools.Pipeline
+import amyc.tools.Pipeline.execute
 
 import java.io.File
 import org.junit.Assert.fail

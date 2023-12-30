@@ -1,10 +1,11 @@
 package amyc
 
 import amyc.core.Context.inFreshContext
-import amyc.utils.Pipeline.execute
+import amyc.tools.Pipeline.execute
 import amyc.utils.error.checkAmycErrors
-import amyc.utils.{FetchFiles, Frontend, Pipeline}
+import amyc.utils.{FetchFiles, Frontend}
 import amyc.interpreter.Interpreter
+import amyc.tools.Pipeline
 
 object runner {
 

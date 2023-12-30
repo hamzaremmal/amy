@@ -1,6 +1,7 @@
 package amyc.utils
 
 import amyc.core.Context
+import amyc.tools.Pipeline
 
 abstract class ConsumerPipeline[-F] extends Pipeline[F, Unit]
 

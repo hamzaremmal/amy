@@ -8,7 +8,8 @@ import amyc.backend.fs.*
 import amyc.backend.wasm.gen.{HTMLWrapper, NodeJSWrapper, WASMFileGenerator, WATFile}
 import amyc.backend.wasm.Modules.*
 import amyc.core.Context
-import amyc.utils.{Env, FileWriter, Pipeline}
+import amyc.tools.Pipeline
+import amyc.utils.{Env, FileWriter}
 
 import java.io.File
 

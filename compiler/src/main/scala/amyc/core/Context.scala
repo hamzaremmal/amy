@@ -1,11 +1,12 @@
 package amyc
 package core
 
-import amyc.analyzer.{EmptyScope, NameAnalyzer, Scope, SymbolTable}
-import amyc.ast.SymbolicTreeModule.*
-import amyc.core.Symbols.*
-import amyc.core.Types.*
-import amyc.utils.{Pipeline, Reporter}
+import analyzer.{EmptyScope, NameAnalyzer, Scope, SymbolTable}
+import ast.SymbolicTreeModule.*
+import Symbols.*
+import Types.*
+import tools.Pipeline
+import utils.Reporter
 
 import scala.collection.mutable
 import scala.collection.mutable.HashMap
