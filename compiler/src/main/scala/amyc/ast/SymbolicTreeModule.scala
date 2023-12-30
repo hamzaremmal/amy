@@ -1,6 +1,7 @@
-package amyc.ast
+package amyc
+package ast
 
-import amyc.core.Symbols.Symbol
+import core.Symbols.Symbol
 
 /**
   * A module containing trees where the names have been resolved to unique identifiers.

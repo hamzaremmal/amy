@@ -1,4 +1,5 @@
-package amyc.typer
+package amyc
+package typer
 
 import amyc.ast.SymbolicTreeModule.*
 import amyc.core.Types.*

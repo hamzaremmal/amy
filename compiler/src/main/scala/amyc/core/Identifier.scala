@@ -1,4 +1,5 @@
-package amyc.core
+package amyc
+package core
 
 object Identifier {
   private val counter = new amyc.utils.UniqueCounter[String]

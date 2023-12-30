@@ -1,4 +1,6 @@
-package amyc.backend.wasm
+package amyc
+package backend
+package wasm
 
 /**
   * https://webassembly.github.io/spec/core/text/values.html#

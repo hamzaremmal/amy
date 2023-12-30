@@ -1,6 +1,8 @@
-package amyc.backend.wasm.gen
+package amyc
+package backend
+package wasm
+package gen
 
-import amyc.*
 import amyc.backend.wasm.*
 import amyc.backend.wasm.Instructions.*
 import amyc.backend.wasm.Modules.*

@@ -1,7 +1,8 @@
-package amyc.ast
+package amyc
+package ast
 
-import amyc.core.Types.{NoType, Type}
-import amyc.utils.Positioned
+import core.Types.{NoType, Type}
+import utils.Positioned
 
 /**
   * A polymorphic module containing definitions of Amy trees.

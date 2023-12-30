@@ -1,4 +1,8 @@
-package amyc.backend.wasm.builtin.amy
+package amyc
+package backend
+package wasm
+package builtin
+package amy
 
 import amyc.*
 import amyc.ast.SymbolicTreeModule.ClassTypeTree

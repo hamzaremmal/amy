@@ -1,10 +1,12 @@
-package amyc.backend.wasm.utils
+package amyc
+package backend
+package wasm
+package utils
 
-import amyc.reporter
-import amyc.core.{Context, Identifier}
-import amyc.core.Symbols.*
-import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.builtin.amy.Boolean.mkBoolean
+import core.Context
+import core.Symbols.*
+import Instructions.*
+import builtin.amy.Boolean.mkBoolean
 import amyc.backend.wasm.Indices.{globalidx, localidx}
 import amyc.backend.wasm.Types.{local as l, *}
 import amyc.backend.wasm.handlers.{LocalsHandler, ModuleHandler}

@@ -1,4 +1,5 @@
-package amyc.core
+package amyc
+package core
 
 import amyc.analyzer.{EmptyScope, NameAnalyzer, Scope, SymbolTable}
 import amyc.ast.SymbolicTreeModule.*

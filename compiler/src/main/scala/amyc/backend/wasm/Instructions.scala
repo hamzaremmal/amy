@@ -1,8 +1,10 @@
-package amyc.backend.wasm
+package amyc
+package backend
+package wasm
 
-import amyc.backend.wasm.Indices.*
-import amyc.backend.wasm.Values.*
-import amyc.backend.wasm.Types.*
+import wasm.Indices.*
+import wasm.Values.*
+import wasm.Types.*
 
 import scala.annotation.targetName
 

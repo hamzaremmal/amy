@@ -1,6 +1,7 @@
-package amyc.analyzer
+package amyc
+package analyzer
 
-import amyc.core.Symbols.*
+import core.Symbols.*
 
 /* alias to write Scope definition */
 private type Bag = Map[String, Symbol]

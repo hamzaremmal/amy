@@ -1,4 +1,5 @@
-package amyc.typer
+package amyc
+package typer
 
 import amyc.core.StdDefinitions.*
 import amyc.core.StdTypes.*

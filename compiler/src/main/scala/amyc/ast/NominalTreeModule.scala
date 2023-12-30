@@ -1,4 +1,5 @@
-package amyc.ast
+package amyc
+package ast
 
 /**
   * A module containing trees where the names have not been resolved.

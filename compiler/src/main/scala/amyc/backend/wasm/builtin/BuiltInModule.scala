@@ -1,4 +1,7 @@
-package amyc.backend.wasm.builtin
+package amyc
+package backend
+package wasm
+package builtin
 
 import amyc.{reporter, symbols}
 import amyc.core.Context

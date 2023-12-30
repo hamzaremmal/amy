@@ -1,16 +1,15 @@
-package amyc.backend.wasm
+package amyc
+package backend
+package wasm
 
-import amyc.*
-import amyc.ast.SymbolicTreeModule.{CaseClassDef, FunDef}
-import amyc.core.*
-import amyc.core.Symbols.*
-import amyc.backend.wasm.Indices.*
-import amyc.backend.wasm.Instructions.*
-import amyc.backend.wasm.Types.*
-import amyc.backend.wasm.Values.*
-import amyc.backend.wasm.utils.*
-import amyc.backend.wasm.handlers.*
-import amyc.utils.Preconditions.*
+import ast.SymbolicTreeModule.{CaseClassDef, FunDef}
+import core.*
+import core.Symbols.*
+import wasm.Indices.*
+import wasm.Instructions.*
+import wasm.Types.*
+import wasm.Values.*
+import wasm.handlers.*
 
 /**
   * https://webassembly.github.io/spec/core/text/modules.html

@@ -1,4 +1,7 @@
-package amyc.backend.wasm.handlers
+package amyc
+package backend
+package wasm
+package handlers
 
 import amyc.*
 import amyc.core.*

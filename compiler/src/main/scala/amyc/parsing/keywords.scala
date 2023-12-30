@@ -1,4 +1,5 @@
-package amyc.parsing
+package amyc
+package parsing
 
 import scala.collection.mutable.ListBuffer
 

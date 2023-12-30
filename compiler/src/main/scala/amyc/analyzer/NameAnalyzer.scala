@@ -1,10 +1,10 @@
-package amyc.analyzer
+package amyc
+package analyzer
 
-import amyc.*
-import amyc.analyzer.Transformer.*
-import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
-import amyc.core.*
-import amyc.utils.*
+import Transformer.*
+import ast.{NominalTreeModule as N, SymbolicTreeModule as S}
+import core.*
+import utils.*
 
 // Name analyzer for Amy
 // Takes a nominal program (names are plain string, qualified names are string pairs)

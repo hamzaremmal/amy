@@ -1,8 +1,10 @@
-package amyc.backend.wasm
+package amyc
+package backend
+package wasm
 
-import amyc.core.*
-import amyc.core.Symbols.*
-import amyc.backend.wasm.handlers.*
+import core.*
+import core.Symbols.*
+import handlers.*
 
 /* Fetch the local handler */
 inline def lh(using LocalsHandler): LocalsHandler = summon

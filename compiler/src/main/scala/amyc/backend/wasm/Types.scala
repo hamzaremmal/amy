@@ -1,7 +1,9 @@
 package amyc.backend.wasm
+package backend
+package wasm
 
-import amyc.backend.wasm.Indices.typeidx
-import amyc.backend.wasm.Values.id
+import Indices.typeidx
+import Values.id
 
 /**
   * https://webassembly.github.io/spec/core/syntax/types.html

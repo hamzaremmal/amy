@@ -1,4 +1,8 @@
-package amyc.backend.wasm.builtin.amy
+package amyc
+package backend
+package wasm
+package builtin
+package amy
 
 import amyc.core.Context
 import amyc.core.Symbols.*

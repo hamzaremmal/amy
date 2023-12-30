@@ -1,4 +1,8 @@
-package amyc.backend.wasm.builtin.amy
+package amyc
+package backend
+package wasm
+package builtin
+package amy
 
 import amyc.backend.wasm.Instructions.{Code, i32}
 import amyc.backend.wasm.builtin.BuiltInModule
