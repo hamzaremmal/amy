@@ -57,35 +57,35 @@ object Interpreter extends Pipeline[Program, Unit] :
       case BooleanLiteral(b) => BooleanValue(b)
       case StringLiteral(s) => StringValue(s, lit = true)
       case UnitLiteral() => UnitValue
-      case Call(c.binop_+, args) =>
+      case Call(c.binop_+, _, args) =>
         interpret(args(0), program) + interpret(args(1), program)
-      case Call(c.binop_-, args) =>
+      case Call(c.binop_-, _, args) =>
         interpret(args(0), program) - interpret(args(1), program)
-      case Call(c.binop_*, args) =>
+      case Call(c.binop_*, _, args) =>
         interpret(args(0), program) * interpret(args(1), program)
-      case Call(c.binop_/, args) =>
+      case Call(c.binop_/, _, args) =>
         interpret(args(0), program) / interpret(args(1), program)
-      case Call(c.binop_%, args) =>
+      case Call(c.binop_%, _, args) =>
         interpret(args(0), program) % interpret(args(1), program)
-      case Call(c.binop_<, args) =>
+      case Call(c.binop_<, _, args) =>
         interpret(args(0), program) < interpret(args(1), program)
-      case Call(c.binop_<=, args) =>
+      case Call(c.binop_<=, _, args) =>
         interpret(args(0), program) <= interpret(args(1), program)
-      case Call(c.binop_&&, args) =>
+      case Call(c.binop_&&, _, args) =>
         interpret(args(0), program) && interpret(args(1), program)
-      case Call(c.binop_||, args) =>
+      case Call(c.binop_||, _, args) =>
         interpret(args(0), program) || interpret(args(1), program)
-      case Call(c.binop_==, args) =>
+      case Call(c.binop_==, _, args) =>
         interpret(args(0), program) == interpret(args(1), program)
-      case Call(c.binop_++ ,args) =>
+      case Call(c.binop_++ ,_, args) =>
         interpret(args(0), program) ++ interpret(args(1), program)
       case InfixCall(_, op, _) =>
         reporter.fatal(s"Cannot interpret operator $op")
       case Not(e) => ! interpret(e, program)
       case Neg(e) => - interpret(e, program)
-      case Call(qname : ConstructorSymbol, args) =>
+      case Call(qname : ConstructorSymbol, _, args) =>
         CaseClassValue(qname, args.map(interpret(_, program)))
-      case Call(qname : FunctionSymbol, args) =>
+      case Call(qname : FunctionSymbol, _, args) =>
         val fn = locals.get(qname) orElse {
           builtIns.get(qname)
         } orElse {

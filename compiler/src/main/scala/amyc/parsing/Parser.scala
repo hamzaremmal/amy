@@ -214,8 +214,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
     repsep(vparam, ",").map(_.toList)
 
   lazy val tparam: Syntax[TypeParamDef] =
-    identifier map:
-      case name => TypeParamDef(name)
+    identifier.map(name => TypeParamDef(name))
 
   lazy val tparams : Syntax[List[TypeParamDef]] =
     repsep(tparam, ",").map(_.toList)
@@ -352,16 +351,24 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
     (`error` ~>~ termExpression) map { x => Error(x) }
 
   lazy val variableOrCall: Syntax[Expr] =
-    (qualifiedName ~ opt(inParenthesis(args))) map {
-      case (qn: QualifiedName) ~ Some(args) =>
-        Call(qn, args.toList)
-      case (id: Name) ~ Some(args) =>
-        Call(QualifiedName(None, id), args.toList)
-      case (id: Name) ~ None   => Variable(id)
-      case (fr: FunRef) ~ None => fr
-      case (_: FunRef) ~ Some(_) =>
+    (qualifiedName ~ opt(inSquareBrackets(args)) ~ opt(inParenthesis(args))) map {
+      // qn(args*)
+      case (qn: QualifiedName) ~ None ~ Some(vargs) =>
+        Call(qn, Nil, vargs.toList)
+      // qn[targs*](vargs*)
+      case (qn: QualifiedName) ~ Some(targs) ~ Some(vargs) =>
+        Call(qn, targs.toList, vargs.toList)
+      // id(vargs*)
+      case (id: Name) ~ None ~ Some(vargs) =>
+        Call(QualifiedName(None, id), Nil, vargs.toList)
+      // id[targs*](vargs*)
+      case (id: Name) ~ Some(targs) ~ Some(vargs) =>
+        Call(QualifiedName(None, id), targs.toList, vargs.toList)
+      case (id: Name) ~ None ~ None   => Variable(id)
+      case (fr: FunRef) ~ None ~ None => fr
+      case (_: FunRef) ~ None ~ Some(_) =>
         throw AmycFatalError(s"Cannot reference to a function with parameters")
-      case QualifiedName(Some(id), id2) ~ None =>
+      case QualifiedName(Some(id), id2) ~ targs ~ None =>
         throw AmycFatalError(s"Call to $id.$id2 is missing the parameters")
     }
 

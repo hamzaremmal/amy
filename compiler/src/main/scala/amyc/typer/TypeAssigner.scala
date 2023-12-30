@@ -123,7 +123,7 @@ object TypeAssigner extends Pipeline[Program, Program]{
     infer(expr)
 
   def assignCall(expr: Call)(using Context) =
-    val Call(_, args) = expr
+    val Call(_, _, args) = expr
     for arg <- args do assign(arg)
     infer(expr)
 

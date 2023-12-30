@@ -21,5 +21,5 @@ object NominalPrinter extends Printer(NoHighlight) :
     })
 
   override def printCall(c: treeModule.Call)(implicit printUniqueIDs: Boolean): Document =
-    val Call(name, args) = c
+    val Call(name, _, args) = c
     name <:> "(" <:> Lined(args map (toDoc(_)), ", ") <:> ")"

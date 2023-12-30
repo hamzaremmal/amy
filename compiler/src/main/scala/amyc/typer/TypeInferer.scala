@@ -133,19 +133,19 @@ object TypeInferer extends Pipeline[Program, Program]{
         e.withType(stdType.IntType)
         topLevelConstraint(stdType.IntType) ::: genConstraints(expr, stdType.IntType)
       // ============================== Type Check Applications =================================
-      case Call(defs.binop_==, args) =>
+      case Call(defs.binop_==, _, args) =>
         val tv = TypeVariable.fresh()
         e.withType(stdType.BooleanType)
         args(0).withType(tv)
         args(1).withType(tv)
         topLevelConstraint(stdType.BooleanType) ::: genConstraints(args(0), tv) ::: genConstraints(args(1), tv)
-      case Call(qname: ConstructorSymbol, args) =>
+      case Call(qname: ConstructorSymbol, _, args) =>
           val argsConstraint = (args zip qname.vparams) flatMap {
             (expr, pd) => expr.withType(ctx.tpe(pd.tpe)); genConstraints(expr, ctx.tpe(pd.tpe))
           }
           e.withType(ctx.tpe(qname.rte))
           topLevelConstraint(e.tpe) ::: argsConstraint
-      case Call(qname: FunctionSymbol, args) =>
+      case Call(qname: FunctionSymbol, _, args) =>
         val fn = env.get(qname.id) orElse {
           Some(qname)
         }.asInstanceOf[Option[FunctionType | FunctionSymbol]]

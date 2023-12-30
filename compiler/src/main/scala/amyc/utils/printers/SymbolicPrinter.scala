@@ -25,7 +25,7 @@ object SymbolicPrinter extends Printer(NoHighlight) :
     printName(name)
 
   override def printCall(c: Call)(implicit printUniqueIDs: Boolean): Document =
-    val Call(name, args) = c
+    val Call(name, _, args) = c
     name match
       case f: FunctionSymbol if f is "infix" =>
         "(" <:> toDoc(args(0)) <:> " " <:> printName(name)(false) <:> " " <:> toDoc(args(1)) <:> ")"

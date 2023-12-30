@@ -157,12 +157,12 @@ object Transformer {
         S.UnitLiteral()
       case N.InfixCall(lhs, op, rhs) =>
         // desugar infix calls to function calls
-        transformExpr(N.Call(N.QualifiedName(Some("unnamed"), op), lhs :: rhs :: Nil))
+        transformExpr(N.Call(N.QualifiedName(Some("unnamed"), op), Nil, lhs :: rhs :: Nil))
       case N.Not(e) =>
         S.Not(transformExpr(e))
       case N.Neg(e) =>
         S.Neg(transformExpr(e))
-      case N.Call(qname, args) =>
+      case N.Call(qname, _, args) =>
         val owner = qname.module.getOrElse(module)
         val name = qname.name
         val entry = scope.resolve(qname.name) orElse {
@@ -177,9 +177,9 @@ object Transformer {
             if (sym.vparams.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
-            S.Call(sym, args.map(transformExpr(_)))
+            S.Call(sym, Nil, args.map(transformExpr(_)))
           case Some(sym: Symbol) =>
-            S.Call(sym, args.map(transformExpr(_)))
+            S.Call(sym, Nil, args.map(transformExpr(_)))
         }
       case N.Sequence(e1, e2) =>
         S.Sequence(transformExpr(e1), transformExpr(e2))

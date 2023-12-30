@@ -135,10 +135,10 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
         i32.const(0) <:>
         cgExpr(e) <:>
         i32.sub
-      case AmyCall(sym: ConstructorSymbol, args) =>
+      case AmyCall(sym: ConstructorSymbol, _, args) =>
         args.map(cgExpr) <:>
         call(fullName(sym))
-      case AmyCall(qname: FunctionSymbol, args) =>
+      case AmyCall(qname: FunctionSymbol, _, args) =>
         val defn = stdDef(using ctx)
         qname match
           case defn.binop_&& =>
@@ -148,7 +148,7 @@ object WASMCodeGenerator extends Pipeline[Program, Module] :
           case _ =>
             args.map(cgExpr) <:>
             call(fullName(qname))
-      case AmyCall(sym: (LocalSymbol | ParameterSymbol), args) =>
+      case AmyCall(sym: (LocalSymbol | ParameterSymbol), _, args) =>
         args.map(cgExpr) <:>
         local.get(lh.fetch(sym)) <:>
         call_indirect(typeuse(mkFunTypeName(args.size)))

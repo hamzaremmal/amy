@@ -3,13 +3,12 @@ package backend
 package wasm
 package handlers
 
-import amyc.*
-import amyc.core.*
-import amyc.core.Symbols.*
-import amyc.backend.wasm.Indices.localidx
-import amyc.backend.wasm.Instructions.i32
-import amyc.backend.wasm.Types.{local, param}
-import amyc.backend.wasm.Values.*
+import core.*
+import core.Symbols.*
+import wasm.Indices.localidx
+import wasm.Instructions.i32
+import wasm.Types.{local, param}
+import wasm.Values.*
 
 import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable

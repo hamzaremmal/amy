@@ -121,7 +121,7 @@ object TypeChecker extends Pipeline[Program, Program]{
     expr
 
   def checkCall(expr: Call)(using Context) =
-    val Call(qname, args) = expr
+    val Call(qname, _, args) = expr
     if qname == stdDef.binop_== then
       val lhs = check(args(0))
       val rhs = check(args(1))

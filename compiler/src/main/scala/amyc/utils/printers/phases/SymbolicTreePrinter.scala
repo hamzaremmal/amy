@@ -22,7 +22,7 @@ class SymbolicTreePrinter extends Pipeline[S.Program, S.Program]{
       printName(name)
 
     override def printCall(c: TestUniquePrinter.this.treeModule.Call)(implicit printUniqueIDs: Boolean): Document =
-      val Call(name, args) = c
+      val Call(name, _, args) = c
       name match
         case f: FunctionSymbol if f is "infix" =>
           "(" <:> toDoc(args(0)) <:> " " <:> printName(name)(false) <:> " " <:> toDoc(args(1)) <:> ")"

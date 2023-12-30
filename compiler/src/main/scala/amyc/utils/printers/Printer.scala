@@ -69,7 +69,7 @@ trait Printer(highlighter: Highlighter) {
       "!(" <:> toDoc(e) <:> ")"
     case Neg(e) =>
       "-(" <:> toDoc(e) <:> ")"
-    case c@Call(name, args) =>
+    case c@Call(name, _, args) =>
       printCall(c)
     case Sequence(lhs, rhs) =>
       val main = Stacked(
