@@ -298,13 +298,16 @@ module unnamed_0
   fn ||_0(lhs_8: Boolean_0, rhs_8: Boolean_0): Boolean_0 = {
     <empty>
   }
-  fn ++_0(lhs_9: String_0, rhs_9: String_0): String_0 = {
+  fn ==_0(lhs_9: A_0, rhs_9: A_0): Boolean_0 = {
+    <empty>
+  }
+  fn ++_0(lhs_10: String_0, rhs_10: String_0): String_0 = {
     <empty>
   }
 end unnamed_0
 module String_1
   abstract class String_0
-  fn concat_1(lhs_10: String_0, rhs_10: String_0): String_0 = {
+  fn concat_1(lhs_11: String_0, rhs_11: String_0): String_0 = {
     <empty>
   }
   fn length_1(str_0: String_0): Int_0 = {
