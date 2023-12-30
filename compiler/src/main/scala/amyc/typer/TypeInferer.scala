@@ -41,7 +41,6 @@ object TypeInferer extends Pipeline[Program, Program]{
         case vparam@ValParamDef(_, tt) =>
           tt.withType(ctx.tpe(tt))
           vparam.withType(ctx.tpe(tt))
-        case _ =>
 
     val inferred1 = for
       mod <- program.modules
@@ -133,12 +132,6 @@ object TypeInferer extends Pipeline[Program, Program]{
         e.withType(stdType.IntType)
         topLevelConstraint(stdType.IntType) ::: genConstraints(expr, stdType.IntType)
       // ============================== Type Check Applications =================================
-      case Call(defs.binop_==, _, args) =>
-        val tv = TypeVariable.fresh()
-        e.withType(stdType.BooleanType)
-        args(0).withType(tv)
-        args(1).withType(tv)
-        topLevelConstraint(stdType.BooleanType) ::: genConstraints(args(0), tv) ::: genConstraints(args(1), tv)
       case Call(qname: ConstructorSymbol, _, args) =>
           val argsConstraint = (args zip qname.vparams) flatMap {
             (expr, pd) => expr.withType(ctx.tpe(pd.tpe)); genConstraints(expr, ctx.tpe(pd.tpe))

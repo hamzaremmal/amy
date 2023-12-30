@@ -122,24 +122,15 @@ object TypeChecker extends Pipeline[Program, Program]{
 
   def checkCall(expr: Call)(using Context) =
     val Call(qname, _, args) = expr
-    if qname == stdDef.binop_== then
-      val lhs = check(args(0))
-      val rhs = check(args(1))
-      =:=(lhs, rhs.tpe)
-      =:=(rhs, rhs.tpe)
-      =:=(expr, stdType.BooleanType)
-      expr
-
-    else
-      args.foreach(check)
-      qname match
-        case f: FunctionSymbol =>
-          args zip f.vparams map ((arg, param) => =:=(arg, param.tpe.tpe))
-          =:=(expr, f.rte.tpe)
-        case f: ConstructorSymbol =>
-          args zip f.vparams map ((arg, pd) => =:=(arg, pd.tpe.tpe))
-          =:=(expr, ctx.tpe(f.rte))
-      expr
+    args.foreach(check)
+    qname match
+      case f: FunctionSymbol =>
+        args zip f.vparams map ((arg, param) => =:=(arg, param.tpe.tpe))
+        =:=(expr, f.rte.tpe)
+      case f: ConstructorSymbol =>
+        args zip f.vparams map ((arg, pd) => =:=(arg, pd.tpe.tpe))
+        =:=(expr, ctx.tpe(f.rte))
+    expr
 
   def checkSequence(seq: Sequence)(using Context) =
     val Sequence(e1, e2) = seq
