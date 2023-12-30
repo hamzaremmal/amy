@@ -53,9 +53,10 @@ object Transformer {
           case "Int" => S.ClassTypeTree(stdDef.IntType)
           case "String" => S.ClassTypeTree(stdDef.StringType)
           case _ =>
-            scope.resolve(name) orElse symbols.getType(inModule, name) map S.ClassTypeTree.apply getOrElse {
-              reporter.fatal(s"Could not find type $name", tt)
-            }
+            scope.resolve(name).map(sym => sym.asInstanceOf[ParameterSymbol].tpe) orElse {
+              symbols.getType(inModule, name).map(S.ClassTypeTree.apply)
+            } getOrElse :
+                reporter.fatal(s"Could not find type $name", tt)
       case N.ClassTypeTree(qn@N.QualifiedName(pre, name)) =>
         symbols.getType(pre getOrElse inModule, name) map S.ClassTypeTree.apply getOrElse{
           reporter.fatal(s"Could not find type $qn", tt)

@@ -40,7 +40,7 @@ trait TreeModule :
     val name: Name
 
   case class ModuleDef(name: Name, defs: List[ClassOrFunDef], optExpr: Option[Expr]) extends Definition
-  trait ClassOrFunDef extends Definition:
+  sealed trait ClassOrFunDef extends Definition:
     private var _mods: List[String] = compiletime.uninitialized
     def mods(mods: List[String]): this.type =
       _mods = mods
@@ -133,7 +133,7 @@ trait TreeModule :
   // ==============================================================================================
 
   /** Base Type to represent type node */
-  trait TypeTree extends Tree
+  sealed trait TypeTree extends Tree
 
   /** Represent a ClassType such as O.Option or String */
   case class ClassTypeTree(qname: QualifiedName) extends TypeTree

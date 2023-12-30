@@ -8,7 +8,7 @@ import core.Context
 abstract class Pipeline[-F, +T] {
   self =>
 
-  def andThen[G](thenn: Pipeline[T, G]): Pipeline[F, G] = new Pipeline[F,G] {
+  def andThen[U >: T, G](thenn: Pipeline[U, G]): Pipeline[F, G] = new Pipeline[F,G] {
 
     private var c = true
 
