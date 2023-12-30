@@ -205,23 +205,26 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ===================================== PARAMETERS =============================================
   // ==============================================================================================
 
+  // A list of parameter definitions.
+  lazy val vparams: Syntax[List[ValParamDef]] =
+    repsep(vparam, ",").map(_.toList)
+
   // A parameter definition, i.e., an identifier along with the expected type.
   lazy val vparam: Syntax[ValParamDef] =
     (identifier ~<~ ":" ~ typeTree) map :
       case name ~ tpe => ValParamDef(name, tpe)
 
-  // A list of parameter definitions.
-  lazy val vparams: Syntax[List[ValParamDef]] =
-    repsep(vparam, ",").map(_.toList)
+  lazy val vargs: Syntax[Seq[Expr]] =
+    repsep(expr, ",")
+
+  lazy val tparams: Syntax[List[TypeParamDef]] =
+    repsep(tparam, ",").map(_.toList)
 
   lazy val tparam: Syntax[TypeParamDef] =
     identifier.map(name => TypeParamDef(name))
 
-  lazy val tparams : Syntax[List[TypeParamDef]] =
-    repsep(tparam, ",").map(_.toList)
-
-  lazy val args: Syntax[Seq[Expr]] =
-    repsep(expr, ",")
+  lazy val targs: Syntax[Seq[TypeTree]] =
+    repsep(typeTree, ",")
 
   // ==============================================================================================
   // =================================== PATTERN MATCHING =========================================
@@ -352,7 +355,7 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
     (`error` ~>~ termExpression) map { x => Error(x) }
 
   lazy val variableOrCall: Syntax[Expr] =
-    (qualifiedName ~ opt(inSquareBrackets(args)) ~ opt(inParenthesis(args))) map {
+    (qualifiedName ~ opt(inSquareBrackets(targs)) ~ opt(inParenthesis(vargs))) map {
       // qn(args*)
       case (qn: QualifiedName) ~ None ~ Some(vargs) =>
         Call(qn, Nil, vargs.toList)

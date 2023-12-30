@@ -42,10 +42,10 @@ object Transformer {
     * @param core.Context
     * @return
     */
-  def transformType(tt: N.TypeTree, inModule: String, scope: Scope)(using Context): S.TypeTree = {
+  def transformType(scope: Scope)(tt: N.TypeTree, inModule: String)(using Context): S.TypeTree = {
     tt match
       case N.FunctionTypeTree(params, rte) =>
-        S.FunctionTypeTree(params.map(transformType(_, inModule, scope)), transformType(rte, inModule, scope))
+        S.FunctionTypeTree(params.map(transformType(scope)(_, inModule)), transformType(scope)(rte, inModule))
       case N.ClassTypeTree(N.QualifiedName(None, name)) =>
         name match
           case "Unit" => S.ClassTypeTree(stdDef.UnitType)
@@ -176,9 +176,9 @@ object Transformer {
             if (sym.vparams.size != vargs.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
-            S.Call(sym, targs.map(transformExpr), vargs.map(transformExpr))
+            S.Call(sym, targs.map(transformType(scope)(_, module)), vargs.map(transformExpr))
           case Some(sym: Symbol) =>
-            S.Call(sym, targs.map(transformExpr), vargs.map(transformExpr(_)))
+            S.Call(sym, targs.map(transformType(scope)(_, module)), vargs.map(transformExpr(_)))
         }
       case N.Sequence(e1, e2) =>
         S.Sequence(transformExpr(e1), transformExpr(e2))
@@ -190,7 +190,7 @@ object Transformer {
           reporter.warning(s"Local variable ${vd.name} shadows function parameter", vd)
         }
         val sym = LocalSymbol(Identifier.fresh(vd.name))
-        val tpe = transformType(vd.tt, module, scope)
+        val tpe = transformType(scope)(vd.tt, module)
         S.Let(
           S.ValParamDef(sym, tpe).setPos(vd),
           transformExpr(value),

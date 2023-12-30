@@ -9,7 +9,7 @@ import amyc.utils.printers.SymbolicPrinter.{apply, printName}
 import amyc.utils.printers.highlight.NoHighlight
 import amyc.utils.{Document, Lined, UniqueCounter}
 
-class SymbolicTreePrinter extends Pipeline[S.Program, S.Program]{
+object SymbolicTreePrinter extends Pipeline[S.Program, S.Program]{
 
   private class TestUniquePrinter extends Printer(NoHighlight) {
     private val counter = new UniqueCounter[String]
@@ -23,12 +23,14 @@ class SymbolicTreePrinter extends Pipeline[S.Program, S.Program]{
       printName(name)
 
     override def printCall(c: TestUniquePrinter.this.treeModule.Call)(implicit printUniqueIDs: Boolean): Document =
-      val Call(name, _, args) = c
+      val Call(name, targs, vargs) = c
       name match
         case f: FunctionSymbol if f is "infix" =>
-          "(" <:> toDoc(args(0)) <:> " " <:> printName(name)(false) <:> " " <:> toDoc(args(1)) <:> ")"
+          "(" <:> toDoc(vargs(0)) <:> " " <:> printName(name)(false) <:> " " <:> toDoc(vargs(1)) <:> ")"
         case _ =>
-          printQName(name) <:> "(" <:> Lined(args map (toDoc(_)), ", ") <:> ")"
+          printQName(name) <:>
+            "[" <:> Lined(targs map (toDoc(_)), ", ") <:> "]" <:>
+            "(" <:> Lined(vargs map (toDoc(_)), ", ") <:> ")"
 
     override implicit def printName(name: Name)(implicit printUniqueIds: Boolean): Document = {
       if (printUniqueIds) {

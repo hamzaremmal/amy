@@ -44,7 +44,10 @@ trait Printer(highlighter: Highlighter) {
 
     case FunDef(name, tparams, vparams, retType, body) =>
       Stacked(
-        "fn " <:> name <:> "(" <:> Lined(vparams map (toDoc(_)), ", ") <:> "): " <:> toDoc(retType) <:> " = {",
+        "fn " <:> name <:>
+          "[" <:> Lined(tparams.map(toDoc(_)), ", ") <:> "]" <:>
+          "(" <:> Lined(vparams.map(toDoc(_)), ", ") <:> ")" <:>
+          ": " <:> toDoc(retType) <:> " = {",
         Indented(toDoc(body, false)),
         "}"
       )
@@ -136,6 +139,9 @@ trait Printer(highlighter: Highlighter) {
     case FunctionTypeTree(args, rte) =>
       s"(${args.map(apply).mkString(", ")}) => ${apply(rte)}"
     case ClassTypeTree(name) => name
+    case TTypeTree(tpe) => tpe.toString
+    case TypeParamDef(name) => name
+    case FunRef(_) => ""
     case  EmptyExpr() => "<empty>"
   }
 

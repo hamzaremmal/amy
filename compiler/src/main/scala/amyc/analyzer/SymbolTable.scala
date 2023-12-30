@@ -45,7 +45,7 @@ class SymbolTable :
     defsByName += (owner, name) -> sym
     sym.info {
       for p <- params yield
-        ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner, Scope.fresh))
+        ParameterSymbol(Identifier.fresh(p.name), sym, transformType(Scope.fresh)(p.tt, owner))
     }
     sym
 
@@ -64,8 +64,8 @@ class SymbolTable :
     defsByName += (owner.name, name) -> sym
     val symtparams = tparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, S.TTypeTree(Types.NoType)))
     ctx.withScope(sym, Scope.fresh.withTParams(symtparams.map(sym => (sym.name, sym)).toMap))
-    val symvparams = vparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner.name, ctx.scope(sym))))
-    sym.info(symtparams, symvparams, transformType(rte, owner.name, ctx.scope(sym)))
+    val symvparams = vparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(ctx.scope(sym))(p.tt, owner.name)))
+    sym.info(symtparams, symvparams, transformType(ctx.scope(sym))(rte, owner.name))
     sym
 
   // ====================================== SAFE METHODS ==========================================

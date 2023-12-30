@@ -91,7 +91,7 @@ trait TreeModule :
   case class InfixCall(lhs: Expr, op: Name, rhs: Expr) extends Expr
 
   /** Function/constructor call */
-  case class Call(qname: QualifiedName, targs: List[Expr], vargs: List[Expr]) extends Expr
+  case class Call(qname: QualifiedName, targs: List[TypeTree], vargs: List[Expr]) extends Expr
 
   /** Represents a !(expr) */
   case class Not(e: Expr) extends Expr

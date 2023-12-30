@@ -1,0 +1,8 @@
+module generic_type_test
+
+    fn test[A](lhs: A, rhs: A) : Unit = {
+        ()
+    }
+
+    test[Int](1, 1)
+end generic_type_test
