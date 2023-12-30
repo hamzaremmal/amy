@@ -68,7 +68,7 @@ object Symbols:
 
     override def vparams: List[ParameterSymbol] = _param
 
-    override def tparams: List[ParameterSymbol] = ???
+    override def tparams: List[ParameterSymbol] = Nil
 
     override def rte: TypeTree = ClassTypeTree(parent)
 

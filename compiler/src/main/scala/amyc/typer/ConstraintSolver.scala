@@ -132,12 +132,25 @@ object ConstraintSolver extends Pipeline[Program, Program]{
         e.withType(stdType.IntType)
         topLevelConstraint(stdType.IntType) ::: genConstraints(expr, stdType.IntType)
       // ============================== Type Check Applications =================================
-      case Call(qname: ConstructorSymbol, _, args) =>
-          val argsConstraint = (args zip qname.vparams) flatMap {
-            (expr, pd) => expr.withType(ctx.tpe(pd.tpe)); genConstraints(expr, ctx.tpe(pd.tpe))
-          }
-          e.withType(ctx.tpe(qname.rte))
-          topLevelConstraint(e.tpe) ::: argsConstraint
+      case Call(qname: ConstructorSymbol, targs, vargs) =>
+
+        val typeparams = for (targ, tparam) <- targs zip qname.tparams yield
+          targ.withType(TypeVariable.fresh())
+          (targ, tparam)
+        val argsConstraint = (vargs zip qname.vparams) flatMap {
+          (expr, pd) =>
+            pd.tpe match
+              case TypeParameter(id) =>
+                val tp = typeparams.find(_._2 == id).get._1.tpe
+                reporter.info(tp)
+                expr.withType(tp)
+                genConstraints(expr, tp)
+              case _ =>
+                expr.withType(ctx.tpe(pd.tpe))
+                genConstraints(expr, ctx.tpe(pd.tpe))
+        }
+        e.withType(ctx.tpe(qname.rte))
+        topLevelConstraint(e.tpe) ::: argsConstraint
       case Call(qname: FunctionSymbol, _, args) =>
         val fn = env.get(qname.id) orElse {
           Some(qname)

@@ -7,7 +7,7 @@ import core.Context
 /**
  * @author Hamza REMMAL (hamza@remmal.net)
  */
-trait TreeTransformer:
+trait UntypedTreeTransformer:
 
   /**
    * ???
@@ -57,65 +57,55 @@ trait TreeTransformer:
    */
   final def transformChildren(tree: N.Tree)(using Context): tree.type =
     tree match
-      case N.Program(modules) =>
-        for module <- modules do transform(module)
-      case N.ModuleDef(_, defs, expr) =>
-        for defn <- defs do transform(defn)
-        for expr <- expr do transform(expr)
-      case N.FunDef(_, tparams, vparams, ret, body) =>
-        for tparam <- tparams do transform(tparam)
-        for vparam <- vparams do transform(vparam)
-        transform(ret)
-        transform(body)
-      case N.AbstractClassDef(_) => ()
-      case N.CaseClassDef(_, fields, _) =>
-        for field <- fields do transform(field)
-      case N.ValParamDef(_, tpe) => transform(tpe)
-      case N.TypeParamDef(_) => ()
-      case N.EmptyExpr() => ()
-      case N.Variable(_) => ()
-      case N.FunRef(_) => ()
-      case N.IntLiteral(_) => ()
-      case N.BooleanLiteral(_) => ()
-      case N.StringLiteral(_) => ()
-      case N.UnitLiteral() => ()
-      case N.InfixCall(lhs, _, rhs) =>
-        transform(lhs)
-        transform(rhs)
-      case N.Call(_, targs, vargs) =>
-        for targ <- targs do transform(targ)
-        for varg <- vargs do transform(varg)
-      case N.Not(tree) => transform(tree)
-      case N.Neg(tree) => transform(tree)
+      case N.Program(modules) => N.Program(modules.map(transform)).asInstanceOf
+      case N.ModuleDef(name, defs, expr) =>
+        N.ModuleDef(name, for defn <- defs yield transform(defn), for expr <- expr yield transform(expr)).asInstanceOf
+      case N.FunDef(name, tparams, vparams, ret, body) =>
+        N.FunDef(
+          name,
+          for tparam <- tparams yield transform(tparam),
+          for vparam <- vparams yield transform(vparam),
+          transform(ret),
+          transform(body)
+        ).asInstanceOf
+      case N.AbstractClassDef(name) =>
+        N.AbstractClassDef(name).asInstanceOf
+      case N.CaseClassDef(name, fields, parent) =>
+        N.CaseClassDef(name, for field <- fields yield transform(field), parent).asInstanceOf
+      case N.ValParamDef(name, tpe) => N.ValParamDef(name, transform(tpe)).asInstanceOf
+      case N.TypeParamDef(name) => N.TypeParamDef(name).asInstanceOf
+      case N.EmptyExpr() => N.EmptyExpr().asInstanceOf
+      case N.Variable(name) => N.Variable(name).asInstanceOf
+      case N.FunRef(name) => N.FunRef(name).asInstanceOf
+      case N.IntLiteral(value) => N.IntLiteral(value).asInstanceOf
+      case N.BooleanLiteral(value) => N.BooleanLiteral(value).asInstanceOf
+      case N.StringLiteral(value) => N.StringLiteral(value).asInstanceOf
+      case N.UnitLiteral() => N.UnitLiteral().asInstanceOf
+      case N.InfixCall(lhs, op, rhs) => N.InfixCall(transform(lhs), op, transform(rhs)).asInstanceOf
+      case N.Call(fn, targs, vargs) =>
+        N.Call(fn, for targ <- targs yield transform(targ), for varg <- vargs yield transform(varg)).asInstanceOf
+      case N.Not(tree) => N.Not(transform(tree)).asInstanceOf
+      case N.Neg(tree) => N.Neg(transform(tree)).asInstanceOf
       case N.Sequence(e1, e2) =>
-        transform(e1)
-        transform(e2)
+        N.Sequence(transform(e1), transform(e2)).asInstanceOf
       case N.Let(df, rhs, body) =>
-        transform(df)
-        transform(rhs)
-        transform(body)
+        N.Let(transform(df), transform(rhs), transform(body)).asInstanceOf
       case N.Ite(cond, thenn, elze) =>
-        transform(cond)
-        transform(thenn)
-        transform(elze)
+        N.Ite(transform(cond), transform(thenn), transform(elze)).asInstanceOf
       case N.Match(scrut, cases) =>
-        transform(scrut)
-        for `case` <- cases do transform(`case`)
+        N.Match(transform(scrut), for `case` <- cases yield transform(`case`)).asInstanceOf
       case N.MatchCase(pat, expr) =>
-        transform(pat)
-        transform(expr)
-      case N.Error(tree) => transform(tree)
-      case N.WildcardPattern() => ()
-      case N.IdPattern(_) => ()
-      case N.LiteralPattern(lit) => transform(lit)
-      case N.CaseClassPattern(_, args) =>
-        for arg <- args do transform(arg)
-      case N.ClassTypeTree(_) => ()
-      case N.TTypeTree(_) => ()
+        N.MatchCase(transform(pat), transform(expr)).asInstanceOf
+      case N.Error(tree) => N.Error(transform(tree)).asInstanceOf
+      case N.WildcardPattern() => N.WildcardPattern().asInstanceOf
+      case N.IdPattern(name) => N.IdPattern(name).asInstanceOf
+      case N.LiteralPattern(lit) => N.LiteralPattern(transform(lit)).asInstanceOf
+      case N.CaseClassPattern(name, args) =>
+        N.CaseClassPattern(name, for arg <- args yield transform(arg)).asInstanceOf
+      case N.ClassTypeTree(name) => N.ClassTypeTree(name).asInstanceOf
+      case N.TTypeTree(tpe) => N.TTypeTree(tpe).asInstanceOf
       case N.FunctionTypeTree(args, ret) =>
-        for arg <- args do transform(arg)
-        transform(ret)
-    tree
+        N.FunctionTypeTree(for arg <- args yield transform(arg), transform(ret)).asInstanceOf
   end transformChildren
 
   /**
@@ -123,7 +113,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2 ???
    */
-  def transform(tree: N.Program)(using Context): tree.type =
+  def transform(tree: N.Program)(using Context): N.Program =
     transformChildren(tree)
   end transform
 
@@ -132,7 +122,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2 ???
    */
-  def transform(tree: N.ModuleDef)(using Context): tree.type =
+  def transform(tree: N.ModuleDef)(using Context): N.ModuleDef =
     transformChildren(tree)
   end transform
 
@@ -141,7 +131,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2 ???
    */
-  def transform(tree : N.FunDef)(using Context): tree.type =
+  def transform(tree : N.FunDef)(using Context): N.FunDef =
     transformChildren(tree)
   end transform
 
@@ -151,7 +141,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.AbstractClassDef)(using Context): tree.type =
+  def transform(tree: N.AbstractClassDef)(using Context): N.AbstractClassDef =
     transformChildren(tree)
   end transform
 
@@ -161,7 +151,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.CaseClassDef)(using Context): tree.type =
+  def transform(tree: N.CaseClassDef)(using Context): N.CaseClassDef =
     transformChildren(tree)
   end transform
 
@@ -171,7 +161,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.ValParamDef)(using Context): tree.type =
+  def transform(tree: N.ValParamDef)(using Context): N.ValParamDef =
     transformChildren(tree)
   end transform
 
@@ -181,7 +171,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.TypeParamDef)(using Context): tree.type =
+  def transform(tree: N.TypeParamDef)(using Context): N.TypeParamDef =
     transformChildren(tree)
   end transform
 
@@ -191,7 +181,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.EmptyExpr)(using Context): tree.type =
+  def transform(tree: N.EmptyExpr)(using Context): N.Expr =
     transformChildren(tree)
   end transform
 
@@ -201,7 +191,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.Variable)(using Context): tree.type =
+  def transform(tree: N.Variable)(using Context): N.Expr =
     transformChildren(tree)
   end transform
 
@@ -361,7 +351,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.WildcardPattern)(using Context): tree.type =
+  def transform(tree: N.WildcardPattern)(using Context): N.Pattern =
     transformChildren(tree)
   end transform
 
@@ -371,7 +361,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.IdPattern)(using Context): tree.type =
+  def transform(tree: N.IdPattern)(using Context): N.Pattern =
     transformChildren(tree)
   end transform
 
@@ -381,7 +371,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.LiteralPattern[_])(using Context): tree.type =
+  def transform(tree: N.LiteralPattern[_])(using Context): N.Pattern =
     transformChildren(tree)
   end transform
 
@@ -391,7 +381,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.CaseClassPattern)(using Context): tree.type =
+  def transform(tree: N.CaseClassPattern)(using Context): N.Pattern =
     transformChildren(tree)
   end transform
 
@@ -401,7 +391,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.ClassTypeTree)(using Context): tree.type =
+  def transform(tree: N.ClassTypeTree)(using Context): N.TypeTree =
     transformChildren(tree)
   end transform
 
@@ -411,7 +401,7 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.TTypeTree)(using Context): tree.type =
+  def transform(tree: N.TTypeTree)(using Context): N.TypeTree =
     transformChildren(tree)
   end transform
 
@@ -421,6 +411,6 @@ trait TreeTransformer:
    * @param tree ???
    * @param x$2  ???
    */
-  def transform(tree: N.FunctionTypeTree)(using Context): tree.type =
+  def transform(tree: N.FunctionTypeTree)(using Context): N.TypeTree =
     transformChildren(tree)
   end transform

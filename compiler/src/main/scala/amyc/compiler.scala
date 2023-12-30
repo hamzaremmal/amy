@@ -1,5 +1,6 @@
 package amyc
 
+import amyc.optimization.Optimizer
 import amyc.tools.Pipeline
 import backend.wasm.gen.{CodePrinter, WASMCodeGenerator}
 import utils.{FetchFiles, Frontend}
@@ -12,6 +13,7 @@ object compiler :
   lazy val pipeline: Pipeline[List[String], Unit] =
     FetchFiles andThen
     Frontend andThen
+    Optimizer andThen
     WASMCodeGenerator andThen
     CodePrinter
 

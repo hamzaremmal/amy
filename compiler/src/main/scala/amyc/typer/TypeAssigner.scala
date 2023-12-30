@@ -52,7 +52,7 @@ object TypeAssigner extends Pipeline[Program, Program]{
           s"""
              |NoType was found at the TypeAssigner. This should not happen
              |Tree $tree
-             |""".stripMargin)
+             |""".stripMargin, tree)
       case _ => tree
 
 

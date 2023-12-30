@@ -62,6 +62,8 @@ object Types :
     */
   case class ClassType(qname: Identifier) extends Type
 
+  case class TypeParameter(name: Identifier) extends Type
+
   //
   //
   //

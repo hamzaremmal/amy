@@ -62,7 +62,10 @@ class SymbolTable :
     val id = Identifier.fresh(name)
     val sym = FunctionSymbol(id, owner, mods)
     defsByName += (owner.name, name) -> sym
-    val symtparams = tparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, S.TTypeTree(Types.NoType)))
+    val symtparams = tparams.map(p =>
+      val id = Identifier.fresh(p.name)
+      ParameterSymbol(id, sym, S.TTypeTree(TypeParameter(id)))
+    )
     ctx.withScope(sym, Scope.fresh.withTParams(symtparams.map(sym => (sym.name, sym)).toMap))
     val symvparams = vparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(ctx.scope(sym))(p.tt, owner.name)))
     sym.info(symtparams, symvparams, transformType(ctx.scope(sym))(rte, owner.name))

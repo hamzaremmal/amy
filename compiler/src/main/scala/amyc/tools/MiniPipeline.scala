@@ -1,16 +1,21 @@
 package amyc
 package tools
 
-import ast.NominalTreeModule as N
+import ast.SymbolicTreeModule as S
 import amyc.core.Context
+import amyc.transform.{TypedTreeTransformer, UntypedTreeTransformer}
 import ast.TreeTraverser
 
-abstract class MiniPipeline[F <: N.Tree] extends Pipeline[F, F] {
-  traverser: TreeTraverser =>
+abstract class MiniPipeline[F <: S.Tree] extends Pipeline[F, F] {
+  self: TreeTraverser | TypedTreeTransformer =>
 
-  override def run(tree: F)(using Context): F =
-    traverser.traverse(tree)
-    tree
+  override final def run(tree: F)(using Context): F =
+    self match
+      case traverser: TreeTraverser =>
+        traverser.traverse(tree)
+        tree
+      case transformer: TypedTreeTransformer =>
+        transformer.transform(tree)
 
 
 }

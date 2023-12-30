@@ -17,9 +17,9 @@ object Frontend extends Pipeline[List[File], Program]{
   private lazy val pipeline =
     Lexer andThen
     Parser andThen
-    NameAnalyzer andThen
-    SymbolicTreePrinter andThen
-    Typer
+    NameAnalyzer
+    //SymbolicTreePrinter andThen
+    //Typer
 
   override def run(v: List[File])(using Context) =
     pipeline.run(v)

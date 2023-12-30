@@ -55,7 +55,7 @@ object TypeChecker extends Pipeline[Program, Program]{
         s"""Found    : ${actual.tpe}
            |Expected : $expected
            |Tree     : $actual
-           |""".stripMargin)
+           |""".stripMargin, actual)
 
   def <:<(actual: Tree, expected: Type)(using Context) =
     if !(actual.tpe <:< expected) then
@@ -63,7 +63,7 @@ object TypeChecker extends Pipeline[Program, Program]{
         s"""Found    : ${actual.tpe}
            |Expected : $expected
            |Tree     : $actual
-           |""".stripMargin)
+           |""".stripMargin, actual)
 
   /**
     * Type Check a variable

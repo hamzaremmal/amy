@@ -11,7 +11,9 @@ object error {
     try{
       body
     } catch
-      case AmycFatalError(msg) =>
+      case ex: AmycFatalError =>
+        //println("Fatal error was thrown:")
+        //println(ex.getStackTrace.mkString("\n"))
         sys.exit(1)
         
   
