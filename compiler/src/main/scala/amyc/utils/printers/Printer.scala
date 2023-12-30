@@ -42,9 +42,9 @@ trait Printer(highlighter: Highlighter) {
 
       "case class " <:> name <:> "(" <:> Lined(fields.map(_.tt) map printField, ", ") <:> ") : " <:> parent
 
-    case FunDef(name, params, retType, body) =>
+    case FunDef(name, tparams, vparams, retType, body) =>
       Stacked(
-        "fn " <:> name <:> "(" <:> Lined(params map (toDoc(_)), ", ") <:> "): " <:> toDoc(retType) <:> " = {",
+        "fn " <:> name <:> "(" <:> Lined(vparams map (toDoc(_)), ", ") <:> "): " <:> toDoc(retType) <:> " = {",
         Indented(toDoc(body, false)),
         "}"
       )

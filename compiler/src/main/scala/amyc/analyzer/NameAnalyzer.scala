@@ -1,14 +1,10 @@
 package amyc.analyzer
 
 import amyc.*
-import amyc.core.*
-import amyc.core.Types.*
-import amyc.core.StdDefinitions.*
-import amyc.core.Symbols.*
-import amyc.core.StdTypes.*
-import amyc.utils.*
-import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 import amyc.analyzer.Transformer.*
+import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
+import amyc.core.*
+import amyc.utils.*
 
 // Name analyzer for Amy
 // Takes a nominal program (names are plain string, qualified names are string pairs)
@@ -31,8 +27,6 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
 
     // Step 3: Discover types
     for mod <- p.modules do registerTypes(mod)
-    // Uses String type, we need it to be registered first
-    registerUnnamed
 
     // Step 4: Discover type constructors
     for m <- p.modules do registerConstructors(m)
@@ -55,12 +49,13 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
     * @param Context
     */
   def registerFunctions(mod: N.ModuleDef)(using Context) =
-    for case fd @ N.FunDef(name, _, retType1, _) <- mod.defs do
+    for case fd @ N.FunDef(name, _, _, retType1, _) <- mod.defs do
       symbols.addFunction(
         symbols.module(mod.name),
         name,
         fd.mods,
-        fd.params,
+        fd.tparams,
+        fd.vparams,
         transformType(retType1, mod.name)
       )
 
@@ -114,16 +109,4 @@ object NameAnalyzer extends Pipeline[N.Program, S.Program] {
         )
       }
 
-  private def registerUnnamed(using Context) =
-    // A lot of patches everywhere to make it work, this will remain like this until the implementation of polymorphic functions
-    symbols.addFunction(
-      stdDef.UnnamedModule,
-      "==",
-      List("infix"),
-      List(
-        N.ValParamDef("lhs", N.TTypeTree(NoType)),
-        N.ValParamDef("rhs", N.TTypeTree(NoType))
-      ),
-      S.TTypeTree(stdType.BooleanType)
-    )
 }

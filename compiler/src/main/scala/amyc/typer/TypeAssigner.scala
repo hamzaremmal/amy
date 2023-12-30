@@ -187,8 +187,8 @@ object TypeAssigner extends Pipeline[Program, Program]{
     module
 
   def assignFunctionDefinition(fn: FunDef)(using Context) =
-    val FunDef(_, params, retType, body) = fn
-    for param <- params do assign(param)
+    val FunDef(_, tparams, vparams, retType, body) = fn
+    for param <- vparams do assign(param)
     assign(retType)
     if ! (fn.name.asInstanceOf[FunctionSymbol] is "native") then
       assign(body)

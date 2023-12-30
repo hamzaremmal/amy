@@ -29,7 +29,7 @@ object Interpreter extends Pipeline[Program, Unit] :
   // TODO HR : Remove this function in favour of a runtime environment
   def findFunction(program: Program, fn : FunctionSymbol) =
     program.modules.find(_.name == fn.owner).get.defs.collectFirst {
-      case fd@FunDef(_fn, _, _, _) if _fn == fn => fd
+      case fd@FunDef(_fn, _, _, _, _) if _fn == fn => fd
     }
 
   // Interprets a function, using evaluations for local variables contained in 'locals'
@@ -48,7 +48,7 @@ object Interpreter extends Pipeline[Program, Unit] :
           BuiltInFunctionValue.apply
         } orElse {
           findFunction(program, ref) map { fd =>
-            FunctionValue(fd.params.map(_.name), fd.body)
+            FunctionValue(fd.vparams.map(_.name), fd.body)
           }
         } getOrElse {
             reporter.fatal("Function not found")
@@ -100,7 +100,7 @@ object Interpreter extends Pipeline[Program, Unit] :
             val vargs = (n_args zip args.map(interpret(_,program))).toMap
             interpret(body, program)(locals ++ vargs, ctx)
           case Some(f: FunDef) =>
-            val arg_val = (f.params.map(_.name) zip args.map(interpret(_, program))).toMap
+            val arg_val = (f.vparams.map(_.name) zip args.map(interpret(_, program))).toMap
             val lookup = locals ++ arg_val
             interpret(f.body, program)(using lookup, ctx)
           case _ =>

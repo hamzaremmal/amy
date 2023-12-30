@@ -1,14 +1,12 @@
-package amyc.analyzer
+package amyc
+package analyzer
 
-import amyc.*
-import amyc.core.*
-import amyc.core.Symbols.*
-import amyc.analyzer.Transformer.*
-import amyc.ast.NominalTreeModule as N
-import amyc.ast.SymbolicTreeModule as S
-import amyc.utils.UniqueCounter
+import Transformer.*
+import core.*
+import core.Symbols.*
+import core.Types.*
+import ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 
-import java.util.concurrent.atomic.AtomicInteger
 import scala.collection.mutable
 
 // A class that represents a dictionary of symbols for an Amy program
@@ -44,7 +42,7 @@ class SymbolTable :
     val sym_owner = module(owner)
     val sym = ConstructorSymbol(Identifier.fresh(name), sym_owner, parent)
     defsByName += (owner, name) -> sym
-    sym.info{
+    sym.info {
       for p <- params yield
         ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner))
     }
@@ -58,13 +56,14 @@ class SymbolTable :
     - PARAM INFO
     - RET
   */
-  def addFunction(owner: ModuleSymbol, name: String, mods: List[String], params: List[N.ValParamDef], rte: S.TypeTree)
+  def addFunction(owner: ModuleSymbol, name: String, mods: List[String], tparams: List[N.TypeParamDef], vparams: List[N.ValParamDef], rte: S.TypeTree)
                  (using Context): FunctionSymbol=
     val id = Identifier.fresh(name)
     val sym = FunctionSymbol(id, owner, mods)
     defsByName += (owner.name, name) -> sym
-    val paramsym = params.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner.name)))
-    sym.info(paramsym, rte)
+    val symvparams = vparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, transformType(p.tt, owner.name)))
+    val symtparams = tparams.map(p => ParameterSymbol(Identifier.fresh(p.name), sym, S.TTypeTree(TypeVariable.fresh())))
+    sym.info(symtparams, symvparams, rte)
     sym
 
   // ====================================== SAFE METHODS ==========================================
@@ -75,36 +74,31 @@ class SymbolTable :
 
   /* fetch the symbol of a type */
   def getType(owner: String, name: String): Option[TypeSymbol] =
-    defsByName get (owner, name) flatMap {
+    defsByName get (owner, name) flatMap :
       case sym: TypeSymbol => Some(sym)
       case _ => None
-    }
 
   /* fetch the symbol of a constructor */
   def getConstructor(owner: String, name: String): Option[ConstructorSymbol] =
-    defsByName get(owner, name) flatMap {
+    defsByName get(owner, name) flatMap :
       case sym: ConstructorSymbol => Some(sym)
       case _ => None
-    }
 
   /* fetch the symbol of a function */
   def getFunction(owner: String, name: String): Option[FunctionSymbol] =
-    defsByName get (owner, name) flatMap {
+    defsByName get (owner, name) flatMap :
       case sym: FunctionSymbol => Some(sym)
       case _ => None
-    }
 
   // ===================================== FAIL METHODS ===========================================
 
   def module(name: String)(using Context): ModuleSymbol =
-    getModule(name) getOrElse {
+    getModule(name) getOrElse :
       reporter.fatal(s"Definition of module $name is missing")
-    }
 
   def `type`(module: String, name: String)(using Context): TypeSymbol =
-    getType(module, name) getOrElse {
+    getType(module, name) getOrElse :
       reporter.fatal(s"Definition of type $name in module $module is missing")
-    }
 
   def `type`(module: Symbol, name: String)(using Context): TypeSymbol =
     `type`(module.name, name)
@@ -113,14 +107,12 @@ class SymbolTable :
     function(module.name, name)
 
   def function(module: String, name: String)(using Context): FunctionSymbol =
-    getFunction(module, name) getOrElse {
+    getFunction(module, name) getOrElse :
       reporter.fatal(s"Definition of function $name in module $module is missing")
-    }
 
   def constructor(module: String, name: String)(using Context): ConstructorSymbol =
-    getConstructor(module, name) getOrElse {
+    getConstructor(module, name) getOrElse :
       reporter.fatal(s"Definition of constructor $name in module $module is missing")
-    }
 
   def constructor(module: ModuleSymbol, name: String)(using Context): ConstructorSymbol =
     constructor(module.name, name)

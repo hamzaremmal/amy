@@ -151,15 +151,15 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   /**
     */
   lazy val funDef: Syntax[FunDef] =
-    (many(modifier) ~<~ `fn` ~ (identifier | plus | minus | not) ~ opt(inSquareBrackets(identifier)) ~ inParenthesis(vparams) ~<~ ":" ~ typeTree ~ opt("=" ~>~ inBrace(expr))) map {
+    (many(modifier) ~<~ `fn` ~ (identifier | plus | minus | not) ~ opt(inSquareBrackets(tparams)) ~ inParenthesis(vparams) ~<~ ":" ~ typeTree ~ opt("=" ~>~ inBrace(expr))) map {
       case mods ~ funcName ~ tparams ~ vparams ~ tpe ~ Some(expr) =>
         if mods.toList.contains("native") then
           throw AmycFatalError(s"native function cannot have a body")
-        FunDef(funcName, vparams, tpe, expr).mods(mods.toList)
+        FunDef(funcName, tparams.getOrElse(Nil), vparams, tpe, expr).mods(mods.toList)
       case mods ~ funcName ~ tparams ~ vparams ~ tpe ~ None =>
         if ! mods.toList.contains("native") then
           throw AmycFatalError(s"non-native function $funcName must have a body")
-        FunDef(funcName, vparams, tpe, EmptyExpr()).mods(mods.toList)
+        FunDef(funcName, tparams.getOrElse(Nil), vparams, tpe, EmptyExpr()).mods(mods.toList)
     }
 
   // ==============================================================================================
@@ -204,14 +204,21 @@ object Parser extends Pipeline[Iterator[Token], Program] with Parsers:
   // ===================================== PARAMETERS =============================================
   // ==============================================================================================
 
-  // A list of parameter definitions.
-  lazy val vparams: Syntax[List[ValParamDef]] =
-    repsep(vparam, ",").map(_.toList)
-
   // A parameter definition, i.e., an identifier along with the expected type.
   lazy val vparam: Syntax[ValParamDef] =
     (identifier ~<~ ":" ~ typeTree) map :
       case name ~ tpe => ValParamDef(name, tpe)
+
+  // A list of parameter definitions.
+  lazy val vparams: Syntax[List[ValParamDef]] =
+    repsep(vparam, ",").map(_.toList)
+
+  lazy val tparam: Syntax[TypeParamDef] =
+    identifier map:
+      case name => TypeParamDef(name)
+
+  lazy val tparams : Syntax[List[TypeParamDef]] =
+    repsep(tparam, ",").map(_.toList)
 
   lazy val args: Syntax[Seq[Expr]] =
     repsep(expr, ",")

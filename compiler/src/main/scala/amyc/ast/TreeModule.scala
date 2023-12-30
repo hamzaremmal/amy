@@ -1,9 +1,7 @@
 package amyc.ast
 
-import amyc.core.{Context, Identifier}
 import amyc.core.Types.{NoType, Type}
-import amyc.utils.printers.{NominalPrinter, Printer, SymbolicPrinter}
-import amyc.utils.{Positioned, UniqueCounter}
+import amyc.utils.Positioned
 
 /**
   * A polymorphic module containing definitions of Amy trees.
@@ -47,8 +45,8 @@ trait TreeModule :
       _mods = mods
       this
     def mods: List[String] = _mods
-  case class FunDef(name: Name, params: List[ValParamDef], retType: TypeTree, body: Expr) extends ClassOrFunDef :
-    def paramNames = params.map(_.name)
+  case class FunDef(name: Name, tparams: List[TypeParamDef], vparams: List[ValParamDef], retType: TypeTree, body: Expr) extends ClassOrFunDef :
+    def paramNames: List[Name] = vparams.map(_.name)
   case class AbstractClassDef(name: Name) extends ClassOrFunDef
   case class CaseClassDef(name: Name, fields: List[ValParamDef], parent: Name) extends ClassOrFunDef
 
@@ -56,7 +54,7 @@ trait TreeModule :
 
   case class ValParamDef(name: Name, tt: TypeTree) extends ParamDef
 
-  case class TypeParameterDef(name: Name) extends ParamDef
+  case class TypeParamDef(name: Name) extends ParamDef
 
   // ==============================================================================================
   // ======================================= EXPRESSIONS ==========================================

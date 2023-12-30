@@ -1,9 +1,8 @@
-package amyc.core
+package amyc
+package core
 
-import amyc.ast.SymbolicTreeModule
-import amyc.ast.SymbolicTreeModule.*
-import amyc.core.Identifier
-import amyc.core.Types.Type
+import ast.SymbolicTreeModule
+import ast.SymbolicTreeModule.*
 
 object Symbols:
 
@@ -24,7 +23,10 @@ object Symbols:
   // ==============================================================================================
 
   abstract class ApplicationSymbol(id: Identifier, owner: ModuleSymbol) extends Symbol(id, owner):
-    def param: List[ParameterSymbol]
+    def vparams: List[ParameterSymbol]
+
+    def tparams: List[ParameterSymbol]
+
     def rte : TypeTree
 
   /* Used for functions */
@@ -34,15 +36,19 @@ object Symbols:
       private val mods: List[String]
   ) extends ApplicationSymbol(id, owner):
 
-    private var _param: List[ParameterSymbol] = compiletime.uninitialized
+    private var _vparams: List[ParameterSymbol] = compiletime.uninitialized
+    private var _tparams: List[ParameterSymbol] = compiletime.uninitialized
     private var _rte: TypeTree = compiletime.uninitialized
 
-    def info(param: List[ParameterSymbol], rte: TypeTree): this.type =
-      _param = param
+    def info(tparams: List[ParameterSymbol], vparams: List[ParameterSymbol], rte: TypeTree): this.type =
+      _vparams = vparams
+      _tparams = tparams
       _rte = rte
       this
 
-    override def param: List[ParameterSymbol] = _param
+    override def vparams: List[ParameterSymbol] = _vparams
+
+    override def tparams: List[ParameterSymbol] = _tparams
     override def rte: TypeTree = _rte
 
     override val toString: String = id.name
@@ -60,7 +66,9 @@ object Symbols:
       _param = param
       this
 
-    override def param: List[ParameterSymbol] = _param
+    override def vparams: List[ParameterSymbol] = _param
+
+    override def tparams: List[ParameterSymbol] = ???
 
     override def rte: TypeTree = ClassTypeTree(parent)
 

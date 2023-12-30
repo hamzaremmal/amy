@@ -1,7 +1,5 @@
 package amyc.analyzer
 
-import amyc.reporter
-import amyc.core.Context
 import amyc.core.Symbols.*
 
 /* alias to write Scope definition */
@@ -10,10 +8,10 @@ private type Bag = Map[String, Symbol]
 /**
   *
   * @param parent
-  * @param params
+  * @param vparams
   * @param locals
   */
-sealed case class Scope protected (parent: Option[Scope], params : Bag, locals : Bag) :
+sealed case class Scope protected (parent: Option[Scope], tparams: Bag, vparams: Bag, locals: Bag) :
 
   /**
     * Create a new Scope with the mapping (name -> id) in locals
@@ -23,7 +21,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @return
     */
   final def withLocal(name : String, id : Symbol) : Scope =
-    Scope(Some(this), params, locals + (name -> id))
+    Scope(Some(this), tparams, vparams, locals + (name -> id))
 
   /**
     *
@@ -31,7 +29,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @return
     */
   final def withLocals(locals: Bag): Scope =
-    Scope(Some(this), params, locals)
+    Scope(Some(this), tparams, vparams, locals)
 
   /**
     * Create a new Scope with the mapping (name -> id) in params
@@ -40,16 +38,35 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @param id
     * @return
     */
-  final def withParam(name : String, id : Symbol) : Scope =
-    Scope(Some(this), params + (name -> id), locals)
+  final def withVParam(name : String, id : Symbol) : Scope =
+    Scope(Some(this), tparams, vparams + (name -> id), locals)
 
   /**
     *
     * @param params
     * @return
     */
-  final def withParams(params : Bag): Scope =
-    Scope(Some(this), params, locals)
+  final def withVParams(params : Bag): Scope =
+    Scope(Some(this), tparams, params, locals)
+
+  /**
+   * Create a new Scope with the mapping (name -> id) in params
+   * The parent of the new Scope is the caller
+   *
+   * @param name
+   * @param id
+   * @return
+   */
+  final def withTParam(name: String, id: Symbol): Scope =
+    Scope(Some(this), tparams + (name -> id), vparams, locals)
+
+  /**
+   *
+   * @param params
+   * @return
+   */
+  final def withTParams(tparams: Bag): Scope =
+    Scope(Some(this), tparams, vparams, locals)
 
   /**
     *
@@ -65,7 +82,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     * @return
     */
   def isParam(name: String): Boolean =
-    params.contains(name) || parent.map(_.isParam(name)).get
+    vparams.contains(name) || parent.map(_.isParam(name)).get
 
   /**
     * Resolve a new in the current Scope
@@ -85,7 +102,7 @@ sealed case class Scope protected (parent: Option[Scope], params : Bag, locals :
     */
   def resolveInScope(name : String) : Option[Symbol] =
     // Local variables shadow parameters!
-    locals.get(name) orElse params.get(name)
+    locals.get(name) orElse vparams.get(name)
 
 
 /**
@@ -107,13 +124,13 @@ object Scope :
     * @return
     */
   def combine(lhs : Scope, rhs : Scope)(using parent : Scope) : Scope =
-    Scope(Some(parent), lhs.params ++ rhs.params, lhs.locals ++ rhs.locals)
+    Scope(Some(parent), lhs.tparams ++ rhs.tparams, lhs.vparams ++ rhs.vparams, lhs.locals ++ rhs.locals)
 
 
 /**
   * Empty Scope
   */
-object EmptyScope extends Scope(None, Map.empty, Map.empty):
+object EmptyScope extends Scope(None, Map.empty, Map.empty, Map.empty):
 
   /* Override to avoid Exception in Scope::isLocal */
   override def isLocal(name: String): Boolean =

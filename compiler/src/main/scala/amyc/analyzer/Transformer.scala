@@ -1,10 +1,11 @@
-package amyc.analyzer
+package amyc
+package analyzer
 
-import amyc.*
-import amyc.core.*
-import amyc.core.Symbols.*
-import amyc.core.StdDefinitions.*
-import amyc.ast.{NominalTreeModule as N, SymbolicTreeModule as S}
+import core.*
+import core.Symbols.*
+import core.Types.*
+import core.StdDefinitions.*
+import ast.{NominalTreeModule as N, SymbolicTreeModule as S}
 
 object Transformer {
 
@@ -71,27 +72,35 @@ object Transformer {
     * @return
     */
   def transformFunDef(fd: N.FunDef, module: String)(using Context): S.FunDef = {
-    val N.FunDef(name, params, retType, body) = fd
+    val N.FunDef(name, tparams, vparams, retType, body) = fd
     val sym = symbols.function(module, name)
 
-    params.groupBy(_.name).foreach { case (name, ps) =>
+    vparams.groupBy(_.name).foreach { case (name, ps) =>
       if (ps.size > 1) {
         reporter.fatal(s"Two parameters named $name in function ${fd.name}", fd)
       }
     }
 
-    val newParams = params zip sym.param map {
+    val symvparams = vparams zip sym.vparams map {
       case (pd@N.ValParamDef(_, tt), sym) =>
         S.ValParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
     }
 
-    val paramsMap = sym.param.map(s => (s.name, s)).toMap
+    val symtparams = tparams map:
+      case N.TypeParamDef(name) => S.TypeParamDef(ParameterSymbol(Identifier.fresh(name), sym, S.TTypeTree(TypeVariable.fresh())))
+
+    val scope = Scope.fresh
+      .withTParams(sym.tparams.map(s => (s.name, s)).toMap)
+      .withVParams(sym.vparams.map(s => (s.name, s)).toMap)
+
+    S.TTypeTree(Types.TypeVariable.fresh())
 
     S.FunDef(
       sym,
-      newParams,
+      symtparams,
+      symvparams,
       sym.rte.setPos(retType),
-      transformExpr(body)(module, Scope.fresh.withParams(paramsMap), ctx)
+      transformExpr(body)(module, scope, ctx)
     ).setPos(fd)
   }
 
@@ -108,7 +117,7 @@ object Transformer {
         S.AbstractClassDef(symbols.getType(module, name).get)
       case N.CaseClassDef(name, params, _) =>
         val sym = symbols.constructor(module, name)
-        val newParams = params zip sym.param map {
+        val newParams = params zip sym.vparams map {
           case (pd@N.ValParamDef(_, tt), sym) =>
             S.ValParamDef(sym, sym.tpe.setPos(tt)).setPos(pd)
         }
@@ -165,7 +174,7 @@ object Transformer {
           case None =>
             reporter.fatal(s"Function or constructor $qname not found", expr)
           case Some(sym: ApplicationSymbol) =>
-            if (sym.param.size != args.size) {
+            if (sym.vparams.size != args.size) {
               reporter.fatal(s"Wrong number of arguments for function/constructor $qname", expr)
             }
             S.Call(sym, args.map(transformExpr(_)))
@@ -209,7 +218,7 @@ object Transformer {
                 reporter.warning("Suspicious shadowing by an Id Pattern", pat)
               }
               symbols.getConstructor(module, name) match {
-                case Some(sym : ConstructorSymbol) if sym.param.isEmpty =>
+                case Some(sym : ConstructorSymbol) if sym.vparams.isEmpty =>
                   reporter.warning(s"There is a nullary constructor in this module called '$name'. Did you mean '$name()'?", pat)
                 case _ =>
               }
@@ -223,7 +232,7 @@ object Transformer {
                 .getOrElse {
                   reporter.fatal(s"Constructor $constr not found", pat)
                 }
-              if (sym.param.size != args.size) {
+              if (sym.vparams.size != args.size) {
                 reporter.fatal(s"Wrong number of args for constructor $constr", pat)
               }
               val (newPatts, moreLocals0) = (args map transformPattern).unzip
