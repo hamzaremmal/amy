@@ -12,7 +12,7 @@ import amyc.core.Symbols.{ConstructorSymbol, FunctionSymbol}
 import amyc.tools.Pipeline
 import amyc.{ctx, reporter}
 
-object TypeInferer extends Pipeline[Program, Program]{
+object ConstraintSolver extends Pipeline[Program, Program]{
 
   override val name = "TypeInferer"
 

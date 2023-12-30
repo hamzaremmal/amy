@@ -8,7 +8,7 @@ import core.Context
 object Typer extends Pipeline[Program, Program]{
 
   private lazy val typerPipeline =
-    TypeInferer andThen
+    ConstraintSolver andThen
     TypeAssigner andThen
     TypeChecker
 
