@@ -17,7 +17,7 @@ jobs:
           cache: 'sbt'
       - name: Generate scaladoc
         run: sbt unidoc
-      - uses:  actions/upload-pages-artifact@v2
+      - uses:  actions/upload-pages-artifact@v3
         with:
           path: "${{ github.workspace }}/target/scala-3.3.0/unidoc"
           
